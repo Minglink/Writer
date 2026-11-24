@@ -1,0 +1,123 @@
+import {
+  MATERIAL_KINDS,
+  materialPreview,
+  MATERIAL_STAGE_KINDS,
+  type CatalogIndexSnapshot,
+  type LongBookSummary,
+  type MaterialReadScope,
+  type MaterialKind,
+  type MysteryBookSummary
+} from "@writer/contracts";
+
+export interface MaterialCandidate {
+  id: string;
+  libraryId: string;
+  entryId: string;
+  title: string;
+  entryTitle: string;
+  libraryTitle: string;
+  overview?: boolean;
+  kind: MaterialKind;
+  stamp: string;
+}
+
+/** Entries Main places in a run's context catalog before the agent pages. */
+export const MATERIAL_CATALOG_FIRST_PAGE = 64;
+
+/**
+ * Lets every linked library show its leading entries (its index) on the first
+ * page: each library contributes up to K entries first, then the rest follow
+ * in their original order. Nothing moves when everything fits on one page.
+ */
+export function orderByLibraryQuota<T extends { libraryId: string }>(
+  candidates: readonly T[],
+  page = MATERIAL_CATALOG_FIRST_PAGE
+): T[] {
+  const libraries = new Set(candidates.map(({ libraryId }) => libraryId));
+  if (libraries.size < 2 || candidates.length <= page) return [...candidates];
+  const quota = Math.max(4, Math.floor(page / libraries.size));
+  const taken = new Map<string, number>();
+  const head: T[] = [];
+  const tail: T[] = [];
+  for (const candidate of candidates) {
+    const count = taken.get(candidate.libraryId) ?? 0;
+    if (count < quota) {
+      head.push(candidate);
+      taken.set(candidate.libraryId, count + 1);
+    } else tail.push(candidate);
+  }
+  return [...head, ...tail];
+}
+
+/** Re-evaluated against persisted bindings for every query, including reads. */
+export function scopedMaterialCandidates(
+  index: CatalogIndexSnapshot,
+  scope: MaterialReadScope,
+  longBook?: LongBookSummary,
+  notices: string[] = [],
+  mysteryBook?: MysteryBookSummary
+): MaterialCandidate[] {
+  const book =
+    scope.bookType === "mystery"
+      ? mysteryBook
+      : scope.bookType === "long"
+        ? longBook
+        : index.books.find(
+            (item) =>
+              item.id === scope.bookId && item.bookType === scope.bookType
+          );
+  if (!book || book.id !== scope.bookId) {
+    throw new Error(
+      scope.bookType === "mystery"
+        ? "关联素材所属剧本杀作品不存在或已不可读。"
+        : "关联素材所属书籍不存在或已不可读。"
+    );
+  }
+  const candidates: MaterialCandidate[] = [];
+  const used = new Set<string>();
+  const boundLibraryIds =
+    "linkedMaterialIds" in book
+      ? [...new Set(book.linkedMaterialIds)]
+      : [
+          ...new Set(
+            MATERIAL_KINDS.flatMap((kind) => book.linkedMaterialIdsByKind[kind])
+          )
+        ];
+  for (const libraryId of boundLibraryIds) {
+    const library = index.materials.find((item) => item.id === libraryId);
+    if (!library) {
+      if (notices.length < 20)
+        notices.push(
+          `关联素材库「${materialPreview(libraryId, 240)}」不存在或分类已变化，请检查关联。`
+        );
+      continue;
+    }
+    for (const entry of library.entries) {
+      if (entry.contentBytes === 0) continue;
+      const entryKind: MaterialKind =
+        MATERIAL_STAGE_KINDS[entry.stageId] ??
+        (library.materialKind === "mixed" ? "other" : library.materialKind);
+      if (!scope.kinds.includes(entryKind)) continue;
+      const base = `material:${libraryId}:${entry.id}`;
+      let id = base;
+      for (let suffix = 2; used.has(id); suffix++) id = `${base}:${suffix}`;
+      used.add(id);
+      const combined = `${library.title} · ${entry.title}`;
+      const suffix = ` · ${entry.id.slice(-12)}`;
+      candidates.push({
+        id,
+        libraryId,
+        entryId: entry.id,
+        title:
+          combined.length <= 240
+            ? combined
+            : `${combined.slice(0, 240 - suffix.length)}${suffix}`,
+        entryTitle: entry.title,
+        libraryTitle: library.title,
+        kind: entryKind,
+        stamp: entry.contentStamp
+      });
+    }
+  }
+  return orderByLibraryQuota(candidates);
+}

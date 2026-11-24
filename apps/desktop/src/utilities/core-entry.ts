@@ -1,0 +1,789 @@
+import { withBookImageCommands } from "./book-images/commands";
+import { withDocumentVersionCommands } from "./document-versions/version-commands";
+import { withDecompositionCommands } from "./long-book-decomposition/commands";
+import { withBookIdentityCommands } from "./book-identity/commands";
+import { withLongMaterialPackCommands } from "./long-material-pack/commands";
+import { withLibraryPackageCommands } from "./library-package/commands";
+import { LongLedgerAuditError } from "./long-ledger-v4-audit";
+import { withLongBookAnalysisSources } from "./long-book-analysis-sources";
+import { withShortBookAnalysisSources } from "./short-book-analysis-sources";
+import { handleLongCoreCommand } from "./long-core-commands";
+import { LongDocumentConflictError } from "./long-project-store/types";
+import {
+  MysteryDocumentConflictError,
+  MysteryWorkspaceService,
+  handleMysteryCoreCommand
+} from "./mystery-store";
+import { legacyDataRootsFromEnvironment } from "./legacy-data-roots";
+import { withDeviceSyncCommands } from "./device-sync-core";
+import { createCoreConversationRuntime } from "./core-conversation-runtime";
+import { LibraryManagementService } from "./library-management-service";
+import { MaterialQueryService } from "./material-query-service";
+import {
+  SaveDocumentResultSchema,
+  CatalogDraftSectionSchema,
+  CreateDraftSectionsResultSchema,
+  CatalogDraftRecoverySaveResultSchema,
+  CatalogDraftRecoverySchema,
+  CatalogLibrarySchema,
+  CatalogLibraryGroupSchema,
+  CatalogLibraryEntrySchema,
+  ImportLibraryEntriesResultSchema,
+  CatalogOpenProjectResultSchema,
+  CatalogIndexSnapshotSchema,
+  ExternalControlLocateProjectResultSchema,
+  CatalogReadDocumentResultSchema,
+  ReadWritingContextResultSchema,
+  CatalogSnapshotSchema,
+  BookSchema,
+  DeleteCatalogProjectResultSchema,
+  DeleteBookResultSchema,
+  DeleteDraftSectionResultSchema,
+  MoveDraftSectionResultSchema,
+  DuplicateCatalogProjectResultSchema,
+  CatalogInstallMarketplaceSkillContentResultSchema,
+  RemoveLibraryEntryResultSchema,
+  MoveLibraryEntryResultSchema,
+  AcademicBookSchema,
+  CreateAcademicReferenceCardResultSchema,
+  UpdateAcademicReferenceCardResultSchema,
+  DeleteAcademicReferenceCardResultSchema,
+  MutateAcademicManuscriptResultSchema,
+  ScriptBookSchema,
+  ShortBookSchema,
+  LongWorkspaceOperationError,
+  MysteryWorkspaceOperationError,
+  UnregisterCatalogProjectResultSchema,
+  WriteWritingContextResultSchema,
+  type CommandEnvelope,
+  type CommandResult
+} from "@writer/contracts";
+import { existsSync } from "node:fs";
+import { CatalogStore } from "./catalog-store";
+import {
+  FolderCatalogAcademicCiteKeyConflictError,
+  FolderCatalogConflictError,
+  FolderCatalogStore
+} from "./folder-catalog-store";
+import { bootUtility } from "./runtime";
+import { LongWorkspaceService } from "./long-workspace-service";
+
+const userDataPath = process.env.WRITER_USER_DATA_PATH?.trim();
+if (!userDataPath) {
+  throw new Error("Core Utility requires WRITER_USER_DATA_PATH.");
+}
+const resolvedUserDataPath = userDataPath;
+
+const legacyDataRoots = legacyDataRootsFromEnvironment();
+const legacyCatalogStore = new CatalogStore({
+  userDataPath: resolvedUserDataPath,
+  ...(legacyDataRoots.length > 0 ? { legacyDataRoots } : {})
+});
+let materialQueryService: MaterialQueryService | undefined;
+let catalogStoreInitialization: Promise<FolderCatalogStore> | undefined;
+const draftRecoveryStore = new FolderCatalogStore({
+  userDataPath: resolvedUserDataPath
+});
+const longWorkspaceService = new LongWorkspaceService({
+  userDataPath: resolvedUserDataPath
+});
+const mysteryWorkspaceService = new MysteryWorkspaceService({
+  userDataPath: resolvedUserDataPath
+});
+const conversationRuntime = createCoreConversationRuntime(
+  resolvedUserDataPath,
+  import.meta.url
+);
+
+async function requireCatalogStore(): Promise<FolderCatalogStore> {
+  if (!catalogStoreInitialization) {
+    const initialization = (async () => {
+      const existingFolderStore = new FolderCatalogStore({
+        userDataPath: resolvedUserDataPath
+      });
+      if (existsSync(existingFolderStore.registryPath)) {
+        await existingFolderStore.indexSnapshot();
+        return existingFolderStore;
+      }
+      const legacySnapshot = await legacyCatalogStore.snapshot();
+      const folderStore = new FolderCatalogStore({
+        userDataPath: resolvedUserDataPath,
+        initialSnapshot: legacySnapshot
+      });
+      await folderStore.indexSnapshot();
+      return folderStore;
+    })();
+    catalogStoreInitialization = initialization.catch((error: unknown) => {
+      catalogStoreInitialization = undefined;
+      throw error;
+    });
+  }
+  return await catalogStoreInitialization;
+}
+
+async function handleCatalogCommand(
+  command: CommandEnvelope
+): Promise<CommandResult> {
+  try {
+    const longResult = await handleLongCoreCommand(
+      longWorkspaceService,
+      command
+    );
+    if (longResult) return longResult;
+    const mysteryResult = await handleMysteryCoreCommand(
+      mysteryWorkspaceService,
+      command
+    );
+    if (mysteryResult) return mysteryResult;
+    if (command.type === "catalog.loadDraftRecovery") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogDraftRecoverySchema.parse(
+          await draftRecoveryStore.loadDraftRecovery()
+        )
+      };
+    }
+    if (command.type === "catalog.saveDraftRecovery") {
+      await draftRecoveryStore.saveDraftRecovery(command.payload.drafts);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogDraftRecoverySaveResultSchema.parse({ saved: true })
+      };
+    }
+    const catalogStore = await requireCatalogStore();
+    if (
+      (command.type === "catalog.createLibraryEntry" ||
+        command.type === "catalog.saveLibraryEntry" ||
+        command.type === "catalog.updateLibrary") &&
+      command.payload.managementScope
+    ) {
+      await new LibraryManagementService(
+        catalogStore,
+        longWorkspaceService,
+        mysteryWorkspaceService
+      ).assertWritable(
+        command.payload.managementScope,
+        command.payload.domain,
+        command.payload.libraryId
+      );
+    }
+
+    if (command.type === "catalog.readWritingWorkspace") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.readWritingWorkspace(
+          command.payload,
+          command.context.runId
+        )
+      };
+    }
+    if (command.type === "catalog.readLibraryAgentLibrary") {
+      const service = new LibraryManagementService(
+        await requireCatalogStore(),
+        longWorkspaceService,
+        mysteryWorkspaceService
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await service.readLibraryAgentLibrary(command.payload)
+      };
+    }
+    if (command.type === "catalog.queryLibraryManagement") {
+      const service = new LibraryManagementService(
+        await requireCatalogStore(),
+        longWorkspaceService,
+        mysteryWorkspaceService
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await service.query(command.payload)
+      };
+    }
+    if (command.type === "catalog.queryMaterials") {
+      materialQueryService ??= new MaterialQueryService(
+        catalogStore,
+        longWorkspaceService,
+        mysteryWorkspaceService
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await materialQueryService.query(command.payload)
+      };
+    }
+    if (command.type === "externalControl.locateProject") {
+      const { source, projectId } = command.payload;
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ExternalControlLocateProjectResultSchema.parse({
+          projectDirectory:
+            source === "long"
+              ? await longWorkspaceService.resolveProjectDirectory(projectId)
+              : source === "mystery"
+                ? await mysteryWorkspaceService.catalog.resolveProjectDirectory(
+                    projectId
+                  )
+                : await catalogStore.projectDirectory(projectId)
+        })
+      };
+    }
+    if (command.type === "catalog.index") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogIndexSnapshotSchema.parse(
+          await catalogStore.indexSnapshot()
+        )
+      };
+    }
+    if (command.type === "catalog.readDocument") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogReadDocumentResultSchema.parse(
+          await catalogStore.readDocument(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.readWritingContext") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ReadWritingContextResultSchema.parse(
+          await catalogStore.readWritingContext(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.writeWritingContext") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: WriteWritingContextResultSchema.parse(
+          await catalogStore.writeWritingContext(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.previewLibraryStructure") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.previewLibraryStructure(command.payload)
+      };
+    }
+    if (command.type === "catalog.applyLibraryStructure") {
+      if (command.payload.managementScope) {
+        const service = new LibraryManagementService(
+          catalogStore,
+          longWorkspaceService,
+          mysteryWorkspaceService
+        );
+        await service.assertStructureTargets(
+          command.payload.managementScope,
+          command.payload.domain,
+          command.payload.operations
+        );
+      }
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.applyLibraryStructure(command.payload)
+      };
+    }
+    if (command.type === "catalog.createUnboundEntry") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.createUnboundEntry(command.payload)
+      };
+    }
+    if (command.type === "catalog.reorderLibrary") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.reorderLibrary(command.payload)
+      };
+    }
+    if (command.type === "catalog.snapshot") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogSnapshotSchema.parse(await catalogStore.snapshot())
+      };
+    }
+    if (command.type === "catalog.createShortBook") {
+      const created = await catalogStore.createShortBook(command.payload);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ShortBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createScriptBook") {
+      const created = await catalogStore.createScriptBook(command.payload);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ScriptBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createAcademicBook") {
+      const created = await catalogStore.createAcademicBook(command.payload);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: AcademicBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createShortBookAtPath") {
+      const created = await catalogStore.createShortBook(
+        command.payload.input,
+        command.payload.parentDirectory
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ShortBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createScriptBookAtPath") {
+      const created = await catalogStore.createScriptBook(
+        command.payload.input,
+        command.payload.parentDirectory
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ScriptBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createAcademicBookAtPath") {
+      const created = await catalogStore.createAcademicBook(
+        command.payload.input,
+        command.payload.parentDirectory
+      );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: AcademicBookSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createLibraryAtPath") {
+      const created = await catalogStore.createLibrary(command.payload);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibrarySchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createLibraryGroup") {
+      const created = await catalogStore.createLibraryGroup(command.payload);
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibraryGroupSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.createLibraryGroupAtPath") {
+      const created = await catalogStore.createLibraryGroup({
+        ...command.payload.input,
+        parentDirectory: command.payload.parentDirectory
+      });
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibraryGroupSchema.parse(created.resource)
+      };
+    }
+    if (command.type === "catalog.openProjectAtPath") {
+      const opened =
+        command.payload.domain === "book"
+          ? await catalogStore.openBookProject(command.payload.projectDirectory)
+          : command.payload.domain === "material"
+            ? await catalogStore.openMaterialProject(
+                command.payload.projectDirectory
+              )
+            : await catalogStore.openSkillProject(
+                command.payload.projectDirectory
+              );
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogOpenProjectResultSchema.parse({
+          domain: command.payload.domain,
+          id: opened.resource.id,
+          title: opened.resource.title
+        })
+      };
+    }
+    if (command.type === "catalog.updateBook") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: BookSchema.parse(
+          await catalogStore.updateBook(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.mutatePlotStructure") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: BookSchema.parse(
+          await catalogStore.mutatePlotStructure(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.mutateCharacterStructure") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: BookSchema.parse(
+          await catalogStore.mutateCharacterStructure(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.mutateAcademicFramework") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: AcademicBookSchema.parse(
+          await catalogStore.mutateAcademicFramework(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.createAcademicReferenceCard") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CreateAcademicReferenceCardResultSchema.parse(
+          await catalogStore.createAcademicReferenceCard(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.updateAcademicReferenceCard") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: UpdateAcademicReferenceCardResultSchema.parse(
+          await catalogStore.updateAcademicReferenceCard(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.deleteAcademicReferenceCard") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: DeleteAcademicReferenceCardResultSchema.parse(
+          await catalogStore.deleteAcademicReferenceCard(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.mutateAcademicManuscript") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: MutateAcademicManuscriptResultSchema.parse(
+          await catalogStore.mutateAcademicManuscript(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.updateLibraryGroup") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibraryGroupSchema.parse(
+          await catalogStore.updateLibraryGroup(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.deleteBook") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: DeleteBookResultSchema.parse(
+          await catalogStore.removeBook(command.payload.bookId)
+        )
+      };
+    }
+    if (command.type === "catalog.saveDocument") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: SaveDocumentResultSchema.parse(
+          await catalogStore.saveDocument(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.createDraftSection") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogDraftSectionSchema.parse(
+          await catalogStore.createDraftSection(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.createDraftSections") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CreateDraftSectionsResultSchema.parse(
+          await catalogStore.createDraftSections(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.deleteDraftSection") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: DeleteDraftSectionResultSchema.parse(
+          await catalogStore.deleteDraftSection(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.moveDraftSection") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: MoveDraftSectionResultSchema.parse(
+          await catalogStore.moveDraftSection(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.saveLibraryEntry") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibraryEntrySchema.parse(
+          await catalogStore.saveLibraryEntry(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.createLibraryEntry") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibraryEntrySchema.parse(
+          await catalogStore.createLibraryEntry(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.importLibraryEntries") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: ImportLibraryEntriesResultSchema.parse(
+          await catalogStore.importLibraryEntries(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.updateLibrary") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogLibrarySchema.parse(
+          await catalogStore.updateLibrary(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.moveLibraryEntry") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: MoveLibraryEntryResultSchema.parse(
+          await catalogStore.moveLibraryEntry(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.removeLibraryEntry") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: RemoveLibraryEntryResultSchema.parse(
+          await catalogStore.removeLibraryEntry(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.unregisterProject") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: UnregisterCatalogProjectResultSchema.parse(
+          await catalogStore.unregisterProject(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.deleteProject") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: DeleteCatalogProjectResultSchema.parse(
+          await catalogStore.deleteProject(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.duplicateProject") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: DuplicateCatalogProjectResultSchema.parse(
+          await catalogStore.duplicateProject(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.installMarketplaceSkillContent") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: CatalogInstallMarketplaceSkillContentResultSchema.parse(
+          await catalogStore.installMarketplaceSkillContent(command.payload)
+        )
+      };
+    }
+    if (command.type === "catalog.installMarketplaceMaterial") {
+      return {
+        status: "accepted",
+        requestId: command.id,
+        payload: await catalogStore.installMarketplaceMaterial(command.payload)
+      };
+    }
+    return {
+      status: "rejected",
+      requestId: command.id,
+      error: {
+        code: "core.unsupported_command",
+        message: `Core Utility does not handle ${command.type}.`
+      }
+    };
+  } catch (error: unknown) {
+    if (error instanceof LongLedgerAuditError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: { code: "long.ledger.audit_failed", message: error.message }
+      };
+    }
+    if (error instanceof LongWorkspaceOperationError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: `long.operation.${error.code}`,
+          message: error.message,
+          details: {
+            ...error.details,
+            kind: error.name,
+            operationCode: error.code
+          }
+        }
+      };
+    }
+    if (error instanceof LongDocumentConflictError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: { code: "long.document_conflict", message: error.message }
+      };
+    }
+    if (error instanceof FolderCatalogAcademicCiteKeyConflictError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: { citeKey: error.citeKey }
+        }
+      };
+    }
+    if (error instanceof MysteryWorkspaceOperationError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: `mystery.${error.code}`,
+          message: error.message
+        }
+      };
+    }
+    if (error instanceof MysteryDocumentConflictError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: { code: "mystery.conflict", message: error.message }
+      };
+    }
+    if (error instanceof FolderCatalogConflictError) {
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: "catalog.conflict",
+          message: error.message,
+          details: {
+            expectedRevision: error.expectedRevision,
+            actualRevision: error.actualRevision
+          }
+        }
+      };
+    }
+    return {
+      status: "rejected",
+      requestId: command.id,
+      error: {
+        code: "catalog.command_failed",
+        message: error instanceof Error ? error.message : "目录操作失败。",
+        details: {
+          kind: error instanceof Error ? error.name : "unknown"
+        }
+      }
+    };
+  }
+}
+
+bootUtility("core", {
+  mode: "catalog-store",
+  onShutdown: conversationRuntime.close,
+  commandHandler: withDocumentVersionCommands(
+    requireCatalogStore,
+    longWorkspaceService,
+    conversationRuntime.wrap(
+      withLibraryPackageCommands(
+        requireCatalogStore,
+        withLongMaterialPackCommands(
+          requireCatalogStore,
+          longWorkspaceService,
+          withBookIdentityCommands(
+            requireCatalogStore,
+            longWorkspaceService,
+            withBookImageCommands(
+              requireCatalogStore,
+              longWorkspaceService,
+              withDeviceSyncCommands(
+                resolvedUserDataPath,
+                requireCatalogStore,
+                longWorkspaceService,
+                withDecompositionCommands(
+                  resolvedUserDataPath,
+                  requireCatalogStore,
+                  longWorkspaceService,
+                  withLongBookAnalysisSources(
+                    withShortBookAnalysisSources(handleCatalogCommand)
+                  )
+                )
+              ),
+              mysteryWorkspaceService
+            )
+          )
+        )
+      )
+    ),
+    mysteryWorkspaceService
+  )
+});

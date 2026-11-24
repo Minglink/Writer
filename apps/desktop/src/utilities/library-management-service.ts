@@ -1,0 +1,275 @@
+import {
+  LibraryManagementQueryInputSchema,
+  LibraryAgentWorkspaceSnapshotSchema,
+  createShortWorkspaceContentRevision,
+  LIBRARY_AGENT_ENTRY_MAX_CHARACTERS,
+  LIBRARY_AGENT_MAX_ENTRIES,
+  LIBRARY_AGENT_OVERVIEW_MAX_CHARACTERS,
+  LIBRARY_AGENT_TOTAL_SNAPSHOT_MAX_CHARACTERS,
+  type LibraryManagementQueryInput,
+  type LibraryManagementQueryResult,
+  type LibraryManagementScope,
+  type LibraryStructureOperation,
+  type LibraryAgentDomain,
+  type LibraryManagementCandidate
+} from "@writer/contracts";
+import type { FolderCatalogStore } from "./folder-catalog-store";
+import type { LongWorkspaceService } from "./long-workspace-service";
+import type { MysteryWorkspaceService } from "./mystery-store";
+import {
+  assertManagementStructureTargets,
+  libraryAgentDocumentId,
+  runLibraryManagementRequest
+} from "./library-management-requests";
+
+/** Core-owned, live association checks. No writing-stage read filters apply here. */
+export class LibraryManagementService {
+  constructor(
+    private readonly catalog: Pick<
+      FolderCatalogStore,
+      "indexSnapshot" | "readDocument" | "previewLibraryStructure"
+    >,
+    private readonly long: Pick<LongWorkspaceService, "open">,
+    private readonly mystery?: Pick<MysteryWorkspaceService, "open">
+  ) {}
+
+  private async sources(scope: LibraryManagementScope) {
+    const index = await this.catalog.indexSnapshot();
+    if (scope.bookType === "mystery") {
+      if (!this.mystery)
+        throw new Error("当前运行上下文不支持剧本杀资料库管理。");
+      const book = (await this.mystery.open({ bookId: scope.bookId })).summary;
+      const materialIds = new Set(book.linkedMaterialIds);
+      const skillIds = new Set(book.linkedSkillIds);
+      return [
+        ...index.materials
+          .filter((item) => materialIds.has(item.id))
+          .map((library) => ({
+            library,
+            domain: "material" as const,
+            kind: library.materialKind,
+            readOnly: false
+          })),
+        ...index.skills
+          .filter((item) => skillIds.has(item.id))
+          .map((library) => ({
+            library,
+            domain: "skill" as const,
+            kind: library.skillKind,
+            readOnly: library.isBuiltin
+          }))
+      ];
+    }
+    const book =
+      scope.bookType === "long"
+        ? (await this.long.open({ bookId: scope.bookId })).summary
+        : index.books.find(
+            (item) =>
+              item.id === scope.bookId && item.bookType === scope.bookType
+          );
+    if (!book || book.id !== scope.bookId)
+      throw new Error("资料库管理所属作品不存在。");
+    const ids = (bindings: object) =>
+      new Set(Object.values(bindings).flat() as string[]);
+    const materialIds =
+      "linkedMaterialIds" in book
+        ? new Set(book.linkedMaterialIds)
+        : ids(book.linkedMaterialIdsByKind);
+    const skillIds =
+      "linkedSkillIds" in book
+        ? new Set(book.linkedSkillIds)
+        : ids(book.linkedSkillIdsByKind);
+    return [
+      ...index.materials
+        .filter((item) => materialIds.has(item.id))
+        .map((library) => ({
+          library,
+          domain: "material" as const,
+          kind: library.materialKind,
+          readOnly: false
+        })),
+      ...index.skills
+        .filter((item) => skillIds.has(item.id))
+        .map((library) => ({
+          library,
+          domain: "skill" as const,
+          kind: library.skillKind,
+          readOnly: library.isBuiltin
+        }))
+    ];
+  }
+
+  async assertWritable(
+    scope: LibraryManagementScope,
+    domain: LibraryAgentDomain,
+    libraryId: string
+  ): Promise<void> {
+    const target = (await this.sources(scope)).find(
+      (item) => item.domain === domain && item.library.id === libraryId
+    );
+    if (!target || target.readOnly)
+      throw new Error("目标资料库已解绑、不存在或只读，不能继续写入。");
+  }
+
+  async query(
+    raw: LibraryManagementQueryInput
+  ): Promise<LibraryManagementQueryResult> {
+    const input = LibraryManagementQueryInputSchema.parse(raw);
+    const sources = (await this.sources(input.scope)).filter(
+      (item) => !input.domain || input.domain === item.domain
+    );
+    const libraries: LibraryManagementCandidate[] = sources.map(
+      ({ library, domain, readOnly }) => ({
+        libraryId: library.id,
+        title: library.title,
+        domain,
+        readOnly,
+        entryCount: library.entries.length
+      })
+    );
+    if (!input.request || !input.domain) return { libraries };
+    const result = await runLibraryManagementRequest(
+      this.catalog,
+      input.domain,
+      sources,
+      input.libraryId,
+      input.request,
+      input.scope
+    );
+    const current = await this.sources(input.scope);
+    for (const source of sources.filter(
+      (item) => !input.libraryId || item.library.id === input.libraryId
+    )) {
+      const live = current.find(
+        (item) =>
+          item.domain === source.domain && item.library.id === source.library.id
+      );
+      if (
+        !live ||
+        live.library.projectRevision !== source.library.projectRevision ||
+        live.readOnly !== source.readOnly
+      )
+        throw new Error("资料库绑定或版本已变化，请重新读取。");
+    }
+    return { libraries, ...result };
+  }
+
+  async assertStructureTargets(
+    scope: LibraryManagementScope,
+    domain: LibraryAgentDomain,
+    operations: LibraryStructureOperation[]
+  ) {
+    assertManagementStructureTargets(
+      domain,
+      await this.sources(scope),
+      operations
+    );
+  }
+
+  private async domainSources(domain: LibraryAgentDomain) {
+    const index = await this.catalog.indexSnapshot();
+    return domain === "material"
+      ? index.materials.map((library) => ({
+          library,
+          domain,
+          kind: library.materialKind,
+          readOnly: false
+        }))
+      : index.skills.map((library) => ({
+          library,
+          domain,
+          kind: library.skillKind,
+          readOnly: library.isBuiltin
+        }));
+  }
+
+  async readLibraryAgentLibrary(input: {
+    domain: LibraryAgentDomain;
+    libraryId: string;
+  }) {
+    const source = (await this.domainSources(input.domain)).find(
+      (item) => item.library.id === input.libraryId
+    );
+    if (!source) throw new Error("库不存在或不属于本领域。");
+    return this.buildSnapshot(source, () => this.domainSources(input.domain));
+  }
+
+  private async buildSnapshot(
+    source: Awaited<ReturnType<LibraryManagementService["sources"]>>[number],
+    reload: () => ReturnType<LibraryManagementService["sources"]>
+  ) {
+    const { library, domain, kind, readOnly } = source;
+    let remaining = LIBRARY_AGENT_TOTAL_SNAPSHOT_MAX_CHARACTERS;
+    const take = (content: string, limit: number) => {
+      const text = content.slice(0, Math.min(remaining, limit));
+      remaining -= text.length;
+      return {
+        content: text,
+        ...(text.length < content.length
+          ? { truncated: true, originalLength: content.length }
+          : {})
+      };
+    };
+    const overviewDocument = await this.catalog.readDocument({
+      projectId: library.id,
+      target: "overview"
+    });
+    const overview = take(
+      overviewDocument.content,
+      LIBRARY_AGENT_OVERVIEW_MAX_CHARACTERS
+    );
+    const documentId = (target: "entry" | "overview", entryId?: string) =>
+      libraryAgentDocumentId(domain, target, library.id, entryId);
+    const entries = [];
+    for (const entry of library.entries.slice(0, LIBRARY_AGENT_MAX_ENTRIES)) {
+      const document = await this.catalog.readDocument({
+        projectId: library.id,
+        target: "document",
+        documentId: entry.id
+      });
+      entries.push({
+        id: entry.id,
+        documentId: documentId("entry", entry.id),
+        title: entry.title,
+        stageId: entry.stageId,
+        ...take(document.content, LIBRARY_AGENT_ENTRY_MAX_CHARACTERS),
+        revision: createShortWorkspaceContentRevision(document.content),
+        readOnly
+      });
+    }
+    // The live registry and revision can change while the snapshot is being read.
+    const current = (await reload()).find(
+      (item) => item.domain === domain && item.library.id === library.id
+    );
+    if (
+      !current ||
+      current.library.projectRevision !== library.projectRevision ||
+      current.readOnly !== readOnly
+    )
+      throw new Error("资料库绑定或版本已变化，请重新读取。");
+    return LibraryAgentWorkspaceSnapshotSchema.parse({
+      domain,
+      libraryId: library.id,
+      title: library.title,
+      libraryType:
+        "materialType" in library ? library.materialType : library.skillType,
+      kind,
+      ...(library.customTag ? { customTag: library.customTag } : {}),
+      readOnly,
+      projectRevision: library.projectRevision,
+      overviewDocumentId: documentId("overview"),
+      overview: overview.content,
+      overviewRevision: createShortWorkspaceContentRevision(
+        overviewDocument.content
+      ),
+      ...(overview.truncated
+        ? {
+            overviewTruncated: true,
+            overviewOriginalLength: overview.originalLength
+          }
+        : {}),
+      entries,
+      omittedEntryCount: Math.max(0, library.entries.length - entries.length)
+    });
+  }
+}

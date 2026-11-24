@@ -1,0 +1,27 @@
+name: 功能建议与创作需求
+description: 提出面向网文创作、长篇记忆、拆书或工作台体验的新功能建议
+title: "【建议】"
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 码字痛点与场景
+      description: 你在写书/连载时遇到了什么不便？
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望效果
+      description: 你希望 Writer 如何帮你解决这个问题？
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 补充说明（可选）
+      description: 参考截图、交互想法或其他备注

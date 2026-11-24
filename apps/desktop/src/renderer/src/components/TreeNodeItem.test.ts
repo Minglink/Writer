@@ -1,0 +1,81 @@
+import { describe, expect, it } from "vitest";
+import { createSSRApp } from "vue";
+import { renderToString } from "vue/server-renderer";
+import { expectSourceToContain } from "../../../test-utils/sourceText";
+// @ts-expect-error Loaded as source text by the Vitest-only virtual module.
+import styles from "virtual:writer-renderer-styles";
+import { setAppLanguage } from "../i18n";
+import BookActionMenu from "./BookActionMenu.vue";
+
+function bookMenu(props: { unavailable?: boolean; pinned?: boolean } = {}) {
+  return renderToString(createSSRApp(BookActionMenu, props));
+}
+
+function labels(html: string) {
+  return Array.from(
+    html.matchAll(/<span[^>]*>([^<]+)<\/span>/gu),
+    ([, label]) => label
+  );
+}
+
+describe("TreeNodeItem actions", () => {
+  it("renders the shared book menu in order with a neutral Remove and a danger Delete", async () => {
+    const html = await bookMenu();
+    expect(labels(html)).toEqual([
+      "置顶",
+      "管理",
+      "复制",
+      "绑定",
+      "导出",
+      "移除",
+      "删除"
+    ]);
+    expect(html.match(/role="separator"/gu)).toHaveLength(1);
+    const dangerButtons = [
+      ...html.matchAll(/<button[^>]*is-danger[^>]*>[\s\S]*?<\/button>/gu)
+    ];
+    expect(dangerButtons.flatMap(([button]) => labels(button))).toEqual([
+      "删除"
+    ]);
+    expect(labels(await bookMenu({ pinned: true }))[0]).toBe("取消置顶");
+  });
+
+  it("keeps only Remove for unavailable books in both locales", async () => {
+    expect(labels(await bookMenu({ unavailable: true, pinned: true }))).toEqual(
+      ["移除"]
+    );
+    try {
+      setAppLanguage("en-US", "en-US");
+      expect(labels(await bookMenu())).toEqual([
+        "Pin",
+        "Manage",
+        "Duplicate",
+        "Bindings",
+        "Export",
+        "Remove",
+        "Delete"
+      ]);
+      expect(labels(await bookMenu({ unavailable: true }))).toEqual(["Remove"]);
+    } finally {
+      setAppLanguage("zh-CN", "zh-CN");
+    }
+  });
+
+  it("hides row chevron and action icons until the row or action area is hovered", () => {
+    expect(styles).toContain(".tree-row:hover .tree-chevron,");
+    expect(styles).toContain(".tree-row:focus-visible .tree-chevron,");
+    expectSourceToContain(
+      styles,
+      ".tree-node:has(> .tree-node-action-area:is(:hover, :focus-within, .is-menu-open)) > .tree-row .tree-chevron"
+    );
+    expect(styles).toContain(
+      ".tree-row:hover ~ .tree-node-action-area .tree-node-action,"
+    );
+    expectSourceToContain(
+      styles,
+      ".tree-node-action-area:is(:hover, :focus-within, .is-menu-open) .tree-node-action"
+    );
+    expect(styles).not.toContain(".section-action { opacity: 0");
+    expect(styles).not.toContain(".section-toggle-chevron { opacity: 0");
+  });
+});

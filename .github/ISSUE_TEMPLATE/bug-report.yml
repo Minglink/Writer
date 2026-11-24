@@ -1,0 +1,34 @@
+name: 问题反馈
+description: 报告 Writer 使用过程中的异常、崩溃或界面问题
+title: "【Bug】"
+labels: ["bug"]
+assignees: []
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Writer 版本与系统环境
+      description: 例如 Writer v0.1.0 / Windows 11 24H2 x64
+      placeholder: "Writer v0.1.0 / Windows 11 x64"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 清晰描述遇到的异常现象或报错提示
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 按顺序列出触发问题的操作步骤
+      placeholder: |
+        1. 打开或新建长篇作品
+        2. 在某章节执行……
+        3. 出现……
+    validations:
+      required: true

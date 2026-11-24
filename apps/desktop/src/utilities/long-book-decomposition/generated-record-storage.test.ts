@@ -1,0 +1,72 @@
+import { mkdtemp, realpath, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, expect, it } from "vitest";
+import {
+  DECOMPOSITION_RECORD_MAX_BYTES,
+  type LongBookDecompositionJob
+} from "@writer/contracts";
+import { DecompositionRecordStore } from "./record-store";
+import { cleanupDecompositionRoots } from "./fixture-cleanup.test-support";
+
+const roots: string[] = [];
+afterEach(async () => {
+  await cleanupDecompositionRoots(roots);
+});
+async function fixture() {
+  const root = await realpath(
+    await mkdtemp(join(tmpdir(), "writer-overview-record-"))
+  );
+  roots.push(root);
+  const job = {
+    id: "ldjob_overview_record",
+    outputVersion: 1,
+    units: {
+      "summary:characters": { inputRevision: "rev_overview" },
+      "review:character": { inputRevision: "rev_review" }
+    }
+  } as unknown as LongBookDecompositionJob;
+  return { root, job, store: new DecompositionRecordStore(() => root) };
+}
+const data = (content: string) => ({
+  kind: "asset" as const,
+  asset: {
+    kind: "topic" as const,
+    domain: "character" as const,
+    title: "人物概览",
+    content
+  }
+});
+
+it("超过旧 8 MiB 上限的本地概览可保存、重启读取，再写其他任务记录", async () => {
+  const { root, job, store } = await fixture();
+  const overview = data('人物摘要😀\n"'.repeat(500_000));
+  const id = await store.save(job, "summary:characters", overview);
+  expect(
+    (await stat(join(root, "records", `${id}.json`))).size
+  ).toBeGreaterThan(8 * 1024 * 1024);
+  const restarted = new DecompositionRecordStore(() => root);
+  expect((await restarted.record(job, "summary:characters")).data).toEqual(
+    overview
+  );
+  await restarted.save(job, "review:character", {
+    kind: "review",
+    review: { domain: "character", issues: [] }
+  });
+  expect((await restarted.read(job.id, id)).record.data).toEqual(overview);
+});
+
+it("序列化转义后超过本地上限时拒绝写入，并保留已保存的概览", async () => {
+  const { job, store } = await fixture();
+  const original = data("# 人物概览");
+  await store.save(job, "summary:characters", original);
+  const oversized = data(
+    `开${"\n".repeat(DECOMPOSITION_RECORD_MAX_BYTES / 2)}尾`
+  );
+  await expect(
+    store.save(job, "summary:characters", oversized)
+  ).rejects.toThrow("拆解单元记录超过 32 MiB UTF-8 安全上限。");
+  expect((await store.record(job, "summary:characters")).data).toEqual(
+    original
+  );
+});

@@ -1,0 +1,66 @@
+export default {
+  organizeEntries: "Organize entries",
+  chooseDestination: "Choose destination",
+
+  unboundDestination: "Unbound",
+  destinationLibrary: "Library",
+
+  material: "Material",
+  skill: "Skill",
+  newValueLibrary: "New {arg0} library",
+  newEntry: "New entry",
+  newEntryInValue: "New entry in “{arg0}”",
+  library: "Library",
+  renameValueLibrary: "Rename {arg0} library",
+  renameEntry: "Rename entry",
+  deleteValue: "Delete “{arg0}”",
+  entry: "Entry",
+  idea: "Idea",
+  characterConcept: "Character concept",
+  plotDesign: "Plot design",
+  introductionDesign: "Introduction design",
+  plotDevelopment: "Plot development",
+  manuscriptExcerpts: "Manuscript excerpts",
+  otherMaterials: "Other materials",
+  entryToDeleteNotFound: "Entry to delete not found",
+  enterALibraryName: "Enter a library name",
+  enterAnEntryName: "Enter an entry name",
+  libraryToRenameNotFound: "Library to rename not found",
+  entryToRenameNotFound: "Entry to rename not found",
+  targetLibraryNotFound: "Target library not found",
+  libraryLocalFolderProject: " library · Local folder project",
+  close: "Close",
+  newLibrariesAreSavedAutomaticallyInTheCurrentWorkspace:
+    "New libraries are saved automatically in the current workspace folder.",
+  libraryName: "Library name",
+  enterAValueLibraryName: "Enter a {arg0} library name",
+  thisLibraryIsSharedAcrossShortStoriesScreenplaysAnd:
+    "This library is shared across short stories, screenplays, and novels and can be linked to any work.",
+  libraryCategory: "Library category",
+  valueLibraryCategory: "{arg0} library category",
+  theFolderContainsDeepwriteJsonWithEntriesInEntries:
+    "The folder contains writer.json, with entries in entries/*.md. Manage them directly using Finder, Git, or a text editor.",
+  newEntriesAreImmediatelyCreatedAsMarkdownFilesIn:
+    "Continue editing after creation. Entries can be used across all works.",
+  theNewNameIsSavedImmediatelyToTheLocal:
+    "The new name is saved immediately to the local library project.",
+  valueLibraryName: "{arg0} library name",
+  entryName: "Entry name",
+  contentStage: "Content stage",
+  thisDeletesTheCorrespondingMarkdownFile:
+    "Delete this entry and its Markdown file",
+  willBeDeletedFrom: "” will be deleted from “",
+  andFromDiskIncludingUnsavedChangesReopeningTheLibrary:
+    "” and from disk, including unsaved changes. This cannot be undone.",
+  cancel: "Cancel",
+  processing: "Processing…",
+  createValueLibrary: "Create {arg0} library",
+  createEntry: "Create entry",
+  saveName: "Save name",
+  delete: "Delete",
+  libraryLocalFolderProjectMessage: "{arg0} library · Local folder project",
+  libraryNameMessage: "{arg0} library name",
+  libraryCategoryMessage: "{arg0} library category",
+  willBeDeletedFromAndFromDiskMessage:
+    "“{arg0}” will be deleted from “{arg1}” and from disk, including unsaved changes. This cannot be undone."
+};

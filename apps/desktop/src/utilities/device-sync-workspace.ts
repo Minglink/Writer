@@ -1,0 +1,228 @@
+import { randomUUID } from "node:crypto";
+import { lstat, mkdir, readFile, rename, rm } from "node:fs/promises";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import {
+  assertProjectSyncItem,
+  DeviceSyncIntentSchema,
+  DeviceSyncTitleSchema,
+  sameSyncContent,
+  stableSyncJson,
+  syncKey,
+  type DeviceSyncIntent,
+  type ProjectSyncItem,
+  type SyncItem
+} from "@writer/contracts";
+import { writeSyncJson as atomicWriteText } from "../extras/device-sync/atomic-json";
+import {
+  commitDeviceSyncFiles,
+  deviceSyncOperations
+} from "./device-sync-transaction";
+import {
+  pauseDeviceSyncRecovery,
+  restorePreviousDeviceSyncItem
+} from "./device-sync-recovery";
+import type { FolderCatalogStore } from "./folder-catalog-store";
+import type { LongWorkspaceService } from "./long-workspace-service";
+import {
+  desktopSyncInventory,
+  syncRegistrations
+} from "./device-sync-inventory";
+import {
+  readDeviceSyncFiles,
+  syncProjectParentFolder,
+  validateDesktopSyncItem
+} from "./device-sync-files";
+import { availableProjectDirectory } from "./folder-catalog-store/paths-io";
+
+export class DesktopSyncWorkspace {
+  private readonly intentPath: string;
+  constructor(
+    private readonly userDataPath: string,
+    private readonly catalog: () => Promise<FolderCatalogStore>,
+    private readonly long: LongWorkspaceService
+  ) {
+    this.intentPath = join(userDataPath, "device-sync-workspace-intent.json");
+  }
+  async list() {
+    await this.catalog();
+    return desktopSyncInventory(this.userDataPath);
+  }
+  async validate(item: SyncItem) {
+    validateDesktopSyncItem(item);
+  }
+  async recover(): Promise<void> {
+    let raw: string;
+    try {
+      raw = await readFile(this.intentPath, "utf8");
+    } catch (error) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      )
+        return;
+      throw error;
+    }
+    let intent: DeviceSyncIntent | undefined;
+    try {
+      intent = DeviceSyncIntentSchema.parse(JSON.parse(raw));
+      await this.resumeIntent(intent);
+      await rm(this.intentPath);
+    } catch (error) {
+      let failure = error;
+      try {
+        await restorePreviousDeviceSyncItem(intent, (root, item) =>
+          this.register(root, item)
+        );
+      } catch (restoreError) {
+        failure = new AggregateError(
+          [error, restoreError],
+          "同步恢复与原版本恢复均未完成。"
+        );
+      }
+      await pauseDeviceSyncRecovery(
+        this.userDataPath,
+        this.intentPath,
+        failure
+      );
+    }
+  }
+  private async resumeIntent(intent: DeviceSyncIntent): Promise<void> {
+    if (!isAbsolute(intent.root)) throw new Error("同步恢复目录无效。");
+    const identity = intent.item ?? intent.previous;
+    if (!identity || syncKey(identity) !== intent.key)
+      throw new Error("同步恢复身份不一致。");
+    assertProjectSyncItem(identity);
+    if (intent.item) {
+      validateDesktopSyncItem(intent.item);
+      await mkdir(intent.root, { recursive: true });
+      const current = await readDeviceSyncFiles(intent.root);
+      if (!sameSyncContent({ ...identity, files: current }, intent.item)) {
+        const previousMatches = intent.previous
+          ? sameSyncContent(
+              { ...intent.previous, files: current },
+              intent.previous
+            )
+          : Object.keys(current).length === 0;
+        if (!previousMatches) await this.pauseChangedIntent(identity, current);
+        await commitDeviceSyncFiles(intent.root, current, intent.item);
+      }
+      await this.register(intent.root, intent.item);
+    } else if (intent.removal) {
+      const recoveryRelative = relative(
+        resolve(this.userDataPath, "device-sync-recovery"),
+        resolve(intent.removal)
+      );
+      if (
+        !recoveryRelative ||
+        isAbsolute(recoveryRelative) ||
+        recoveryRelative.split(sep).includes("..")
+      )
+        throw new Error("恢复区路径无效。");
+      try {
+        await lstat(intent.removal);
+      } catch (error) {
+        if (!(
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ))
+          throw error;
+        const current = await readDeviceSyncFiles(intent.root);
+        if (
+          !intent.previous ||
+          !sameSyncContent(
+            { ...intent.previous, files: current },
+            intent.previous
+          )
+        )
+          await this.pauseChangedIntent(identity, current);
+        await mkdir(join(this.userDataPath, "device-sync-recovery"), {
+          recursive: true
+        });
+        await rename(intent.root, intent.removal);
+      }
+      if (identity.kind === "long-book")
+        await this.long.unregister({ bookId: identity.id });
+      else {
+        const domain =
+          identity.kind === "material-library"
+            ? "material"
+            : identity.kind === "skill-library"
+              ? "skill"
+              : identity.kind;
+        await (
+          await this.catalog()
+        ).unregisterProject({ projectId: identity.id, domain });
+      }
+    }
+  }
+  private async pauseChangedIntent(
+    identity: SyncItem,
+    files: Record<string, string>
+  ): Promise<never> {
+    const manifest = DeviceSyncTitleSchema.parse(
+      JSON.parse(files["writer.json"] ?? "null")
+    );
+    validateDesktopSyncItem({ ...identity, title: manifest.title, files });
+    throw new Error("正文已发生新修改，请重新同步。");
+  }
+  private async register(root: string, item: ProjectSyncItem): Promise<void> {
+    if (item.kind === "long-book") await this.long.openAtPath(root);
+    else await (await this.catalog()).openCatalogProject(root, item.kind);
+  }
+  async apply(
+    key: string,
+    expected: SyncItem | null,
+    next: SyncItem | null,
+    workspaceDirectory: string
+  ): Promise<void> {
+    await this.recover();
+    if (next) {
+      validateDesktopSyncItem(next);
+      if (syncKey(next) !== key) throw new Error("同步目标不一致。");
+    }
+    const registration = (await syncRegistrations(this.userDataPath)).find(
+      (entry) => `${entry.kind}:${entry.id}` === key
+    );
+    const local = registration
+      ? ((await desktopSyncInventory(this.userDataPath)).items.find(
+          (item) => syncKey(item) === key
+        ) ?? null)
+      : null;
+    if (registration && !local) throw new Error("本机作品不可读，已停止同步。");
+    if (!sameSyncContent(local, expected))
+      throw new Error("正文已发生新修改，请重新同步。");
+    // Fail before publishing an intent that can never fit a project transaction.
+    if (next) deviceSyncOperations(local?.files ?? {}, next);
+    const identity = next ?? local;
+    if (!identity) return;
+    assertProjectSyncItem(identity);
+    if (!isAbsolute(workspaceDirectory))
+      throw new Error("请先选择本机工作目录。");
+    // New folders are named by title like locally created projects.
+    const root =
+      registration?.root ??
+      (await availableProjectDirectory(
+        join(workspaceDirectory, syncProjectParentFolder(identity.kind)),
+        identity.title
+      ));
+    const removal = next
+      ? null
+      : join(this.userDataPath, "device-sync-recovery", randomUUID());
+    await atomicWriteText(
+      this.intentPath,
+      stableSyncJson({
+        schemaVersion: 1,
+        key,
+        root,
+        item: next,
+        previous: local,
+        removal
+      })
+    );
+    await this.recover();
+  }
+}

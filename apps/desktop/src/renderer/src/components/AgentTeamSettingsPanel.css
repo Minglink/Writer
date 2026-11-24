@@ -1,0 +1,158 @@
+.agent-team-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  width: 100%;
+  color: var(--text-primary);
+}
+
+.panel-header h2 {
+  margin: 0 0 5px;
+  font-size: 1.57143rem;
+  font-weight: 650;
+}
+.panel-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.892857rem;
+  line-height: 1.55;
+}
+.runtime-note {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--warning-text, #8a6731);
+  font-size: 0.857143rem;
+  line-height: 1.55;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.workspace-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 108px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.workspace-tab.is-active {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.panel-state {
+  padding: 42px 20px;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  text-align: center;
+}
+.panel-load-error strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+.panel-load-error p {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+}
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--theme-line);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.secondary-button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.team-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  min-width: 0;
+}
+.parent-agent-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.parent-agent-tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 104px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 590;
+  cursor: pointer;
+}
+.parent-agent-tab:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+.parent-agent-tab.is-active {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.parent-agent-tab span {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--surface-selected);
+  color: var(--text-tertiary);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .workspace-tabs {
+    overflow-x: auto;
+  }
+  .workspace-tab {
+    min-width: 96px;
+  }
+}

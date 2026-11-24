@@ -1,0 +1,400 @@
+import { acquireConversationOperation } from "./conversation-operation-guard";
+import { createId } from "@writer/shared";
+import { resolveAgentTeamRuntime } from "../agent-team-run-mode";
+import { prepareLibraryManagementRunContext } from "../library-management-run-context";
+import { prepareTeamManagementRunContext } from "../team-management-run-context";
+import { prepareMaterialRunContext } from "../material-run-context";
+import {
+  CommandEnvelopeSchema,
+  SessionPromptAcceptedPayloadSchema,
+  createEnvelope,
+  conversationPromptBudgetError,
+  subagentsNeedWebSearch,
+  type CommandEnvelope,
+  type CommandResult
+} from "@writer/contracts";
+import {
+  resolveContextCompactionRun,
+  withCompactionUsageConfig
+} from "../context-compaction-run";
+import { resolveModelRunSettings } from "../model-run-settings";
+import { createUsageRunContext } from "../usage-observation";
+import { usageModuleForPrompt } from "../usage-module";
+import { nativeLocale } from "../native-i18n";
+import { safeErrorDetails } from "./errors";
+import type { IpcCommandContext } from "./command-types";
+import { handleSessionRunControlCommands } from "./session-run-control-commands";
+
+export async function handleSessionCommands(
+  ctx: Pick<
+    IpcCommandContext,
+    | "activeRuns"
+    | "supervisor"
+    | "pendingUsageContexts"
+    | "terminalRuns"
+    | "requireModelConfigStore"
+    | "requireWorkspaceAgentConfigStore"
+    | "requireLongAgentConfigStore"
+    | "requireAcademicAgentConfigStore"
+    | "requireAgentTeamConfigStore"
+    | "requireLibraryAgentConfigStore"
+    | "requireGeneralSettingsStore"
+    | "resolveWebSearch"
+  > &
+    Partial<Pick<IpcCommandContext, "requireMysteryAgentConfigStore">>,
+  command: CommandEnvelope
+): Promise<CommandResult | undefined> {
+  const runControl = await handleSessionRunControlCommands(ctx, command);
+  if (runControl) return runControl;
+
+  if (command.type === "session.prompt") {
+    const ownerId = createId("prompt");
+    const release = acquireConversationOperation(
+      ctx.activeRuns,
+      command.payload.sessionId,
+      "prompt",
+      ownerId
+    );
+    if (!release)
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: "agent.session_busy",
+          message: "此对话仍在运行或管理历史，请稍后重试。"
+        }
+      };
+    let keepOwnership = false;
+    try {
+      const shortWorkspace = command.payload.workspaceContext?.shortWorkspace;
+      const scriptWorkspace = command.payload.workspaceContext?.scriptWorkspace;
+      const longWorkspace = command.payload.workspaceContext?.longWorkspace;
+      const academicWorkspace =
+        command.payload.workspaceContext?.academicWorkspace;
+      const mysteryWorkspace =
+        command.payload.workspaceContext?.mysteryWorkspace;
+      const libraryWorkspace =
+        command.payload.workspaceContext?.libraryWorkspace;
+      const creativeWorkspace = shortWorkspace ?? scriptWorkspace;
+      const creativeWorkspaceType = scriptWorkspace ? "script" : "short";
+      const agentProfile = creativeWorkspace
+        ? await ctx
+            .requireWorkspaceAgentConfigStore()
+            .resolveForWorkspace(creativeWorkspace, creativeWorkspaceType)
+        : undefined;
+      const longAgentProfile = longWorkspace
+        ? await ctx
+            .requireLongAgentConfigStore()
+            .resolve(longWorkspace.activeAgentId)
+        : undefined;
+      const academicAgentProfile = academicWorkspace
+        ? await ctx.requireAcademicAgentConfigStore().resolve("academic")
+        : undefined;
+      const requireMysteryStore = ctx.requireMysteryAgentConfigStore;
+      if (mysteryWorkspace && typeof requireMysteryStore !== "function") {
+        throw new Error("剧本杀智能体设置存储尚未初始化。");
+      }
+      const mysteryAgentProfile =
+        mysteryWorkspace && requireMysteryStore
+          ? await requireMysteryStore().resolve(mysteryWorkspace.activeAgentId)
+          : undefined;
+      const effectiveModelId =
+        command.payload.modelId ??
+        (academicAgentProfile?.modelMode === "custom"
+          ? academicAgentProfile.modelId
+          : undefined);
+      const runtimeConfig = await ctx
+        .requireModelConfigStore()
+        .resolve(effectiveModelId);
+      const { subagentDefinitions, subagentRuntimeConfigs, parallelSubagents } =
+        await resolveAgentTeamRuntime(
+          command.payload.agentTeamMode,
+          agentProfile
+            ? {
+                workspaceType: creativeWorkspaceType,
+                parentAgentId: agentProfile.id,
+                ...(creativeWorkspace ? { bookId: creativeWorkspace.id } : {})
+              }
+            : longAgentProfile
+              ? {
+                  workspaceType: "long",
+                  parentAgentId: longAgentProfile.id,
+                  ...(longWorkspace ? { bookId: longWorkspace.bookId } : {})
+                }
+              : academicAgentProfile
+                ? {
+                    workspaceType: "academic",
+                    parentAgentId: academicAgentProfile.id,
+                    ...(academicWorkspace
+                      ? { bookId: academicWorkspace.id }
+                      : {})
+                  }
+                : mysteryAgentProfile
+                  ? {
+                      workspaceType: "mystery",
+                      parentAgentId: mysteryAgentProfile.id,
+                      ...(mysteryWorkspace
+                        ? { bookId: mysteryWorkspace.bookId }
+                        : {})
+                    }
+                  : undefined,
+          {
+            resolveDefinitions: (workspaceType, parentAgentId, bookId) =>
+              ctx
+                .requireAgentTeamConfigStore()
+                .resolve(workspaceType, parentAgentId, bookId),
+            resolveModel: (modelId) =>
+              ctx.requireModelConfigStore().resolve(modelId),
+            resolveParallelSubagents: (workspaceType, bookId) =>
+              ctx
+                .requireAgentTeamConfigStore()
+                .parallelSubagentsEnabled(workspaceType, bookId)
+          }
+        );
+      // Search exists for the run when the user switched it on or a member asks
+      // for it; the search settings still decide whether it can be given.
+      const webSearch =
+        command.payload.webSearchEnabled === true ||
+        subagentsNeedWebSearch(subagentDefinitions)
+          ? await ctx.resolveWebSearch?.()
+          : undefined;
+      const libraryAgentProfile = libraryWorkspace
+        ? await ctx
+            .requireLibraryAgentConfigStore()
+            .resolve(libraryWorkspace.domain)
+        : undefined;
+      const { thinkingLevel, temperature } = resolveModelRunSettings(
+        runtimeConfig,
+        {
+          thinkingLevel:
+            command.payload.thinkingLevel ??
+            (academicAgentProfile?.modelMode === "custom"
+              ? academicAgentProfile.thinkingLevel
+              : undefined),
+          temperature:
+            command.payload.temperature ??
+            (academicAgentProfile?.modelMode === "custom"
+              ? academicAgentProfile.temperature
+              : undefined)
+        }
+      );
+      const {
+        agentTeamMode: _requestedAgentTeamMode,
+        thinkingLevel: _requestedThinkingLevel,
+        temperature: _requestedTemperature,
+        ...promptPayload
+      } = command.payload;
+      // Co-creation turns always force manual approval at the Main boundary.
+      const enforcedWriteApprovalMode = promptPayload.coCreationMode
+        ? ("request-approval" as const)
+        : promptPayload.writeApprovalMode;
+      const compaction = await resolveContextCompactionRun(
+        async () => (await ctx.requireGeneralSettingsStore().list()).settings,
+        (modelId) => ctx.requireModelConfigStore().resolve(modelId),
+        runtimeConfig?.id
+      );
+      const promptError = conversationPromptBudgetError(
+        command.payload,
+        compaction.contextCompactionSettings.budgetTokens
+      );
+      if (promptError)
+        return {
+          status: "rejected",
+          requestId: command.id,
+          error: promptError
+        };
+      const usageContext = createUsageRunContext(
+        usageModuleForPrompt(command.payload),
+        runtimeConfig,
+        withCompactionUsageConfig(subagentRuntimeConfigs, compaction)
+      );
+      ctx.pendingUsageContexts.set(command.context.correlationId, usageContext);
+      const libraryManagement = await prepareLibraryManagementRunContext(
+        command.payload.workspaceContext,
+        ctx.requireAgentTeamConfigStore(),
+        (query) => ctx.supervisor.requestCommand("core", query, 60_000)
+      );
+      const teamManagement = await prepareTeamManagementRunContext(
+        command.payload.workspaceContext,
+        ctx.requireAgentTeamConfigStore()
+      );
+      const materialWorkspaceContext = await prepareMaterialRunContext(
+        {
+          workspaceContext: command.payload.workspaceContext,
+          ...(agentProfile ? { agentProfile } : {}),
+          ...(longAgentProfile ? { longAgentProfile } : {}),
+          ...(academicAgentProfile ? { academicAgentProfile } : {}),
+          ...(mysteryAgentProfile ? { mysteryAgentProfile } : {}),
+          snapshotMode: process.env.WRITER_MATERIAL_SNAPSHOT_MODE === "1"
+        },
+        (query) => ctx.supervisor.requestCommand("core", query, 60_000)
+      );
+      const internalCommand = CommandEnvelopeSchema.parse(
+        createEnvelope(
+          "agent.prompt",
+          {
+            ...promptPayload,
+            ...(enforcedWriteApprovalMode
+              ? { writeApprovalMode: enforcedWriteApprovalMode }
+              : {}),
+            ...(effectiveModelId && !promptPayload.modelId
+              ? { modelId: effectiveModelId }
+              : {}),
+            promptLocale: nativeLocale(),
+            ...(libraryManagement ? { libraryManagement } : {}),
+            ...(teamManagement ? { teamManagement } : {}),
+            ...(materialWorkspaceContext
+              ? { workspaceContext: materialWorkspaceContext }
+              : {}),
+            ...(thinkingLevel ? { thinkingLevel } : {}),
+            ...(temperature !== undefined ? { temperature } : {}),
+            ...(runtimeConfig ? { runtimeConfig } : {}),
+            ...(webSearch ? { webSearch } : {}),
+            ...compaction,
+            ...(agentProfile
+              ? scriptWorkspace
+                ? { scriptAgentProfile: agentProfile }
+                : { agentProfile }
+              : {}),
+            ...(longAgentProfile ? { longAgentProfile } : {}),
+            ...(academicAgentProfile ? { academicAgentProfile } : {}),
+            ...(mysteryAgentProfile ? { mysteryAgentProfile } : {}),
+            ...(subagentDefinitions ? { subagentDefinitions } : {}),
+            ...(parallelSubagents ? { parallelSubagents } : {}),
+            ...(Object.keys(subagentRuntimeConfigs).length > 0
+              ? { subagentRuntimeConfigs }
+              : {}),
+            ...(libraryAgentProfile ? { libraryAgentProfile } : {})
+          },
+          { id: ownerId, context: command.context }
+        )
+      );
+      // Once sent, a transport failure cannot prove that Agent did not start.
+      keepOwnership = true;
+      const result = await ctx.supervisor.requestCommand(
+        "agent",
+        internalCommand,
+        10_000
+      );
+      if (result.status === "accepted") {
+        const accepted = SessionPromptAcceptedPayloadSchema.parse(
+          result.payload
+        );
+        if (accepted.sessionId !== command.payload.sessionId) {
+          return {
+            status: "rejected",
+            requestId: command.id,
+            error: {
+              code: "ipc.invalid_agent_acceptance",
+              message:
+                "Agent acceptance sessionId does not match the prompt command."
+            }
+          };
+        }
+        const provisional = [...ctx.activeRuns.entries()].find(
+          ([, run]) => run.correlationId === command.context.correlationId
+        );
+        if (provisional && provisional[0] !== accepted.runId) {
+          return {
+            status: "rejected",
+            requestId: command.id,
+            error: {
+              code: "ipc.invalid_agent_acceptance",
+              message:
+                "Agent acceptance runId does not match the provisional event stream."
+            }
+          };
+        }
+        if (!ctx.terminalRuns.has(accepted.runId)) {
+          ctx.activeRuns.set(accepted.runId, {
+            sessionId: accepted.sessionId,
+            externalResourceIds: [
+              ...(creativeWorkspace ? [creativeWorkspace.id] : []),
+              ...(longWorkspace ? [longWorkspace.bookId] : []),
+              ...(academicWorkspace ? [academicWorkspace.id] : []),
+              ...(mysteryWorkspace ? [mysteryWorkspace.bookId] : []),
+              ...(libraryWorkspace
+                ? [
+                    `library-domain:${libraryWorkspace.domain}`,
+                    ...(
+                      libraryWorkspace.readableLibraries ?? [libraryWorkspace]
+                    )
+                      .filter((library) => !library.readOnly)
+                      .map((library) => library.libraryId)
+                  ]
+                : []),
+              ...(libraryManagement?.libraries
+                .filter((library) => !library.readOnly)
+                .map((library) => library.libraryId) ?? [])
+            ],
+            correlationId: command.context.correlationId,
+            runtime: accepted.runtime,
+            accepted: true,
+            ...(libraryWorkspace
+              ? { libraryAgentScope: { domain: libraryWorkspace.domain } }
+              : {}),
+            ...(creativeWorkspace
+              ? {
+                  writingScope: {
+                    bookId: creativeWorkspace.id,
+                    bookType: creativeWorkspaceType
+                  }
+                }
+              : academicWorkspace
+                ? {
+                    writingScope: {
+                      bookId: academicWorkspace.id,
+                      bookType: "academic" as const
+                    }
+                  }
+                : {}),
+            promptRequestId: internalCommand.id,
+            ...(teamManagement
+              ? { teamManagementScope: teamManagement.scope }
+              : {}),
+            ...(libraryManagement
+              ? {
+                  libraryManagementScope: {
+                    ...libraryManagement.scope,
+                    domains: libraryManagement.managers.map(
+                      ({ domain }) => domain
+                    )
+                  }
+                }
+              : {}),
+            ...(materialWorkspaceContext?.materialCatalog
+              ? {
+                  materialScope: materialWorkspaceContext.materialCatalog.scope
+                }
+              : {}),
+            usageContext,
+            ...(longWorkspace ? { resourceId: longWorkspace.bookId } : {}),
+            ...(mysteryWorkspace
+              ? { mysteryResourceId: mysteryWorkspace.bookId }
+              : {})
+          });
+        }
+        ctx.pendingUsageContexts.delete(command.context.correlationId);
+        return { status: "accepted", requestId: command.id, payload: accepted };
+      }
+      ctx.pendingUsageContexts.delete(command.context.correlationId);
+      keepOwnership = false;
+      return { ...result, requestId: command.id };
+    } catch (error: unknown) {
+      ctx.pendingUsageContexts.delete(command.context.correlationId);
+      return {
+        status: "rejected",
+        requestId: command.id,
+        error: {
+          code: "ipc.agent_command_failed",
+          message:
+            error instanceof Error ? error.message : "Agent command failed.",
+          details: safeErrorDetails(error)
+        }
+      };
+    } finally {
+      if (!keepOwnership) release();
+    }
+  }
+  return undefined;
+}

@@ -1,0 +1,53 @@
+{
+  "name": "writer",
+  "version": "0.1.0",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @writer/desktop dev",
+    "electron:ensure": "node tools/ensure-electron-runtime.mjs",
+    "build": "pnpm --filter @writer/desktop build",
+    "typecheck": "vue-tsc --noEmit -p apps/desktop/tsconfig.web.json && tsc --noEmit -p apps/desktop/tsconfig.node.json && tsc --noEmit -p packages/contracts/tsconfig.json && tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/agent-runtime/tsconfig.json",
+    "lint": "pnpm lint:eslint && pnpm lint:boundary && pnpm lint:i18n",
+    "lint:eslint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "lint:boundary": "node tools/check-renderer-boundary.mjs",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "vitest run",
+    "smoke": "pnpm --filter @writer/desktop smoke",
+    "smoke:conversation": "node apps/desktop/scripts/electron-conversation-smoke.mjs",
+    "smoke:shutdown": "node apps/desktop/scripts/electron-shutdown-smoke.mjs",
+    "smoke:renderer": "node tools/check-renderer-build.mjs",
+    "verify": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "pack:win": "node tools/run-test-package.mjs win x64",
+    "pack:win:arm64": "node tools/run-test-package.mjs win arm64",
+    "lint:i18n": "node tools/check-i18n.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/tsconfig": "catalog:",
+    "@xmldom/xmldom": "catalog:",
+    "aws4": "catalog:",
+    "electron": "catalog:",
+    "electron-vite": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-plugin-vue": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

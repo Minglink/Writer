@@ -1,0 +1,27 @@
+export default {
+  episode: "Episode",
+  section: "Section",
+  manuscriptValue: "Manuscript {arg0}",
+  addASectionAtTheEndOfTheManuscript:
+    "Add a section at the end of the manuscript",
+  deleteCurrentEntry: "Delete current entry",
+  enterADocumentTitleBeforeSaving: "Enter a document title before saving",
+  textContent: "Text content",
+  valueFile: "{arg0} file",
+  manuscript: "Manuscript",
+  characterState: "State",
+  stateDescription:
+    "Record character, plot, emotional or any other state relevant to this work.",
+  textView: "Text view",
+  edit: "Edit",
+  preview: "Preview",
+  textActions: "Text actions",
+  formatAllManuscriptBodies: "Format every manuscript section in this book",
+  documentTitle: "Document title",
+  textEditor: "Text editor",
+  noContentYet: "No content yet",
+  agentRunningReadOnly: "Agent running · Read-only",
+  saving: "Saving…",
+  saveNow: "Save now",
+  apply: "Apply"
+};

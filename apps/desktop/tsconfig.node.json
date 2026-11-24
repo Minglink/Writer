@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "electron"],
+    "paths": {
+      "@writer/contracts": ["../../packages/contracts/src/index.ts"],
+      "@writer/contracts/external-control": [
+        "../../packages/contracts/src/external-control/index.ts"
+      ],
+      "@writer/agent-runtime": ["../../packages/agent-runtime/src/index.ts"],
+      "@writer/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": [
+    "electron.vite.config.ts",
+    "src/main/**/*.ts",
+    "src/preload/**/*.ts",
+    "src/utilities/**/*.ts",
+    "src/extras/**/*.ts",
+    "../../tools/resolve-renderer-styles.d.ts"
+  ]
+}

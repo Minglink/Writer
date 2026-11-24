@@ -1,0 +1,442 @@
+import { prepareSmokeWorkspace } from "./smoke-workspace.mjs";
+import { summarizeDecompositionTrialFailure } from "./decomposition-trial-diagnostic.mjs";
+import { access, mkdtemp, realpath, rm } from "node:fs/promises";
+import { spawn, spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { assertElectronLaunchAllowed } from "../../../tools/electron-launch-environment.mjs";
+
+assertElectronLaunchAllowed();
+
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const appDir = resolve(scriptDir, "..");
+const presetProtectionOnly = process.argv.includes("--preset-protection-only");
+const i18nOnly = process.argv.includes("--i18n-only");
+const externalConcurrencyOnly = process.argv.includes(
+  "--external-concurrency-only"
+);
+const conversationOnly = process.argv.includes("--conversation-only");
+const decompositionOnly = process.argv.includes("--decomposition-only");
+const bookIdentityOnly = process.argv.includes("--book-identity-only");
+const bookImagesOnly = process.argv.includes("--book-images-only");
+const libraryEntriesOnly = process.argv.includes("--library-entries-only");
+const libraryGroupsOnly = process.argv.includes("--library-groups-only");
+const shortBookSourcesOnly = process.argv.includes("--short-book-sources-only");
+const decompositionRealModel = process.argv.includes(
+  "--decomposition-real-model"
+);
+const workspaceRoot = resolve(appDir, "../..");
+const electronDist =
+  process.env.ELECTRON_OVERRIDE_DIST_PATH ||
+  resolve(workspaceRoot, "node_modules/electron/dist");
+const electronBinary =
+  process.platform === "darwin"
+    ? resolve(electronDist, "Electron.app/Contents/MacOS/Electron")
+    : process.platform === "win32"
+      ? resolve(electronDist, "electron.exe")
+      : resolve(electronDist, "electron");
+
+try {
+  await access(resolve(appDir, "out/main/index.js"));
+  await access(
+    resolve(appDir, "out/main/utilities/conversation-storage/worker-entry.js")
+  );
+  await access(electronBinary);
+} catch {
+  console.error(
+    "Desktop build or Electron binary is missing. Run `pnpm build` first."
+  );
+  process.exit(1);
+}
+
+const hasDisplay = Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
+const hasXvfb =
+  spawnSync("sh", ["-c", "command -v xvfb-run"], { encoding: "utf8" })
+    .status === 0;
+const smokeUserData = await realpath(
+  await mkdtemp(join(tmpdir(), "writer-electron-smoke-"))
+);
+await prepareSmokeWorkspace(smokeUserData);
+const command = !hasDisplay && hasXvfb ? "xvfb-run" : electronBinary;
+const args =
+  !hasDisplay && hasXvfb
+    ? [
+        "-a",
+        electronBinary,
+        ".",
+        `--user-data-dir=${smokeUserData}`,
+        "--use-fake-device-for-media-stream"
+      ]
+    : [
+        ".",
+        `--user-data-dir=${smokeUserData}`,
+        "--use-fake-device-for-media-stream"
+      ];
+if (process.platform === "darwin") args.push("--use-mock-keychain");
+
+const child = spawn(command, args, {
+  cwd: appDir,
+  env: {
+    ...process.env,
+    WRITER_SMOKE: "1",
+    WRITER_SMOKE_SUITE: bookImagesOnly
+      ? "book-images"
+      : externalConcurrencyOnly
+        ? "external-concurrency"
+        : presetProtectionOnly
+          ? "preset-protection"
+          : shortBookSourcesOnly
+            ? "short-book-sources"
+            : libraryEntriesOnly
+              ? "library-entries"
+              : libraryGroupsOnly
+                ? "library-groups"
+                : bookIdentityOnly
+                  ? "book-identity"
+                  : decompositionRealModel
+                    ? "decomposition-real-model"
+                    : decompositionOnly
+                      ? "decomposition"
+                      : conversationOnly
+                        ? "conversation"
+                        : i18nOnly
+                          ? "i18n"
+                          : "all",
+    ELECTRON_DISABLE_SECURITY_WARNINGS: "true"
+  },
+  stdio: ["ignore", "pipe", "pipe"]
+});
+
+let output = "";
+child.stdout.on("data", (chunk) => {
+  output += chunk.toString();
+});
+child.stderr.on("data", (chunk) => {
+  output += chunk.toString();
+});
+
+const timeout = setTimeout(
+  () => {
+    child.kill("SIGKILL");
+  },
+  decompositionRealModel
+    ? 1_800_000
+    : decompositionOnly
+      ? 240_000
+      : bookIdentityOnly || bookImagesOnly
+        ? 120_000
+        : 40_000
+);
+
+child.on("close", async (code) => {
+  clearTimeout(timeout);
+  await rm(smokeUserData, { recursive: true, force: true });
+  const marker = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("WRITER_SMOKE_OK "));
+
+  if (code !== 0 || !marker) {
+    // Provider errors may echo request details; the real trial prints only status.
+    console.error(
+      decompositionRealModel
+        ? "Real-model decomposition smoke did not complete."
+        : output.trim()
+    );
+    if (decompositionRealModel)
+      console.error(JSON.stringify(summarizeDecompositionTrialFailure(output)));
+    console.error(`Electron smoke failed with exit code ${String(code)}.`);
+    process.exit(1);
+  }
+
+  const summary = JSON.parse(marker.slice("WRITER_SMOKE_OK ".length));
+  const localizationPassed =
+    summary.localization?.status === "ok" &&
+    summary.localization?.settings >= 14 &&
+    summary.localization?.features >= 9 &&
+    summary.localization?.switchedBothWays === true &&
+    summary.localization?.restoredAfterReload === true &&
+    summary.localization?.userContentUnchanged === true &&
+    summary.localization?.layout === true;
+  if (
+    summary.health?.status !== "ok" ||
+    summary.health?.workers?.length !== 3
+  ) {
+    console.error(
+      `Electron smoke returned unhealthy utilities: ${JSON.stringify(summary)}`
+    );
+    process.exit(1);
+  }
+
+  if (bookImagesOnly) {
+    if (
+      summary.bookImages?.status !== "ok" ||
+      !summary.bookImages.inserted ||
+      !summary.bookImages.displayed ||
+      summary.bookImages.selectedImages !== 3 ||
+      summary.bookImages.exports !== 4 ||
+      summary.bookImages.longMarkdownExports !== 2 ||
+      summary.bookImages.editor?.status !== "ok" ||
+      summary.bookImages.editor.characters < 100_000 ||
+      !summary.bookImages.editor.automaticallySaved ||
+      !summary.bookImages.editor.sharedUndo ||
+      !summary.bookImages.editor.unchangedImagePreserved ||
+      !summary.bookImages.editor.formattedClicksUnchanged ||
+      !summary.bookImages.editor.formattedEditsPreserved ||
+      !summary.bookImages.editor.imeCommittedOnly ||
+      !summary.bookImages.editor.findKeptPreview ||
+      !summary.bookImages.editor.typedHeadingSaved ||
+      !summary.bookImages.editor.tailImageDeletion ||
+      summary.bookImages.editor.layouts?.length !== 2 ||
+      summary.bookImages.longEditor?.status !== "ok" ||
+      summary.bookImages.longEditor.characters < 100_000 ||
+      !summary.bookImages.longEditor.automaticallySaved ||
+      !summary.bookImages.longEditor.sharedUndo ||
+      !summary.bookImages.longEditor.unchangedImagePreserved ||
+      !summary.bookImages.longEditor.formattedClicksUnchanged ||
+      !summary.bookImages.longEditor.formattedEditsPreserved ||
+      !summary.bookImages.longEditor.imeCommittedOnly ||
+      !summary.bookImages.longEditor.findKeptPreview ||
+      !summary.bookImages.longEditor.typedHeadingSaved ||
+      !summary.bookImages.longEditor.tailImageDeletion
+    ) {
+      throw new Error("Book image smoke returned an invalid summary.");
+    }
+    console.log(
+      `Electron book image smoke passed: image import, protocol rendering, DOCX/EPUB/TXT/Markdown exports, and real editor checks: ${JSON.stringify({ short: summary.bookImages.editor, long: summary.bookImages.longEditor })}`
+    );
+    return;
+  }
+  if (externalConcurrencyOnly) {
+    if (
+      summary.concurrency?.sessions !== 5 ||
+      !summary.concurrency?.continuation
+    ) {
+      console.error("External concurrency smoke returned an invalid summary.");
+      process.exit(1);
+    }
+    console.log(
+      "External concurrency smoke passed: five independent sessions, creation during generation, continuation and retained results."
+    );
+    return;
+  }
+  if (presetProtectionOnly) {
+    if (
+      summary.presetProtection?.status !== "ok" ||
+      summary.presetProtection.agents?.length !== 3
+    ) {
+      console.error(
+        "Electron preset protection smoke returned an invalid summary."
+      );
+      process.exit(1);
+    }
+    console.log(
+      "Electron preset protection smoke passed: all three editors, outside clicks, discard confirmation, failed saves and draft-only resets."
+    );
+    return;
+  }
+  if (shortBookSourcesOnly) {
+    if (
+      summary.shortBookSources?.status !== "ok" ||
+      summary.shortBookSources.imported !== 2 ||
+      !summary.shortBookSources.pasted ||
+      !summary.shortBookSources.reopened
+    ) {
+      console.error(
+        "Electron short book source smoke returned an invalid summary."
+      );
+      process.exit(1);
+    }
+    console.log(
+      "Electron short book source smoke passed: TXT and Markdown import, pasted text, source history, reopening and deletion through Preload, Main and Core."
+    );
+    return;
+  }
+  if (libraryEntriesOnly) {
+    if (
+      summary.libraryOrganization?.domains !== 2 ||
+      !summary.libraryOrganization.newEntry ||
+      !summary.libraryOrganization.crossType ||
+      !summary.libraryOrganization.dialogLayout
+    ) {
+      console.error(
+        "Electron library entry smoke returned an invalid summary."
+      );
+      process.exit(1);
+    }
+    console.log(
+      "Electron library entry smoke passed: both domains, shared legacy libraries, entry creation, and dialog layout at 10, 14 and 24 px."
+    );
+    return;
+  }
+  if (libraryGroupsOnly) {
+    if (
+      summary.libraryGroups?.status !== "ok" ||
+      summary.libraryGroups.groups !== 2 ||
+      !summary.libraryGroups.menuOrder ||
+      !summary.libraryGroups.canceled ||
+      !summary.libraryGroups.membersDeleted ||
+      summary.libraryOrganization?.domains !== 2 ||
+      !summary.libraryOrganization.unbound ||
+      !summary.libraryOrganization.newEntry ||
+      !summary.libraryOrganization.longPressOrder ||
+      !summary.libraryOrganization.idempotentBatch ||
+      !summary.libraryOrganization.entryDeletion
+    ) {
+      console.error(
+        "Electron library group deletion smoke returned an invalid summary."
+      );
+      process.exit(1);
+    }
+    console.log(
+      "Electron library organization smoke passed: both domains, long-press ordering, unbound entries, idempotent batches, entry deletion, and group deletion through Renderer, Preload, Main and Core."
+    );
+    return;
+  }
+  if (decompositionOnly || decompositionRealModel) {
+    if (
+      summary.decomposition?.status !== "ok" ||
+      summary.decomposition?.modes?.length !==
+        (decompositionRealModel ? 1 : 2) ||
+      summary.decomposition?.runtime !==
+        (decompositionRealModel ? "provider" : "local-faux") ||
+      !(summary.decomposition?.targetEvents > 0) ||
+      !(summary.decomposition?.outputEvents > 0) ||
+      !(summary.decomposition?.childEvents > 0)
+    ) {
+      console.error(
+        `Electron decomposition smoke returned an invalid summary: ${JSON.stringify(summary)}`
+      );
+      process.exit(1);
+    }
+    console.log(
+      `Electron decomposition smoke passed: ${JSON.stringify(summary.decomposition)}`
+    );
+    if (!decompositionRealModel) {
+      if (
+        summary.decompositionUi?.status !== "ok" ||
+        summary.decompositionUi?.views?.length !== 4
+      )
+        throw new Error("Decomposition UI smoke incomplete.");
+      console.log(
+        `Electron decomposition UI passed: ${JSON.stringify(summary.decompositionUi)}`
+      );
+    }
+    return;
+  }
+  if (bookIdentityOnly) {
+    const identity = summary.bookIdentity;
+    if (
+      identity?.status !== "ok" ||
+      identity.runtime !== "local-faux" ||
+      identity.rounds !== 3 ||
+      !identity.titleAdopted ||
+      !identity.renamed ||
+      !identity.thumbnail ||
+      !identity.composed ||
+      !identity.coverAdopted ||
+      !identity.persisted ||
+      identity.updatedEvents < 6 ||
+      identity.visuals?.status !== "ok" ||
+      identity.visuals.captures?.length !== 11 ||
+      identity.visuals.captures.filter(
+        (capture) => capture.kind === "image-model-settings"
+      ).length !== 1 ||
+      identity.visuals.captures.filter((capture) => capture.kind === "page")
+        .length !== 3 ||
+      identity.visuals.captures.filter((capture) => capture.kind === "composer")
+        .length !== 7
+    ) {
+      console.error(
+        `Electron book identity smoke returned an invalid summary: ${JSON.stringify(summary)}`
+      );
+      process.exit(1);
+    }
+    console.log(
+      `Electron book identity smoke passed: ${JSON.stringify(identity)}`
+    );
+    return;
+  }
+  if (i18nOnly) {
+    if (!localizationPassed) {
+      console.error("Electron language smoke returned an invalid summary.");
+      process.exit(1);
+    }
+    console.log(
+      "Electron language smoke passed: English settings and feature navigation, two-way switching, reload persistence and unchanged saved manuscripts."
+    );
+    return;
+  }
+  if (conversationOnly) {
+    if (
+      summary.conversation?.status !== "ok" ||
+      summary.conversation?.archived !== true ||
+      summary.conversation?.purged !== true
+    ) {
+      console.error("Electron conversation smoke returned an invalid summary.");
+      process.exit(1);
+    }
+    console.log(
+      "Electron conversation smoke passed: archive listing and permanent deletion crossed Renderer, Preload, Main, Core, and SQLite."
+    );
+    return;
+  }
+  if (
+    summary.bookTemplates?.status !== "ok" ||
+    summary.bookTemplates?.created !== 4 ||
+    summary.shortBookSources?.status !== "ok" ||
+    summary.shortBookSources?.imported !== 2 ||
+    summary.shortBookSources?.pasted !== true ||
+    summary.shortBookSources?.reopened !== true ||
+    summary.extrasAgents?.status !== "ok" ||
+    summary.extrasAgents?.runtime !== "local-faux" ||
+    summary.extrasAgents?.styleResult !== true ||
+    summary.extrasAgents?.longNote !== true ||
+    summary.extrasAgents?.profileRoundTrip !== true ||
+    summary.extrasAgents?.modelRequired !== true ||
+    summary.extrasChat?.status !== "ok" ||
+    summary.extrasChat?.runtime !== "local-faux" ||
+    summary.extrasChat?.turns !== 2 ||
+    summary.extrasChat?.roleplay !== true ||
+    summary.extrasChat?.projectRejected !== true ||
+    summary.contextCompaction?.status !== "ok" ||
+    summary.contextCompaction?.workspace !== true ||
+    summary.contextCompaction?.chat !== true ||
+    summary.contextCompaction?.persisted !== true ||
+    summary.contextCompaction?.coldRestore !== true ||
+    summary.voice?.status !== "ok" ||
+    summary.voice?.profiles !== 4 ||
+    summary.voice?.isolatedUsage !== true ||
+    summary.voice?.cancelled !== true ||
+    summary.voice?.secretsHidden !== true ||
+    summary.voiceUi?.status !== "ok" ||
+    summary.voiceUi?.settingsTest !== true ||
+    summary.voiceUi?.chatDraft !== true ||
+    summary.voiceUi?.cancelled !== true ||
+    !localizationPassed ||
+    summary.agent?.status !== "ok" ||
+    summary.agent?.runtime?.mode !== "local-faux" ||
+    summary.agent?.deltaCount < 2 ||
+    summary.agent?.thinkingDeltaCount < 1 ||
+    summary.agent?.completed !== true ||
+    summary.conversation?.status !== "ok" ||
+    summary.conversation?.staged !== true ||
+    summary.conversation?.reopened !== false ||
+    !(summary.conversation?.chunkPages >= 2) ||
+    !(summary.conversation?.metadataChunkPages >= 2) ||
+    summary.conversation?.unknownRetained !== true ||
+    summary.conversation?.proposalRetained !== true ||
+    summary.conversation?.archived !== true ||
+    summary.conversation?.purged !== true
+  ) {
+    console.error(
+      `Electron smoke returned an invalid agent summary: ${JSON.stringify(summary)}`
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    "Electron smoke passed: healthy utilities, Pi/Faux completion, and Renderer-to-SQLite persistence; template CRUD; extras agents and chat; writing/chat compaction; MiMo/Ali voice profiles, real UI recording with a fake microphone, transcription, cancellation, secret protection and isolated usage; live language switching, English navigation, reload persistence and unchanged manuscripts."
+  );
+});

@@ -1,0 +1,17 @@
+{
+  "mandatory": false,
+  "enabled": true,
+  "minimumSupportedVersion": "0.1.0",
+  "version": "0.1.0",
+  "feedUrl": "https://github.com/Minglink/Writer/releases/latest/download",
+  "publishedAt": "2026-11-25T03:25:00+08:00",
+  "channel": "stable",
+  "releaseNotes": [
+    "本地优先的 AI 写作智能体工作台（三栏布局、可审阅差异提案、本地 Markdown 作品与资料/技能库）。",
+    "全新书页微微泛黄护眼浅色主题与小说阅读软件风格低眩光夜间模式。",
+    "接入 GitHub Release 自动更新检查与后台下载安装。"
+  ],
+  "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.0",
+  "title": "Writer 0.1.0",
+  "schemaVersion": 1
+}

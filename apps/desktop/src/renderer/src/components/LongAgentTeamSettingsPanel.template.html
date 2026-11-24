@@ -1,0 +1,102 @@
+<div v-if="loading" class="panel-state" aria-live="polite">
+  {{ t('loadingNovelAgentTeamSettings') }}
+</div>
+<div
+  v-else-if="loadError && !settings"
+  class="panel-state panel-load-error"
+  role="alert"
+>
+  <strong>{{ t('novelAgentTeamSettingsHaveNotLoaded') }}</strong>
+  <p>{{ loadError }}</p>
+  <button
+    type="button"
+    class="secondary-button"
+    :disabled="loading"
+    @click="emit('retry')"
+  >
+    {{ t('reload') }}
+  </button>
+</div>
+<div v-else-if="!settings || !activeTeam" class="panel-state">
+  {{ t('noNovelAgentTeamSettingsAvailable') }}
+</div>
+
+<div v-else class="team-editor">
+  <AgentTeamParallelSwitch
+    v-model="draftParallelSubagents"
+    :disabled="formDisabled"
+  />
+
+  <AgentTeamSubagentSection
+    :count="activeTeam.subagents.length"
+    :limit="LONG_AGENT_SUBAGENT_MAX_COUNT"
+    :description="PARENT_AGENT_DESCRIPTION"
+    :note="t('subagentsUseThePrimaryAgentSModelByDefault')"
+    :disabled="formDisabled"
+    :limit-reached="activeTeam.subagents.length >= LONG_AGENT_SUBAGENT_MAX_COUNT"
+    @load-from-skill="openLoadFromSkill"
+    @add="addSubagent()"
+  >
+    <AgentTeamSubagentCard
+      v-for="(definition, index) in activeTeam.subagents"
+      :key="definition.id"
+      :subagent="definition"
+      :editing="editingSubagentId === definition.id"
+      :disabled="formDisabled"
+      :duplicate-disabled="activeTeam.subagents.length >= LONG_AGENT_SUBAGENT_MAX_COUNT"
+      :model-summary="subagentModelSummary(definition)"
+      @toggle="toggleSubagent(definition, $event)"
+      @edit="editSubagent(definition.id)"
+      @duplicate="duplicateSubagent(index)"
+      @remove="removeSubagent(index)"
+    >
+      <AgentTeamSubagentEditor
+        v-model:name="definition.name"
+        v-model:description="definition.description"
+        v-model:system-prompt="definition.systemPrompt"
+        v-model:agent-mode="definition.agentMode"
+        v-model:web-search-mode="definition.webSearchMode"
+        v-model:draw="definition.draw"
+        :model-config="subagentModelConfig"
+        :subagent="definition"
+        :disabled="formDisabled"
+        :model-options="modelOptions"
+        :thinking-options="thinkingOptionsFor(definition)"
+        :temperature-options="temperatureOptionsFor(definition)"
+        @set-model-mode="setModelMode(definition, $event)"
+        @set-model-id="setModelId(definition, $event)"
+        @set-thinking-level="setThinkingLevel(definition, $event)"
+        @set-temperature="setTemperature(definition, $event)"
+        @done="finishEditing"
+      />
+    </AgentTeamSubagentCard>
+  </AgentTeamSubagentSection>
+
+  <AgentTeamSaveBar
+    :dirty="dirty"
+    :saving="saving"
+    :disabled="formDisabled"
+    @save="saveSettings"
+    @discard="discardChanges"
+  />
+</div>
+
+<LoadSubagentFromSkillDialog
+  :open="loadFromSkillOpen"
+  :parent-agent-id="parentAgentId"
+  :parent-agent-label="parentAgentLabel"
+  :existing-subagent-names="
+    (activeTeam?.subagents ?? []).map((item) => item.name)
+  "
+  :skills="skills"
+  :models="models"
+  :preferred-model-id="preferredModelId"
+  :generating="authoringGenerating"
+  :draft="authoringDraft"
+  :status-text="authoringStatusText"
+  :error="authoringError"
+  @close="closeLoadFromSkill"
+  @generate="emit('authoringGenerate', $event)"
+  @stop="emit('authoringStop')"
+  @confirm="confirmLoadFromSkill"
+/>

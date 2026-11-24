@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F8F4E9"/>
+      <stop offset="100%" stop-color="#F2ECDC"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2C2824" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrowBronze" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#8B5E34"/>
+    </marker>
+    <marker id="arrowTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#2F6668"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="760" rx="18" fill="url(#bgGrad)" stroke="#DED7C6" stroke-width="2"/>
+
+  <!-- Header -->
+  <text x="48" y="52" font-size="13" font-weight="700" letter-spacing="2" fill="#8B5E34">WRITER SYSTEM ARCHITECTURE</text>
+  <text x="48" y="84" font-size="26" font-weight="800" fill="#2C2824">五进程安全隔离 × DeepSeek Harness 智能体内核架构</text>
+  <text x="1152" y="54" text-anchor="end" font-size="13" font-weight="600" fill="#6F6A63">Local-First · Zero Key Leak · Atomic Disk I/O</text>
+  <line x1="48" y1="104" x2="1152" y2="104" stroke="#E2DAC8" stroke-width="1.5"/>
+
+  <!-- Layer 1: Renderer Process -->
+  <g filter="url(#cardShadow)">
+    <rect x="48" y="124" width="1104" height="142" rx="14" fill="#FCF9F2" stroke="#D5CCB8" stroke-width="1.5"/>
+  </g>
+  <rect x="48" y="124" width="8" height="142" rx="4" fill="#8B5E34"/>
+  <text x="74" y="152" font-size="16" font-weight="700" fill="#2C2824">Renderer 渲染进程（Vue 3 · Pinia · ProseMirror · 护眼书页主题引擎）</text>
+  <text x="1130" y="152" text-anchor="end" font-size="12" font-weight="600" fill="#8B5E34">沙盒隔离：零 Node / 零 SQLite / 零 API Key 暴露</text>
+
+  <!-- 3 Pane boxes inside Renderer -->
+  <rect x="74" y="168" width="320" height="80" rx="10" fill="#F4EFE2" stroke="#E0D8C5"/>
+  <text x="92" y="194" font-size="14" font-weight="700" fill="#2C2824">左栏 · 作品与知识资产树</text>
+  <text x="92" y="216" font-size="12.5" fill="#655F58">长篇卷章目录 · 设定集 · 素材库 · 技能库</text>
+  <text x="92" y="235" font-size="12" fill="#8B5E34">拆书分析 / 文风比对 / 改稿复盘 / 双端同步</text>
+
+  <rect x="414" y="168" width="372" height="80" rx="10" fill="#F4EFE2" stroke="#E0D8C5"/>
+  <text x="432" y="194" font-size="14" font-weight="700" fill="#2C2824">中栏 · 多阶段写作 Agent 共创台</text>
+  <text x="432" y="216" font-size="12.5" fill="#655F58">思考链实时流 · 工具轨迹 · @素材 /技能即时挂载</text>
+  <text x="432" y="235" font-size="12" fill="#8B5E34">卡文脑暴 · 毒点审稿 · 局部试改 · 子智能体团队</text>
+
+  <rect x="806" y="168" width="324" height="80" rx="10" fill="#F4EFE2" stroke="#E0D8C5"/>
+  <text x="824" y="194" font-size="14" font-weight="700" fill="#2C2824">右栏 · 书页正文与 Diff 提案审阅门</text>
+  <text x="824" y="216" font-size="12.5" fill="#655F58">选区边注 · 原地查阅跳回 · 逐行增删比对</text>
+  <text x="824" y="235" font-size="12" fill="#40845A">作家拍板接受后才落盘，杜绝静默覆写</text>
+
+  <!-- Preload Contract Seam -->
+  <rect x="250" y="286" width="700" height="40" rx="20" fill="#EAE2D0" stroke="#C9BDA4" stroke-width="1.5"/>
+  <text x="600" y="311" text-anchor="middle" font-size="13.5" font-weight="700" fill="#2C2824">Preload 受控桥（window.writer） + @writer/contracts Zod 双向信封契约校验</text>
+  <line x1="600" y1="266" x2="600" y2="284" stroke="#8B5E34" stroke-width="2" marker-end="url(#arrowBronze)"/>
+  <line x1="600" y1="326" x2="600" y2="346" stroke="#8B5E34" stroke-width="2" marker-end="url(#arrowBronze)"/>
+
+  <!-- Layer 2: Main Process -->
+  <g filter="url(#cardShadow)">
+    <rect x="48" y="350" width="1104" height="108" rx="14" fill="#FCF9F2" stroke="#D5CCB8" stroke-width="1.5"/>
+  </g>
+  <rect x="48" y="350" width="8" height="108" rx="4" fill="#2F6668"/>
+  <text x="74" y="378" font-size="16" font-weight="700" fill="#2C2824">Main 主监管进程（Utility Supervisor · 安全路由 · 密钥保险箱 · 外部 MCP 服务桥）</text>
+
+  <rect x="74" y="392" width="250" height="50" rx="8" fill="#EEF3F2" stroke="#C6D6D5"/>
+  <text x="199" y="414" text-anchor="middle" font-size="13" font-weight="700" fill="#244B4D">系统安全存储（SafeStorage）</text>
+  <text x="199" y="432" text-anchor="middle" font-size="11.5" fill="#526B6C">API 密钥加密保管，绝不下发前端</text>
+
+  <rect x="344" y="392" width="250" height="50" rx="8" fill="#EEF3F2" stroke="#C6D6D5"/>
+  <text x="469" y="414" text-anchor="middle" font-size="13" font-weight="700" fill="#244B4D">Utility 进程守护与只读授权桥</text>
+  <text x="469" y="432" text-anchor="middle" font-size="11.5" fill="#526B6C">崩溃自愈 · 细粒度作品上下文授权</text>
+
+  <rect x="614" y="392" width="250" height="50" rx="8" fill="#EEF3F2" stroke="#C6D6D5"/>
+  <text x="739" y="414" text-anchor="middle" font-size="13" font-weight="700" fill="#244B4D">外部智能体 MCP 控制接口</text>
+  <text x="739" y="432" text-anchor="middle" font-size="11.5" fill="#526B6C">白名单工具 · 占用锁与乐观版本校验</text>
+
+  <rect x="884" y="392" width="246" height="50" rx="8" fill="#EEF3F2" stroke="#C6D6D5"/>
+  <text x="1007" y="414" text-anchor="middle" font-size="13" font-weight="700" fill="#244B4D">GitHub Release 自动更新引擎</text>
+  <text x="1007" y="432" text-anchor="middle" font-size="11.5" fill="#526B6C">SHA-512 校验 · 后台静默下载安装</text>
+
+  <!-- Connectors from Main to 3 Utility Processes -->
+  <line x1="224" y1="458" x2="224" y2="496" stroke="#2F6668" stroke-width="2" marker-end="url(#arrowTeal)"/>
+  <line x1="600" y1="458" x2="600" y2="496" stroke="#8B5E34" stroke-width="2" marker-end="url(#arrowBronze)"/>
+  <line x1="976" y1="458" x2="976" y2="496" stroke="#2F6668" stroke-width="2" marker-end="url(#arrowTeal)"/>
+
+  <!-- Layer 3: 3 Isolated Utility Processes -->
+  <!-- Core Utility -->
+  <g filter="url(#cardShadow)">
+    <rect x="48" y="500" width="352" height="216" rx="14" fill="#FCF9F2" stroke="#D5CCB8" stroke-width="1.5"/>
+  </g>
+  <rect x="48" y="500" width="352" height="6" rx="3" fill="#40845A"/>
+  <text x="68" y="532" font-size="15.5" font-weight="800" fill="#2C2824">Core Utility · 唯一原子存储内核</text>
+  <text x="68" y="553" font-size="12" font-weight="600" fill="#40845A">Single-Writer Atomic Persistence</text>
+  <rect x="68" y="566" width="312" height="130" rx="9" fill="#F4EFE2" stroke="#E0D8C5"/>
+  <text x="84" y="590" font-size="12.5" fill="#2C2824">• 开放目录结构：writer.json + UTF-8 Markdown</text>
+  <text x="84" y="614" font-size="12.5" fill="#2C2824">• 原子重命名落盘 + Revision 乐观锁防并发冲突</text>
+  <text x="84" y="638" font-size="12.5" fill="#2C2824">• 长篇卷章结构事务、人物卡、伏笔与章节边注</text>
+  <text x="84" y="662" font-size="12.5" fill="#2C2824">• 历史版本快照与 SQLite 高速全文检索索引</text>
+  <text x="84" y="684" font-size="11.5" font-weight="600" fill="#655F58">天然兼容 Git、网盘同步与任意第三方编辑器</text>
+
+  <!-- Agent Utility -->
+  <g filter="url(#cardShadow)">
+    <rect x="420" y="500" width="360" height="216" rx="14" fill="#FCF9F2" stroke="#8B5E34" stroke-width="2"/>
+  </g>
+  <rect x="420" y="500" width="360" height="6" rx="3" fill="#8B5E34"/>
+  <text x="440" y="532" font-size="15.5" font-weight="800" fill="#2C2824">Agent Utility · DeepSeek Harness 内核</text>
+  <text x="440" y="553" font-size="12" font-weight="600" fill="#8B5E34">Cordis Runtime · LlmAdapter · Loop Agent</text>
+  <rect x="440" y="566" width="320" height="130" rx="9" fill="#F6EFE0" stroke="#DECBB0"/>
+  <text x="456" y="590" font-size="12.5" fill="#2C2824">• 统一模型流式通道：OpenAI / Anthropic / Gemini</text>
+  <text x="456" y="614" font-size="12.5" fill="#2C2824">• 长篇记忆连续性组装 + 严格时间线防剧透裁剪</text>
+  <text x="456" y="638" font-size="12.5" fill="#2C2824">• 上下文自动压缩归档与长会话断点无损恢复</text>
+  <text x="456" y="662" font-size="12.5" fill="#2C2824">• 主智能体领衔 + 专业子智能体团队并行协作</text>
+  <text x="456" y="684" font-size="11.5" font-weight="600" fill="#8B5E34">只出修改提案（Proposal），绝不绕过作家直接改稿</text>
+
+  <!-- Tool Utility -->
+  <g filter="url(#cardShadow)">
+    <rect x="800" y="500" width="352" height="216" rx="14" fill="#FCF9F2" stroke="#D5CCB8" stroke-width="1.5"/>
+  </g>
+  <rect x="800" y="500" width="352" height="6" rx="3" fill="#2F6668"/>
+  <text x="820" y="532" font-size="15.5" font-weight="800" fill="#2C2824">Tool Utility · 受控工具执行沙盒</text>
+  <text x="820" y="553" font-size="12" font-weight="600" fill="#2F6668">Bounded Tool Execution Pipeline</text>
+  <rect x="820" y="566" width="312" height="130" rx="9" fill="#F4EFE2" stroke="#E0D8C5"/>
+  <text x="836" y="590" font-size="12.5" fill="#2C2824">• Harness 作用域工具注册表与按序结算管道</text>
+  <text x="836" y="614" font-size="12.5" fill="#2C2824">• 参数 JSON Schema 强校验与输出体量预算保护</text>
+  <text x="836" y="638" font-size="12.5" fill="#2C2824">• 联网资料查证（Web Search）隔离执行</text>
+  <text x="836" y="662" font-size="12.5" fill="#2C2824">• 整书拆解、文风提取、改稿复盘批处理引擎</text>
+  <text x="836" y="684" font-size="11.5" font-weight="600" fill="#655F58">故障与超时独立隔离，不阻塞主界面打字响应</text>
+</svg>

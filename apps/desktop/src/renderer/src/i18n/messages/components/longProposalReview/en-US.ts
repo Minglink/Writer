@@ -1,0 +1,82 @@
+export default {
+  precedingChangeFailed: "Preceding change failed",
+  foreshadowingChanges: "Foreshadowing changes",
+  worldbuildingReveals: "Worldbuilding reveals",
+  currentCharacterState: "Current character state",
+  characterHistory: "Character history",
+  endOfChapterState: "End-of-chapter state",
+  handoffPackage: "Handoff package",
+  continuityFilesPendingValidation: "Continuity files (pending validation)",
+  structureChanges: "Structure changes",
+  valueWorldbuildingFiles: "{arg0} worldbuilding files",
+  valueFilesForValue: "{arg1} files for {arg0}",
+  characters: "Characters",
+  valueContinuityFiles: "{arg0} continuity files",
+  continuityLedgerArchive: "Continuity ledger archive",
+  retryArchive: "Retry archive",
+  archived: "Archived",
+  waitingForPrerequisiteFiles: "Waiting for prerequisite files",
+  archiving: "Archiving",
+  archiveFailed: "Archive failed",
+  awaitingArchive: "Awaiting archive",
+  accepted: "Accepted",
+  automaticPreview: "Automatic preview",
+  previewing: "Previewing",
+  autosaving: "Autosaving",
+  processingLabel: "Processing",
+  validationFailed: "Validation failed",
+  autosaveFailed: "Autosave failed",
+  cannotApply: "Cannot apply",
+  failedToApply: "Failed to apply",
+  awaitingAutosave: "Awaiting autosave",
+  awaitingConfirmation: "Awaiting confirmation",
+  validating: "Validating",
+  applying: "Applying",
+  awaitingAutosaveLabel: "Awaiting autosave",
+  awaitingReview: "Awaiting review",
+  automaticallyApprovedAndSavedToLocalMarkdown:
+    "Automatically approved and saved to local Markdown.",
+  changesAppliedAndSavedLocally: "Changes applied and saved locally.",
+  couldNotReadTheChangeImpactContentHasNot:
+    "Could not read the change impact. Content has not been saved.",
+  changesCouldNotBeSavedSaveAgainOrReject:
+    "Changes could not be saved. Save again or reject.",
+  waitingForPrecedingFileOperationsToFinishBeforeResuming:
+    "Waiting for earlier saves. Retry or reject failed proposals first.",
+  readingFilesAndChangeImpact: "Reading files and change impact…",
+  applyingAndSavingChanges: "Applying and saving changes…",
+  addedToTheAutosaveQueue: "Added to the autosave queue.",
+  acceptToApplyToTheCorrespondingMarkdownFilesAnd:
+    "Accept to apply to the corresponding Markdown files and save locally.",
+  saving: "Saving…",
+  cannotSave: "Cannot save",
+  reloadAndSave: "Reload and save",
+  saveAgain: "Save again",
+  acceptAndSave: "Accept and save",
+  structureChangesAppliedAndSavedLocally:
+    "Structure changes applied and saved locally.",
+  couldNotReadStructuralImpactChangesHaveNotBeen:
+    "Could not read structural impact. Changes have not been applied.",
+  structureChangesCouldNotBeAppliedPreviewAgainTo:
+    "Structure changes could not be applied. Preview again to retry, or reject.",
+  readingCurrentStructureAndImpact: "Reading current structure and impact…",
+  applyingStructureChanges: "Applying structure changes…",
+  acceptToApplyToThisBookSStructureAnd:
+    "Accept to apply to this book's structure and save locally.",
+  applyingLabel: "Applying…",
+  revalidateAndApply: "Revalidate and apply",
+  retryApplying: "Retry applying",
+  acceptAndApply: "Accept and apply",
+  novelProposalsAwaitingApproval: "Novel proposals awaiting approval",
+  goToTargetFile: "Go to file",
+  valueLinesAddedValueLinesRemoved: "{arg0} lines added, {arg1} lines removed",
+  viewChanges: "View changes",
+  thisDiffIsLargeSoOnlySomeChangesAre:
+    "This diff is large, so only some changes are shown. Line counts cover the full proposal.",
+  fileIdentityAndSourceContentHaveNotPassedValidation:
+    "Reload and validate the file to view the diff.",
+  aBlankMarkdownFileWasCreatedNoManuscriptLine:
+    "A blank Markdown file was created. No manuscript line changes.",
+  reject: "Reject",
+  changeBlocksMessage: "Change blocks: {arg0}"
+};

@@ -1,0 +1,23 @@
+export default {
+  txtFolderImages: "TXT 以文字标注图片。图片另存到导出目录的 images 文件夹。",
+  txtSingleFileImages: "TXT 以文字标注图片。",
+  markdownFolderImages: "Markdown 引用导出目录的 images 文件夹中的图片。",
+  markdownSingleFileImages: "Markdown 引用同名 .assets 文件夹中的图片。",
+  worldbuilding: "世界观",
+  categoryContentAndAllEntries: "分类正文与全部条目",
+  characters: "人物",
+  overviewProfilesRelationshipsAndState: "概览、档案、关系与状态",
+  plot: "剧情",
+  volumesPlotPointsChapterCardsAndForeshadowing: "卷、剧情点、章节卡与伏笔",
+  manuscript: "正文",
+  selectedChaptersExportAsSeparateFiles: "可勾选单章或多章，每章一个文件",
+  selectedChaptersMergeIntoOneFile: "可勾选单章或多章，按顺序合并",
+  couldNotLoadManuscriptChapters: "读取正文章节失败。",
+  scopeDescription: "选择要导出的作品资料和正文章节。",
+  exportNovel: "导出长篇",
+  exportMode: "导出方式",
+  folderMode: "分文件导出",
+  singleFileMode: "合并为单个文件",
+  selectContentToExport: "导出内容",
+  selectExportFile: "选择导出文件"
+};

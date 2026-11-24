@@ -1,0 +1,12 @@
+.agents/
+.git/
+**/node_modules/
+**/out/
+**/dist/
+**/release/
+**/coverage/
+docs/
+test/
+*.md
+LICENSE
+pnpm-lock.yaml

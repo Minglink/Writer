@@ -1,0 +1,159 @@
+.window-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--surface-main);
+}
+.window-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.window-frame.has-titlebar .desktop-shell {
+  height: 100%;
+}
+.window-titlebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding-top: 2px;
+  border-bottom: 1px solid var(--theme-line-soft);
+  background: var(--sidebar);
+  color: var(--text-primary);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+.window-menus,
+.window-controls {
+  display: flex;
+  align-items: stretch;
+  -webkit-app-region: no-drag;
+}
+.window-menus {
+  padding-left: 6px;
+  justify-self: start;
+}
+.window-menus .popup-select {
+  width: auto;
+}
+.window-title {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 0.821429rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.window-controls {
+  justify-self: end;
+}
+.window-controls button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: default;
+}
+/* Window glyphs stay CSS-native and inherit the active foreground. */
+.window-controls span {
+  position: relative;
+  display: block;
+  width: 11px;
+  height: 11px;
+}
+.window-controls [data-action="minimize"] span {
+  height: 1px;
+  background: currentColor;
+}
+.window-controls [data-action="toggleMaximize"] span {
+  border: 1px solid currentColor;
+}
+.window-controls [data-action="toggleMaximize"].is-maximized span {
+  width: 9px;
+  height: 9px;
+  transform: translate(-1px, 1px);
+}
+.window-controls [data-action="toggleMaximize"].is-maximized span::after {
+  content: "";
+  position: absolute;
+  inset: -4px -4px 2px 2px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+.window-controls [data-action="close"] span::before,
+.window-controls [data-action="close"] span::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: -1px;
+  width: 13px;
+  height: 1px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+.window-controls [data-action="close"] span::after {
+  transform: rotate(-45deg);
+}
+
+.window-controls button:hover {
+  background: var(--surface-hover);
+}
+.window-controls [data-action="close"]:hover {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.window-controls button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+.window-controls button:disabled {
+  opacity: 0.4;
+  background: transparent;
+}
+.window-menu-launcher {
+  min-height: 28px;
+  height: auto;
+  margin: 3px 1px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.857143rem;
+  line-height: 1.4;
+  transition: background-color 120ms ease;
+}
+.window-menu-launcher:hover,
+.window-menu-launcher:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+.window-menu-launcher:focus-visible {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.window-help {
+  width: min(500px, calc(100vw - 32px));
+}
+@media (max-width: 520px) {
+  .window-titlebar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .window-title {
+    display: none;
+  }
+  .window-controls button {
+    width: 34px;
+  }
+}
+
+.window-menu-launcher {
+  color: var(--text-primary);
+  cursor: pointer;
+}

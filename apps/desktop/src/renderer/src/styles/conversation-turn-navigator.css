@@ -1,0 +1,200 @@
+.conversation-turn-navigator {
+  position: absolute;
+  z-index: 16;
+  top: 50%;
+  right: -4px;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  height: min(
+    calc(
+      var(--conversation-turn-count) * var(--conversation-turn-marker-height) +
+        var(--conversation-turn-controls-height)
+    ),
+    calc(
+      var(--conversation-turn-max-visible) *
+        var(--conversation-turn-marker-height) +
+        var(--conversation-turn-controls-height)
+    ),
+    calc(100% - 32px)
+  );
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.conversation-turn-marker-list {
+  position: relative;
+  width: 44px;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.conversation-turn-marker-list::-webkit-scrollbar {
+  display: none;
+}
+
+.conversation-turn-marker-list > li {
+  width: 44px;
+  height: var(--conversation-turn-marker-height);
+}
+
+.conversation-turn-scroll-button {
+  flex: 0 0 auto;
+  margin-right: 6px;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.conversation-turn-scroll-button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.conversation-turn-scroll-button > svg {
+  transform: rotate(90deg);
+}
+
+.conversation-turn-scroll-button.is-previous > svg {
+  transform: rotate(-90deg);
+}
+
+.conversation-turn-navigator .conversation-turn-scroll-button:disabled {
+  background: transparent;
+  opacity: 0.35;
+  cursor: default;
+}
+
+.conversation-turn-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 100%;
+  padding: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.conversation-turn-marker:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -4px;
+}
+
+.conversation-turn-marker-line {
+  display: block;
+  width: 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-tertiary) 42%, var(--surface-main));
+  transition:
+    width 120ms ease,
+    background-color 120ms ease;
+}
+
+.conversation-turn-marker.is-active .conversation-turn-marker-line {
+  background: var(--text-secondary);
+}
+
+.conversation-turn-marker:hover .conversation-turn-marker-line,
+.conversation-turn-marker:focus-visible .conversation-turn-marker-line {
+  width: 26px;
+  background: var(--text-secondary);
+}
+
+.conversation-turn-preview {
+  position: absolute;
+  z-index: 2;
+  right: 40px;
+  display: grid;
+  gap: 7px;
+  width: min(540px, calc(100% - 56px));
+  max-height: var(--conversation-turn-preview-max-height);
+  padding: 14px 16px 15px;
+  overflow: hidden;
+  border: 1px solid var(--theme-line);
+  border-radius: 15px;
+  background: var(--surface-raised);
+  box-shadow:
+    0 16px 38px color-mix(in srgb, var(--theme-foreground) 15%, transparent),
+    0 2px 9px color-mix(in srgb, var(--theme-foreground) 7%, transparent);
+  color: var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  cursor: pointer;
+  transform: translate(7px, -50%) scale(0.985);
+  transform-origin: right center;
+  transition:
+    opacity 130ms ease,
+    transform 150ms ease,
+    visibility 0s linear 150ms;
+  visibility: hidden;
+}
+
+.conversation-turn-preview strong,
+.conversation-turn-preview > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.conversation-turn-preview .conversation-turn-preview-position {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.conversation-turn-preview.is-compact {
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.conversation-turn-preview.is-compact strong {
+  -webkit-line-clamp: 1;
+}
+
+.conversation-turn-preview strong {
+  color: var(--text-primary);
+  font-size: 0.928571rem;
+  font-weight: 620;
+  line-height: 1.5;
+  -webkit-line-clamp: 2;
+}
+
+.conversation-turn-preview > span {
+  color: var(--text-tertiary);
+  font-size: 0.857143rem;
+  line-height: 1.55;
+  -webkit-line-clamp: 2;
+}
+
+.conversation-turn-preview.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%) scale(1);
+  transition-delay: 0s;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversation-turn-navigator,
+  .conversation-turn-scroll-button,
+  .conversation-turn-marker-line,
+  .conversation-turn-preview {
+    transition: none;
+  }
+}

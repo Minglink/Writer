@@ -1,0 +1,171 @@
+import type { MaterialQueryRunner } from "../material-query-runtime";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
+import type {
+  AgentWriteApprovalMode,
+  CommandResult,
+  LongAgentProfile,
+  LongChapterBodyChange,
+  LongCharacterFileChange,
+  LongCoCreationMode,
+  LongCommitChapterInput,
+  LongContinuityFileChange,
+  LongMutationReview,
+  LongWorkspaceCommandEnvelope,
+  LongWorkspaceOperationBatch,
+  LongWorkspaceRuntimeContext,
+  LongWorldbuildingFileChange,
+  WorkspaceRuntimeContext
+} from "@writer/contracts";
+import { createLongToolContext } from "./context";
+import {
+  buildLoadSkillTool,
+  buildQueryLinkedMaterialEntriesTool
+} from "./catalog-tools";
+import { buildListTool } from "./tool-list";
+import { buildReadTool } from "./tool-read";
+import { buildSearchTool } from "./tool-search";
+import { buildCreateTool } from "./tool-create";
+import { buildEditTool } from "./tool-edit";
+import { buildDeleteTool } from "./tool-delete";
+import { buildLedgerCommitTool } from "./ledger-tools";
+import { buildAskUserQuestionTool } from "./tool-ask-user-question";
+import type { AgentUserInputRequester } from "../runtime-types";
+import type { LongWorkspaceToolSharedState } from "./proposal-overlay";
+
+export type LongQueryCommandEnvelope = Extract<
+  LongWorkspaceCommandEnvelope,
+  {
+    type: "long.getWorkspaceIndex" | "long.readDocument" | "long.search";
+  }
+>;
+
+export type LongCommandExecutor = (
+  command: LongQueryCommandEnvelope,
+  signal?: AbortSignal
+) => Promise<CommandResult>;
+
+export type LongAgentToolDetails =
+  | { kind: "none" }
+  | {
+      kind: "long-mutation-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      batch: LongWorkspaceOperationBatch;
+      summary: string;
+      review?: LongMutationReview;
+    }
+  | {
+      kind: "long-worldbuilding-file-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      batch: LongWorkspaceOperationBatch;
+      summary: string;
+      files: LongWorldbuildingFileChange[];
+    }
+  | {
+      kind: "long-character-file-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      batch: LongWorkspaceOperationBatch;
+      summary: string;
+      files: LongCharacterFileChange[];
+    }
+  | {
+      kind: "long-continuity-file-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      batch: LongWorkspaceOperationBatch;
+      summary: string;
+      files: LongContinuityFileChange[];
+    }
+  | {
+      kind: "long-chapter-write-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      batch: LongWorkspaceOperationBatch;
+      file: LongChapterBodyChange;
+      summary: string;
+    }
+  | {
+      kind: "long-ledger-commit-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      input: LongCommitChapterInput;
+      summary: string;
+    }
+  | {
+      kind: "long-continuity-commit-proposal";
+      bookId: string;
+      agentId: LongAgentProfile["id"];
+      input: LongCommitChapterInput;
+      files: LongContinuityFileChange[];
+      summary: string;
+    };
+
+export interface BuildLongWorkspaceToolsInput {
+  workspace: LongWorkspaceRuntimeContext;
+  profile: LongAgentProfile;
+  sessionId: string;
+  runId: string;
+  writeApprovalMode?: AgentWriteApprovalMode;
+  coCreationMode?: LongCoCreationMode;
+  attachedSkills?: WorkspaceRuntimeContext["attachedSkills"];
+  attachedMaterials?: WorkspaceRuntimeContext["attachedMaterials"];
+  queryMaterials?: MaterialQueryRunner | undefined;
+  executor?: LongCommandExecutor;
+  requestUserInput?: AgentUserInputRequester;
+  includeAskUserQuestion?: boolean;
+  sharedState?: LongWorkspaceToolSharedState;
+  /** Called with a reset hook for when compaction drops earlier reads. */
+  onContextCompacted?: (
+    listener: (removedToolCallIds?: readonly string[]) => void
+  ) => void;
+}
+
+/**
+ * The unified long-form tool surface: five CRUD tools over every stage, plus
+ * the material, skill and ledger-commit tools.
+ */
+export function buildLongWorkspaceTools(
+  input: BuildLongWorkspaceToolsInput
+): AgentTool[] {
+  const effectiveInput: BuildLongWorkspaceToolsInput = input.coCreationMode
+    ? { ...input, writeApprovalMode: "request-approval" }
+    : input;
+  const ctx = createLongToolContext(effectiveInput);
+  const readOnlyCoCreation =
+    input.coCreationMode === "brainstorm" ||
+    input.coCreationMode === "critique";
+  const localTryRewrite = input.coCreationMode === "try_rewrite";
+  const tools: AgentTool[] = [
+    buildQueryLinkedMaterialEntriesTool(effectiveInput),
+    buildLoadSkillTool(effectiveInput)
+  ];
+  if (effectiveInput.includeAskUserQuestion !== false) {
+    tools.push(buildAskUserQuestionTool(ctx));
+  }
+  if (ctx.capabilities.has("query_structure")) {
+    tools.push(buildListTool(ctx), buildReadTool(ctx), buildSearchTool(ctx));
+  }
+  if (localTryRewrite && ctx.writableRoots.size > 0) {
+    tools.push(buildEditTool(ctx));
+  } else if (!readOnlyCoCreation && ctx.writableRoots.size > 0) {
+    tools.push(buildCreateTool(ctx), buildEditTool(ctx), buildDeleteTool(ctx));
+  }
+  if (
+    !readOnlyCoCreation &&
+    !localTryRewrite &&
+    ctx.capabilities.has("commit_ledger")
+  ) {
+    tools.push(buildLedgerCommitTool(ctx));
+  }
+  return tools;
+}
+
+export { isLongAgentToolDetails } from "./tool-details";
+export { createLongWorkspaceToolSharedState } from "./proposal-overlay";
+export type { LongWorkspaceToolSharedState } from "./proposal-overlay";
+export type {
+  LongReadDocumentResult,
+  LongSearchResult
+} from "@writer/contracts";

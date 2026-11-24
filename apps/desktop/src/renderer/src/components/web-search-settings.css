@@ -1,0 +1,138 @@
+.web-search-intro {
+  max-width: 760px;
+  margin: -4px 0 22px;
+  color: var(--text-secondary);
+  font-size: 0.928571rem;
+  line-height: 1.6;
+}
+
+.web-search-row {
+  flex-wrap: wrap;
+  cursor: default;
+}
+
+/* The first read is quick; hiding avoids showing defaults that then change. */
+.web-search-panel.is-pending .settings-card {
+  visibility: hidden;
+}
+
+.web-search-row .settings-item-text {
+  min-width: min(240px, 100%);
+}
+
+.web-search-key-row {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+  cursor: default;
+}
+
+.web-search-key-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.web-search-key-input {
+  width: 100%;
+  min-width: 0;
+  flex: none;
+}
+
+.web-search-key-source {
+  color: var(--text-secondary);
+  font-size: 0.892857rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.web-search-key-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.web-search-number {
+  width: 88px;
+  min-width: 88px;
+  flex: 0 0 88px;
+  text-align: right;
+}
+
+.web-search-panel .settings-card:last-of-type {
+  margin-bottom: 0;
+}
+
+.web-search-import-dialog {
+  width: min(520px, calc(100vw - 48px));
+}
+
+.web-search-import-options {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 12px;
+}
+
+.web-search-import-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--theme-line);
+  border-radius: 10px;
+  background: var(--surface-main);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.web-search-import-option:hover {
+  background: var(--surface-hover);
+}
+
+.web-search-import-option.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.web-search-import-option input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.web-search-import-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.web-search-import-text small {
+  color: var(--text-secondary);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.web-search-import-option em {
+  flex: none;
+  color: var(--text-tertiary);
+  font-size: 0.857143rem;
+  font-style: normal;
+}
+
+@media (max-width: 760px) {
+  .web-search-row .general-select-control {
+    width: 100%;
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .web-search-key-actions .voice-button {
+    min-width: 0;
+    white-space: normal;
+  }
+}

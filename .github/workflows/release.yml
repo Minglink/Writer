@@ -1,0 +1,126 @@
+name: Build and publish Windows release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  release-windows:
+    name: Package and publish Windows x64
+    if: ${{ !github.event.deleted }}
+    runs-on: windows-2025
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      WRITER_TEST_MAX_WORKERS: 4
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - name: Preserve LF source files on Windows
+        run: git config --global core.autocrlf false
+
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release tag and package versions
+        run: node tools/release-version.mjs
+
+      - name: Build and verify Windows x64 installer
+        run: pnpm pack:win
+
+      - name: Generate latest.yml and SHA256SUMS.txt
+        run: |
+          node --input-type=module <<'NODE'
+          import { writeFile } from "node:fs/promises";
+          import { inspectReleaseFile } from "./tools/release-files.mjs";
+          import { readReleaseVersion } from "./tools/release-version.mjs";
+
+          const version = await readReleaseVersion();
+          const exeName = `Writer-${version}-win-x64.exe`;
+          const blockmapName = `${exeName}.blockmap`;
+          const exeInfo = await inspectReleaseFile(`apps/desktop/release/${exeName}`);
+          const blockmapInfo = await inspectReleaseFile(`apps/desktop/release/${blockmapName}`);
+          const releaseDate = new Date().toISOString();
+
+          const latestYml = [
+            `version: ${version}`,
+            "files:",
+            `  - url: ${exeName}`,
+            `    sha512: ${exeInfo.sha512}`,
+            `    size: ${exeInfo.size}`,
+            `path: ${exeName}`,
+            `sha512: ${exeInfo.sha512}`,
+            `releaseDate: ${JSON.stringify(releaseDate)}`,
+            ""
+          ].join("\n");
+
+          await writeFile("apps/desktop/release/latest.yml", latestYml, "utf8");
+          const latestInfo = await inspectReleaseFile("apps/desktop/release/latest.yml");
+          const sums = [
+            `${exeInfo.sha256}  ${exeName}`,
+            `${blockmapInfo.sha256}  ${blockmapName}`,
+            `${latestInfo.sha256}  latest.yml`,
+            ""
+          ].join("\n");
+          await writeFile("apps/desktop/release/SHA256SUMS.txt", sums, "utf8");
+          NODE
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              "apps/desktop/release/Writer-${VERSION}-win-x64.exe" \
+              "apps/desktop/release/Writer-${VERSION}-win-x64.exe.blockmap" \
+              "apps/desktop/release/latest.yml" \
+              "apps/desktop/release/SHA256SUMS.txt" \
+              --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              --title "Writer ${VERSION}" \
+              --generate-notes \
+              "apps/desktop/release/Writer-${VERSION}-win-x64.exe" \
+              "apps/desktop/release/Writer-${VERSION}-win-x64.exe.blockmap" \
+              "apps/desktop/release/latest.yml" \
+              "apps/desktop/release/SHA256SUMS.txt"
+          fi

@@ -1,0 +1,63 @@
+import { describe, expect, it } from "vitest";
+import type { ModelConfig, ModelSettings } from "@writer/contracts";
+import { selectableModelSettings } from "./selectableModelSettings";
+
+function model(id: string, enabled?: boolean): ModelConfig {
+  return {
+    id,
+    label: id,
+    provider: "example",
+    modelId: id,
+    api: "openai-completions",
+    baseUrl: "https://models.example.test/v1",
+    reasoning: false,
+    defaultThinkingLevel: "off",
+    thinkingLevelOptions: ["low"],
+    temperatureOptions: [0.1, 0.7, 1],
+    hasApiKey: true,
+    ...(enabled === undefined ? {} : { enabled })
+  };
+}
+
+describe("selectableModelSettings", () => {
+  it("hides only disabled new-site models and repairs their default", () => {
+    const disabled = model("writer-site-official-example", false);
+    const custom = model("custom");
+    const settings: ModelSettings = {
+      models: [disabled, custom],
+      defaultModelId: disabled.id
+    };
+
+    expect(selectableModelSettings(settings)).toEqual({
+      ...settings,
+      models: [custom],
+      defaultModelId: custom.id
+    });
+  });
+
+  it("hides JEV models from text-generation selectors and repairs default", () => {
+    const jev: ModelConfig = {
+      ...model("jev-scorer"),
+      modelKind: "jev"
+    };
+    const custom = model("custom");
+    const settings: ModelSettings = {
+      models: [jev, custom],
+      defaultModelId: jev.id
+    };
+
+    expect(selectableModelSettings(settings)).toEqual({
+      ...settings,
+      models: [custom],
+      defaultModelId: custom.id
+    });
+  });
+
+  it("preserves the original snapshot when nothing is filtered", () => {
+    const settings: ModelSettings = {
+      models: [model("writer-site-official-example", true)],
+      defaultModelId: "writer-site-official-example"
+    };
+    expect(selectableModelSettings(settings)).toBe(settings);
+  });
+});

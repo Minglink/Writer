@@ -1,0 +1,59 @@
+export default {
+  enterAnOfficialSiteModelKey: "Enter an official site model key.",
+  quotaInformationIsUnavailableRefreshThePageUsingThe:
+    "Quota information is unavailable. Refresh the page using the button at the top right.",
+  addAModelKeyToViewQuotaProgress: "Add a model key to view quota progress.",
+  theCurrentKeyHasUnlimitedQuota: "The current key has unlimited quota.",
+  valueOfQuotaUsed: "{arg0}% of quota used",
+  deepWriteOfficialSite: "Writer official site",
+  officialSiteModelsAndKey: "Official site models and key",
+  connectToTheWriterApiGatewayUsingAModelKey:
+    "Browse official site models and prices without a key. Add a model key issued by the site to enable models, test connections, and view quota.",
+  openSiteStoreInBrowser: "Open site store in browser",
+  siteStore: "Site store",
+  refreshing: "Refreshing…",
+  refreshPage: "Refresh page",
+  siteKeyAdded: "Site key added",
+  addYourSiteKey: "Add your site key",
+  valueModelsEnabledTheKeyIsNeverReturnedTo:
+    "{arg0} models enabled. The key is never returned to the page as plain text.",
+  relatedModelsJoinTheListAfterYouSaveA:
+    "Browse the model catalog directly. Save a key to enable and use models.",
+  configured: "Configured",
+  notConfigured: "Not configured",
+  modelKey: "Model key",
+  enterOfficialSiteModelKey: "Enter one official site model key per line",
+  multipleKeysDescription:
+    "Enter one key per line. A single key is saved directly. With multiple keys, the first is saved and the remaining keys transfer their unused quota into it one by one. Successfully transferred source keys are permanently revoked.",
+  cancel: "Cancel",
+  saving: "Saving…",
+  updateKey: "Update key",
+  addKey: "Add key",
+  replaceKey: "Replace key",
+  removeKey: "Remove key",
+  officialSiteKeyQuota: "Official site key quota",
+  currentKeyBalance: "Current key balance",
+  unlimitedQuota: "Unlimited quota",
+  usedTotalQuota: "Used / Total quota",
+  valueUnlimited: "{arg0} / Unlimited",
+  currentKeyQuotaProgress: "Current key quota progress",
+  transferTheSourceKeySRemainingQuotaToThe:
+    "Transfer each source key's remaining quota to the current key",
+  addQuota: "Add quota",
+  modelCatalog: "Model catalog",
+  modelsFromTheOfficialSite: "Models from the official site",
+  valueModels: "{arg0} models",
+  awaitingConfiguration: "No models",
+  available: "Available",
+  input: "Input",
+  output: "/ Output",
+  cache: "/ Cache",
+  perMillionTokens: "(per million tokens)",
+  testing: "Testing…",
+  testConnection: "Test connection",
+  valueEnabledStatus: "{arg0} enabled status",
+  officialSiteModelsAppearHereAfterYouAddA:
+    "No models are currently available. Use the refresh button to load the catalog again.",
+  inputOutputCachePerMillionTokensMessage:
+    "Input {arg0} / Output {arg1} / Cache {arg2} (per million tokens)"
+};

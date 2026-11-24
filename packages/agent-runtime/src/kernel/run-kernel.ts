@@ -1,0 +1,609 @@
+import type { AgentSurface } from "../agent-surface";
+import type { AgentWriteApprovalResponse } from "@writer/contracts";
+import {
+  isRetryableAssistantError,
+  type UserMessage
+} from "@earendil-works/pi-ai";
+import type {
+  AgentProviderRuntimeConfig,
+  AgentRuntimeRef
+} from "@writer/contracts";
+import {
+  runAgentWithTurnRetries,
+  type AgentTurnRetryPolicyOptions
+} from "../agent-turn-retry";
+import {
+  isAssistantMessage,
+  toRuntimeEvents,
+  toToolStreamRuntimeEvent,
+  toUsageObservedRuntimeEvent
+} from "../event-mapping";
+import {
+  buildAgentEvaluationSnapshot,
+  evaluationConversationHistory,
+  providerVisibleEvaluationTools
+} from "../evaluation";
+import { RunLifecycle } from "../run-lifecycle";
+import type {
+  AgentRuntimeEvent,
+  AgentUserInputRequester
+} from "../runtime-types";
+import type { AgentUserInputBroker } from "../user-input-broker";
+import {
+  interceptToolCallStream,
+  type ToolCallAssistantEvent
+} from "../tool-stream";
+import { createConcurrencyLimiter } from "../concurrency-limiter";
+import { createHarnessStreamFn } from "../dsh/transport";
+import { withHarnessTools, type HarnessTools } from "../dsh/tools";
+
+/** Live tool pipelines keyed by conversation agent, reused across runs. */
+const harnessRegistry = new Map<string, HarnessTools>();
+import { AsyncEventQueue } from "./async-event-queue";
+import {
+  RunContextManager,
+  estimateRunFixedTokens,
+  resolveSummaryModel
+} from "./context";
+import type { ConversationAgentCache } from "./run-agent";
+import { assertAttachmentsSupported, resolveRunModel } from "./run-model";
+import type { AgentRunPlan } from "./run-plan";
+import { ToolDeltaStream } from "./tool-delta-stream";
+import { createRequiredOutputGuard } from "./required-output-guard";
+import { createRunSteering, type RunSteeringRegistry } from "./run-steering";
+import { createWriteApprovalGate } from "./write-approval-gate";
+
+export interface AgentRunKernelOptions {
+  idleTimeoutMs: number;
+  tokensPerSecond: number;
+  evaluationMode: boolean;
+  retryPolicy: AgentTurnRetryPolicyOptions | undefined;
+  agents: ConversationAgentCache;
+  userInputBroker: AgentUserInputBroker;
+  /** Where Agent Utility steering commands find this run; optional in tests. */
+  steering?: RunSteeringRegistry;
+  describe(config?: AgentProviderRuntimeConfig): AgentRuntimeRef;
+}
+
+/** Streams one agent run for any domain plan; see `AgentRunPlan`. */
+export class AgentRunKernel {
+  constructor(private readonly options: AgentRunKernelOptions) {}
+
+  async *run(plan: AgentRunPlan): AsyncIterable<AgentRuntimeEvent> {
+    const { target, eventSource } = plan;
+    const { idleTimeoutMs, userInputBroker } = this.options;
+    const queue = new AsyncEventQueue<AgentRuntimeEvent>();
+    const runtime = this.options.describe(target.runtimeConfig);
+    const messageId = `${target.runId}_assistant`;
+    const reusableConversationAgent = this.options.agents.select(plan);
+    const lifecycle = new RunLifecycle();
+    let userInputRequestSequence = 0;
+    const writeApprovalListeners = new Set<
+      (toolCallIds: string[], response?: AgentWriteApprovalResponse) => void
+    >();
+    // The broker holds one question per run, while parallel children (draw
+    // selections, plot structure confirmations) may ask at the same time: each
+    // request is shown only after the previous one settled.
+    const userInputTurns = createConcurrencyLimiter(1);
+    const requestUserInput: AgentUserInputRequester = async (
+      request,
+      signal
+    ) => {
+      userInputWaiting += 1;
+      lifecycle.clearIdleTimer();
+      try {
+        return await userInputTurns.run(async () => {
+          const requestId = `${target.runId}:user-input:${++userInputRequestSequence}`;
+          const response = userInputBroker.wait(
+            {
+              sessionId: target.sessionId,
+              runId: target.runId,
+              requestId,
+              questions: request.questions,
+              ...(request.draw ? { draw: request.draw } : {})
+            },
+            signal
+          );
+          emit({
+            type: "agent.user_input_requested",
+            runId: target.runId,
+            sessionId: target.sessionId,
+            payload: {
+              requestId,
+              toolCallId: request.toolCallId,
+              source: request.source,
+              questions: request.questions,
+              ...(request.draw ? { draw: request.draw } : {}),
+              runtime,
+              ...(request.teamReview ? { teamReview: request.teamReview } : {}),
+              ...(request.writeApproval
+                ? { writeApproval: request.writeApproval }
+                : {})
+            }
+          });
+          const answered = await response;
+          if (request.source === "write_approval") {
+            for (const listener of writeApprovalListeners)
+              listener(
+                request.writeApproval?.toolCallIds ?? [],
+                answered.writeApproval
+              );
+          }
+          return answered;
+        });
+      } finally {
+        userInputWaiting = Math.max(0, userInputWaiting - 1);
+        if (userInputWaiting === 0) scheduleIdleTimeout();
+      }
+    };
+    const { model, streamFn, spawnStreamFn, thinkingLevel } = resolveRunModel(
+      plan,
+      runtime,
+      this.options.tokensPerSecond
+    );
+    plan.assertModelBudget?.(model);
+    assertAttachmentsSupported(target, model, runtime);
+    let prepared: AgentSurface | undefined = reusableConversationAgent;
+    const compactedListeners = new Set<
+      (removedToolCallIds?: readonly string[]) => void
+    >();
+    const { systemPrompt, tools: plannedTools } = plan.build({
+      model,
+      thinkingLevel,
+      runtime,
+      spawnStreamFn,
+      parentSignal: lifecycle.signal,
+      requestUserInput,
+      getParentMessages: () => prepared?.state.messages ?? [],
+      onContextCompacted: (listener) => compactedListeners.add(listener),
+      onWriteApprovalSettled: (listener) => writeApprovalListeners.add(listener)
+    });
+    // A cached conversation agent keeps the tools of the run that built it,
+    // so the previous pipeline of the same key is replaced, not left dangling.
+    const harnessKey = plan.agentKey ?? target.runId;
+    await harnessRegistry.get(harnessKey)?.dispose();
+    const harnessTools = await withHarnessTools(plannedTools);
+    harnessRegistry.set(harnessKey, harnessTools);
+    const tools = harnessTools.tools;
+    const writeApprovalGate = plan.pausesForWriteApproval
+      ? createWriteApprovalGate({
+          requestUserInput,
+          runtime,
+          locale: target.promptLocale
+        })
+      : undefined;
+    let emitToolCallEvent: (
+      event: ToolCallAssistantEvent,
+      assistantTurnIndex: number
+    ) => void = () => {};
+    const interceptedStreamFn = interceptToolCallStream(
+      streamFn,
+      (event, assistantTurnIndex) =>
+        emitToolCallEvent(event, assistantTurnIndex)
+    );
+    const harnessStreamFn = createHarnessStreamFn(interceptedStreamFn, model);
+    const createdAgent = prepared === undefined;
+    const agent = this.options.agents.prepare(plan, prepared, {
+      systemPrompt,
+      model,
+      thinkingLevel,
+      tools,
+      streamFn: harnessStreamFn
+    });
+    prepared = agent;
+    const steering = createRunSteering({
+      agent,
+      sessionId: target.sessionId,
+      runId: target.runId,
+      messageId,
+      runtime,
+      emit: (event) => emit(event),
+      onDelivered: (message) =>
+        contextManager?.state.midRunMessages.add(message)
+    });
+    const unregisterSteering =
+      this.options.steering?.register(target.runId, steering) ?? (() => {});
+    const outputGuard = plan.requiredOutputTool
+      ? createRequiredOutputGuard(agent, plan.requiredOutputTool)
+      : undefined;
+    if (outputGuard) {
+      agent.finishTurn = () =>
+        outputGuard.failed ? { action: "end" } : undefined;
+    } else delete agent.finishTurn;
+
+    let settled = false;
+    let terminalEmitted = false;
+    let resultDelivered = false;
+    let evaluationSnapshotEmitter: (() => void) | undefined;
+    let refreshPreparedFirstTurn: (() => UserMessage["content"]) | undefined;
+    let modelRequestInFlight = false;
+    let retryWaiting = false;
+    let userInputWaiting = 0;
+    let idleModelRequestTimedOut = false;
+    let currentTurnAttempt = 0;
+    let currentTurnMaxAttempts = 1;
+    let compactionBusy = false;
+    let scheduleIdleTimeout = (): void => {};
+    const retryWaitController = new AbortController();
+
+    const emit = (event: AgentRuntimeEvent): void => {
+      if (event.type === "extras_agent.output_updated") resultDelivered = true;
+      if (event.type === "agent.completed" && !terminalEmitted) {
+        for (const derived of plan.completionEvents?.(event) ?? []) {
+          emit(derived);
+        }
+      }
+      const terminal =
+        event.type === "agent.completed" || event.type === "agent.error";
+      if (terminalEmitted && event.type !== "agent.evaluation_snapshot") {
+        return;
+      }
+      for (const childTerminal of lifecycle.observe(event)) {
+        queue.push(childTerminal);
+      }
+      if (terminal) terminalEmitted = true;
+      queue.push(event);
+      if (!terminal && !terminalEmitted) {
+        scheduleIdleTimeout();
+      }
+    };
+    const toolDeltas = new ToolDeltaStream(emit);
+    const emitError = (
+      code: string,
+      message: string,
+      details?: Record<string, unknown>
+    ): void =>
+      emit({
+        type: "agent.error",
+        runId: target.runId,
+        sessionId: target.sessionId,
+        payload: { code, message, ...(details ? { details } : {}), runtime }
+      });
+
+    emitToolCallEvent = (event, assistantTurnIndex) => {
+      toolDeltas.push(
+        toToolStreamRuntimeEvent(
+          event,
+          eventSource,
+          runtime,
+          messageId,
+          assistantTurnIndex
+        )
+      );
+    };
+
+    const cleanup = (): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      steering.close();
+      unregisterSteering();
+      lifecycle.clearIdleTimer();
+      toolDeltas.reset();
+      lifecycle.dispose();
+      userInputBroker.cancelRun(target.runId);
+      retryWaitController.abort();
+      queue.close();
+    };
+
+    lifecycle.bindAbort(target.signal, () => {
+      idleModelRequestTimedOut = false;
+      retryWaitController.abort();
+      agent.abort();
+      emitError("pi_agent.aborted", "智能体运行已中止。");
+      cleanup();
+    });
+
+    scheduleIdleTimeout = (): void => {
+      if (
+        settled ||
+        terminalEmitted ||
+        retryWaiting ||
+        compactionBusy ||
+        userInputWaiting > 0 ||
+        idleTimeoutMs <= 0
+      ) {
+        return;
+      }
+      lifecycle.scheduleIdleTimeout(idleTimeoutMs, () => {
+        if (
+          target.runtimeConfig &&
+          modelRequestInFlight &&
+          currentTurnAttempt < currentTurnMaxAttempts
+        ) {
+          // Aborting only the current Agent invocation yields an assistant
+          // failure that the turn retry coordinator can resume. Tool execution
+          // timeouts remain terminal so completed side effects are never replayed.
+          idleModelRequestTimedOut = true;
+          agent.abort();
+          return;
+        }
+        agent.abort();
+        emitError(
+          "pi_agent.idle_timeout",
+          "智能体超过 5 分钟没有返回新事件，运行已中止。"
+        );
+        cleanup();
+      });
+    };
+
+    const contextManager = plan.contextPolicy
+      ? new RunContextManager({
+          agent,
+          policy: plan.contextPolicy,
+          model,
+          summaryModel: resolveSummaryModel(
+            { model, streamFn: spawnStreamFn, thinkingLevel, runtime },
+            target.compactionRuntimeConfig
+          ),
+          runId: target.runId,
+          sessionId: target.sessionId,
+          messageId,
+          runtime,
+          fixedTokens: estimateRunFixedTokens(systemPrompt, tools),
+          signal: lifecycle.signal,
+          emit: (event) => emit(event),
+          setBusy: (busy) => {
+            compactionBusy = busy;
+            if (busy) lifecycle.clearIdleTimer();
+            else scheduleIdleTimeout();
+          },
+          refreshUserContent: () =>
+            refreshPreparedFirstTurn?.() ?? plan.userMessageContent(true),
+          notifyCompacted: (ids) => {
+            for (const listener of compactedListeners) listener(ids);
+          }
+        })
+      : undefined;
+    if (writeApprovalGate) {
+      agent.prepareNextTurnWithContext = async (context, signal) => {
+        const approval = await writeApprovalGate.wait(signal);
+        if (approval) contextManager?.state.midRunMessages.add(approval);
+        const update = await contextManager?.prepareNextTurn(context);
+        return approval
+          ? { ...update, messages: [...(update?.messages ?? []), approval] }
+          : update;
+      };
+    } else if (contextManager) {
+      agent.prepareNextTurnWithContext = contextManager.prepareNextTurn;
+    } else {
+      delete agent.prepareNextTurnWithContext;
+    }
+
+    const startRun = async (): Promise<void> => {
+      if (settled) return;
+      if (createdAgent)
+        await contextManager?.restore(target.conversationHistory);
+      // Preserve the first request wrapper as the stable prefix for later
+      // turns, until compaction removes it from the context.
+      const persistInitialRuntimeContext =
+        createdAgent ||
+        agent.state.messages.length === 0 ||
+        contextManager?.consumeFixedContextRefresh() === true;
+      const preparedRun = await plan.prepareRunContext?.({
+        firstTurn: persistInitialRuntimeContext,
+        signal: lifecycle.signal,
+        ...(contextManager
+          ? {
+              budgetTokens: Math.max(
+                800,
+                Math.min(
+                  4_000,
+                  Math.floor(contextManager.budget.working * 0.15)
+                )
+              )
+            }
+          : {})
+      });
+      if (settled) return;
+      refreshPreparedFirstTurn = preparedRun?.refreshFirstTurnContent;
+      const runtimeUserContent =
+        preparedRun?.userMessageContent ??
+        plan.userMessageContent(persistInitialRuntimeContext);
+      const runtimeUserMessage: UserMessage = {
+        role: "user",
+        content: runtimeUserContent,
+        timestamp: Date.now()
+      };
+      contextManager?.noteRunStart(
+        runtimeUserMessage,
+        plan.rawUserMessageContent?.(),
+        preparedRun?.chapterSnapshotId
+      );
+      await contextManager?.beforeRun(runtimeUserMessage);
+      if (settled) return;
+      contextManager?.assertFits(runtimeUserMessage);
+      if (this.options.evaluationMode) {
+        const evaluationTools = providerVisibleEvaluationTools(
+          systemPrompt,
+          tools,
+          runtime.provider,
+          target.runtimeConfig?.toolSchemaProfile,
+          plan.portableToolSchemaProfile
+        );
+        const emitEvaluationSnapshot = (): void => {
+          emit({
+            type: "agent.evaluation_snapshot",
+            runId: target.runId,
+            sessionId: target.sessionId,
+            payload: {
+              messageId,
+              snapshot: buildAgentEvaluationSnapshot(
+                systemPrompt,
+                runtimeUserMessage.content,
+                persistInitialRuntimeContext,
+                evaluationTools,
+                new Date().toISOString(),
+                evaluationConversationHistory(agent.state.messages)
+              ),
+              runtime
+            }
+          });
+        };
+        emitEvaluationSnapshot();
+        evaluationSnapshotEmitter = emitEvaluationSnapshot;
+      }
+      let completedEvent:
+        Extract<AgentRuntimeEvent, { type: "agent.completed" }> | undefined;
+      await runAgentWithTurnRetries({
+        agent,
+        initialPrompt: runtimeUserMessage,
+        runId: target.runId,
+        rejectEmptyResponse: () => !resultDelivered && !outputGuard,
+        signal: retryWaitController.signal,
+        ...(this.options.retryPolicy
+          ? { retryPolicy: this.options.retryPolicy }
+          : {}),
+        classifyFailure: (message) => {
+          if (idleModelRequestTimedOut && message.stopReason === "aborted") {
+            return "模型请求长时间没有返回新事件。";
+          }
+          return isRetryableAssistantError(message)
+            ? message.errorMessage || "模型连接暂时不可用。"
+            : undefined;
+        },
+        onTurnStarted: (attempt) => {
+          retryWaiting = false;
+          modelRequestInFlight = true;
+          idleModelRequestTimedOut = false;
+          currentTurnAttempt = attempt.attempt;
+          currentTurnMaxAttempts = attempt.maxAttempts;
+          emit({
+            type: "agent.turn_started",
+            runId: target.runId,
+            sessionId: target.sessionId,
+            payload: {
+              messageId,
+              turnId: attempt.turnId,
+              attempt: attempt.attempt,
+              maxAttempts: attempt.maxAttempts,
+              runtime
+            }
+          });
+        },
+        onRetryRollback: () => {
+          modelRequestInFlight = false;
+          idleModelRequestTimedOut = false;
+          lifecycle.clearIdleTimer();
+          toolDeltas.reset();
+        },
+        onRetryScheduled: (schedule) => {
+          retryWaiting = true;
+          lifecycle.clearIdleTimer();
+          emit({
+            type: "agent.retry_scheduled",
+            runId: target.runId,
+            sessionId: target.sessionId,
+            payload: {
+              messageId,
+              ...schedule,
+              runtime
+            }
+          });
+        },
+        onAssistantMessageEnded: (message, attempt) => {
+          const usageEvent = toUsageObservedRuntimeEvent(
+            message,
+            eventSource,
+            runtime,
+            messageId,
+            attempt
+          );
+          if (usageEvent) emit(usageEvent);
+        },
+        onEvent: (event) => {
+          steering.observe(event);
+          if (
+            event.type === "message_end" &&
+            isAssistantMessage(event.message)
+          ) {
+            modelRequestInFlight = false;
+            const decision = outputGuard?.inspect(
+              event.message,
+              resultDelivered
+            );
+            if (decision) {
+              completedEvent = undefined;
+              if (decision.type === "error")
+                emitError(decision.code, decision.message);
+              return;
+            }
+          } else if (event.type === "tool_execution_start") {
+            modelRequestInFlight = false;
+          }
+          for (const runtimeEvent of toRuntimeEvents(
+            event,
+            eventSource,
+            runtime,
+            messageId
+          )) {
+            if (event.type !== "tool_execution_update") {
+              writeApprovalGate?.observe(runtimeEvent);
+            }
+            if (runtimeEvent.type === "agent.completed")
+              completedEvent = runtimeEvent;
+            else emit(runtimeEvent);
+          }
+        },
+        ...(contextManager
+          ? {
+              contextOverflow: {
+                matches: (message) => contextManager.matchesOverflow(message),
+                recover: (message) => contextManager.recoverOverflow(message)
+              }
+            }
+          : {})
+      });
+      // Steers accepted after the loop's last drain never reach the model;
+      // the Renderer resends them as the next turn.
+      steering.close();
+      if (completedEvent && !settled) {
+        await contextManager?.afterRun();
+        if (!settled) emit(completedEvent);
+      }
+    };
+
+    let running: Promise<void> | undefined;
+    if (!settled) {
+      scheduleIdleTimeout();
+      running = startRun()
+        .catch((error: unknown) => {
+          if (settled || retryWaitController.signal.aborted) return;
+          emitError(
+            "pi_agent.prompt_failed",
+            error instanceof Error ? error.message : "本地智能体请求失败。",
+            { kind: error instanceof Error ? error.name : "unknown" }
+          );
+        })
+        .finally(() => {
+          if (!terminalEmitted) {
+            emitError(
+              "pi_agent.missing_terminal_event",
+              "智能体运行结束，但没有收到完成事件。"
+            );
+          }
+          evaluationSnapshotEmitter?.();
+          cleanup();
+        });
+    }
+
+    try {
+      for await (const event of queue) {
+        yield event;
+      }
+    } finally {
+      if (!settled) {
+        agent.abort();
+        cleanup();
+      }
+      // UI completion/abort can close the queue while a model or tool still
+      // owns this Agent. Do not let Utility release its session until it ends.
+      await running;
+      if (!plan.agentKey && harnessRegistry.get(harnessKey) === harnessTools) {
+        harnessRegistry.delete(harnessKey);
+        await harnessTools.dispose();
+      }
+    }
+  }
+}
