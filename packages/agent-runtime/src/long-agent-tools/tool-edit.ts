@@ -1,5 +1,5 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { Type } from "@earendil-works/pi-ai";
+import { StringEnum, Type } from "@earendil-works/pi-ai";
 import {
   parseLongForeshadowingBody,
   serializeLongForeshadowingBody,
@@ -49,10 +49,20 @@ import { resolveLongTarget, type LongResolvedTarget } from "./target";
 import { longStructureUpdateOperation } from "./structure-operations";
 import { volumeChapterOrderOperation } from "./volume-chapter-order";
 import type { LongToolContext } from "./context";
+import {
+  checkBodyWriteHardBlocks,
+  checkReplacementConservation,
+  formatConservationFailure,
+  formatHardBlockError,
+  formatProseSoftNotices,
+  lintProseBody
+} from "../prose-guards";
 
 interface Replacement {
   original_text: string;
   new_text: string;
+  allow_numeric_change?: boolean | "true" | "false" | undefined;
+  allowed_removed_measures?: readonly string[] | undefined;
 }
 
 export function applyReplacements(
@@ -138,7 +148,19 @@ export function buildEditTool(ctx: LongToolContext): AgentTool {
         Type.Array(
           strictObject({
             original_text: Type.String({ minLength: 1, maxLength: 200_000 }),
-            new_text: Type.String({ maxLength: 200_000 })
+            new_text: Type.String({ maxLength: 200_000 }),
+            allow_numeric_change: Type.Optional(
+              StringEnum(["true", "false"] as const, {
+                description:
+                  '仅在确需修正正文账本数值、时刻或量词时传 "true"；默认启用守恒锁防止局部润色误删状态锚点。'
+              })
+            ),
+            allowed_removed_measures: Type.Optional(
+              Type.Array(Type.String({ minLength: 1, maxLength: 64 }), {
+                maxItems: 20,
+                description: "明确允许本次局部替换移除的受保护数值或量词。"
+              })
+            )
           }),
           { minItems: 1, maxItems: 100 }
         )
@@ -381,6 +403,16 @@ export function buildEditTool(ctx: LongToolContext): AgentTool {
           );
         }
       }
+      const isManuscriptBody =
+        target.kind === "chapter_card" && target.document === "body";
+      if (isManuscriptBody && params.replacements) {
+        for (const replacement of params.replacements) {
+          const check = checkReplacementConservation(replacement);
+          if (!check.ok) {
+            return textResult(formatConservationFailure(check));
+          }
+        }
+      }
       const next = params.replacements
         ? applyReplacements(
             evidence?.content ?? live.content,
@@ -390,6 +422,20 @@ export function buildEditTool(ctx: LongToolContext): AgentTool {
       if ("failure" in next) return textResult(next.failure);
       if (params.replacements && !evidence) {
         return textResult(`未修改：请先用 read 完整读取 ${target.title}。`);
+      }
+      let proseSoftFeedback = "";
+      if (isManuscriptBody) {
+        const hardBlocks = checkBodyWriteHardBlocks(
+          live.content,
+          next.content,
+          Boolean(params.replacements)
+        );
+        if (hardBlocks.length > 0) {
+          return textResult(formatHardBlockError(hardBlocks));
+        }
+        proseSoftFeedback = formatProseSoftNotices(
+          lintProseBody(next.content).softNotices
+        );
       }
       fullyReadDocuments.set(live.file.id, {
         content: next.content,
@@ -411,7 +457,7 @@ export function buildEditTool(ctx: LongToolContext): AgentTool {
         summary,
         message: `已形成《${target.title}》正文${
           params.replacements ? "编辑" : "写入"
-        }提案，等待客户端审阅。`,
+        }提案，等待客户端审阅。${proseSoftFeedback}`,
         index
       });
     }

@@ -241,6 +241,8 @@ function restoreDefaultPrompt(): void {
         <SubagentModelField
           v-if="!jevEvaluation"
           :name="`${name}-evaluator-model`"
+          :heading="t('evaluator')"
+          :accessible-label="t('evaluator')"
           :model-mode="draw.evaluator.modelMode"
           :model-id="draw.evaluator.modelId"
           :thinking-level="draw.evaluator.thinkingLevel"

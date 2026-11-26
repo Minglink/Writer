@@ -24,6 +24,7 @@ export default {
   channelMale: "男生",
   channelFemale: "女生",
   pacingStyle: "连载与节奏风向",
+  shortPacingStyle: "短篇节奏与篇幅风向",
   pacingFanqie: "番茄快节奏",
   pacingFanqieDesc: "前300字亮冲突/金手指 · 黄金三章反杀 · 强钩子冲首秀完读",
   pacingQidian: "起点长线精品",

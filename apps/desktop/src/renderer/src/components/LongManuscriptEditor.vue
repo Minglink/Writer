@@ -26,6 +26,7 @@ defineProps<{
   searchMatches: readonly { start: number; end: number }[];
   activeSearchIndex: number;
   searchHighlightVisible: boolean;
+  emptyText?: string | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -137,7 +138,7 @@ function updateTitle(event: Event): void {
         :document-key="documentKey"
         :editable="!readOnly && !busy"
         :resolve-image="resolveImage"
-        :empty-text="t('noManuscriptYet')"
+        :empty-text="emptyText || t('noManuscriptYet')"
         annotate-headings
         @edit="emit('previewEdit', $event)"
         @keydown="emit('keydown', $event)"

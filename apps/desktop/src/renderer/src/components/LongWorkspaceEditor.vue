@@ -143,6 +143,7 @@ const props = defineProps<{
   workspaceIndex: LongWorkspaceIndexSnapshot | null;
   locked?: boolean;
   lockedReason?: string | undefined;
+  leftCollapsed?: boolean;
   rightPane?: boolean;
   rightPaneCollapsed?: boolean;
   defaultViewMode: TextViewMode;
@@ -150,6 +151,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  expandLeft: [];
   collapse: [];
   toggleRight: [];
   saved: [result: LongWriteDocumentResult];
@@ -1848,6 +1850,7 @@ const currentSaveState = computed<"saved" | "saving" | "unsaved" | null>(() => {
 });
 
 function openBookSearchPanel(): void {
+  dismissFindPanel();
   memoryDrawerOpen.value = false;
   bookSearchOpen.value = true;
   void nextTick(() => {
@@ -1860,8 +1863,22 @@ function toggleMemoryDrawer(): void {
     memoryDrawerOpen.value = false;
     return;
   }
+  dismissFindPanel();
   bookSearchOpen.value = false;
   memoryDrawerOpen.value = true;
+}
+
+watch(findPanelOpen, (open) => {
+  if (open) {
+    bookSearchOpen.value = false;
+    memoryDrawerOpen.value = false;
+  }
+});
+
+function handleOutlineOpen(): void {
+  dismissFindPanel();
+  bookSearchOpen.value = false;
+  memoryDrawerOpen.value = false;
 }
 
 function handleMemoryJumpToFile(fileId: string): void {
@@ -2782,7 +2799,10 @@ onBeforeUnmount(() => {
 
         <div
           v-if="
-            showToolbarTextTools || rightPane !== false || rightPaneCollapsed
+            showToolbarTextTools ||
+            rightPane !== false ||
+            rightPaneCollapsed ||
+            (leftCollapsed && rightPane === false)
           "
           class="editor-toolbar"
         >
@@ -2790,6 +2810,16 @@ onBeforeUnmount(() => {
             class="editor-toolbar-actions"
             @wheel="handleHorizontalOverflowWheel"
           >
+            <button
+              v-if="leftCollapsed && rightPane === false"
+              class="icon-button editor-expand-left-button"
+              type="button"
+              :aria-label="t('expandSidebar')"
+              :title="t('expandSidebar')"
+              @click="emit('expandLeft')"
+            >
+              <AppIcon name="panel-left" :size="16" />
+            </button>
             <template v-if="showToolbarTextTools">
               <div class="view-tabs" role="tablist" :aria-label="t('textView')">
                 <button
@@ -2823,6 +2853,7 @@ onBeforeUnmount(() => {
                   :can-undo="canUndo"
                   :can-redo="canRedo"
                   :disabled="!canUseTextTools"
+                  :replace-disabled="currentReadOnly"
                   :find-panel-open="findPanelOpen"
                   :find-panel-mode="findPanelMode"
                   :version-visible="versionVisible"
@@ -2842,6 +2873,7 @@ onBeforeUnmount(() => {
                   :document-key="
                     currentSelectionFile?.file.id ?? selection?.key ?? ''
                   "
+                  @open="handleOutlineOpen"
                 />
               </div>
               <span class="toolbar-separator" />
@@ -3389,6 +3421,13 @@ onBeforeUnmount(() => {
           :search-matches="searchMatches"
           :active-search-index="currentMatchIndex"
           :search-highlight-visible="findPanelOpen"
+          :empty-text="
+            currentSelectionFile?.role === 'character-state'
+              ? t('noChapterEndStateYet')
+              : currentSelectionFile?.role === 'handoff'
+                ? t('noHandoffYet')
+                : undefined
+          "
           @title-change="saveStructureTitle"
           @title-keydown="handleStructureTitleKeydown"
           @beforeinput="handleEditorBeforeInput"
@@ -3590,7 +3629,11 @@ onBeforeUnmount(() => {
                         ? t('noChapterCardContentYet')
                         : currentIsVolumeOutline
                           ? t('noVolumeOutlineYet')
-                          : t('noManuscriptYet')
+                          : currentSelectionFile?.role === 'character-state'
+                            ? t('noChapterEndStateYet')
+                            : currentSelectionFile?.role === 'handoff'
+                              ? t('noHandoffYet')
+                              : t('noManuscriptYet')
                 "
                 annotate-headings
                 @edit="applyPreviewEdit"
@@ -3831,6 +3874,7 @@ onBeforeUnmount(() => {
           "
           :character-count="characterCount"
           :auto-save-enabled="autoSaveEnabled || currentIsForeshadowingView"
+          :read-only="currentReadOnly"
           :save-state="currentSaveState"
         />
         <span

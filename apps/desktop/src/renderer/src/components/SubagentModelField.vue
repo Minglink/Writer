@@ -13,6 +13,8 @@ const t = createScopedTranslator("components.subagentModelField");
 
 const props = defineProps<{
   name: string;
+  heading?: string | undefined;
+  accessibleLabel?: string | undefined;
   modelMode?: ShortAgentSubagentModelMode | undefined;
   modelId?: string | undefined;
   thinkingLevel?: ThinkingLevel | undefined;
@@ -39,12 +41,12 @@ const modeOptions = computed(() => [
 
 <template>
   <div class="model-field">
-    <span class="model-field-label">{{ t("modelSettings") }}</span>
+    <span class="model-field-label">{{ heading ?? t("modelSettings") }}</span>
     <AgentTeamSegmented
       :model-value="custom ? 'custom' : 'inherit'"
       :options="modeOptions"
       :name="name"
-      :label="t('subagentModelSettings')"
+      :label="accessibleLabel ?? t('subagentModelSettings')"
       :disabled="disabled"
       @update:model-value="emit('setMode', $event)"
     />

@@ -26,7 +26,7 @@ const LONG_WORKSPACE_QUERY_RULES_ZH = `【对象定位】
 - 写正文时不读人物 history、relationships 或整份 core_profile，不读没出场的人物、本章不涉及的设定，也不读其他章的整章正文；需要时只读片段。若章卡与已写事实冲突，写作时沿用故事当时已成立的事实，在交回时标明哪张章卡需要调整。作者明确要改前文时，找出受影响的后续章卡，按本轮范围提议修订。新事实留入连续性账本，不抄进后续章卡。`;
 
 const LONG_WORKSPACE_WRITE_RULES_ZH = `【章卡与写作】
-规划或细化章卡时，在 card 中按需补“## 写作上下文”：前情衔接、出场人物的相关状态与动机、本章设定、呼应与伏笔、不能写破的信息。只写本章用得上的，不抄档案或百科；不强制格式和篇幅。
+规划或细化章卡时，在 card 中按需补“## 写作上下文”：前情衔接、出场人物的相关状态与动机、本章设定、呼应与伏笔，并固定写齐视角防火墙键名——\`视角：\`、\`禁止透露：\`、\`不能写破：\`、\`知情边界：\`（系统会据此自动提取有限视角护栏；涉及物资/时间/筹码结算时附一行算术自检）。只写本章用得上的，不抄档案或百科。
 用户要求写下一章而下一章没有章卡时，主智能体先用 ask_user_question 问一次，选项为“我先拟章卡，你确认后再写”和“先不写”；用户给要点或确认后再建卡写作。没有该提问工具的团队成员只报告缺章卡，不自行创建。委派写章前确认章卡存在，task 只给章卡 id 与额外要求，不抄入档案、设定或正文。
 
 【创建】
@@ -40,7 +40,7 @@ const LONG_WORKSPACE_WRITE_RULES_ZH = `【章卡与写作】
 【修改与删除】
 - edit 支持整篇写入和局部修改。建议每次 edit 附简短的 summary，省略或为空时系统自动生成。
 - 目标为空时直接用 content 写入；覆盖已有非空文本前必须完整读取并明确允许覆盖。
-- 局部修改用 replacements，每一项都必须同时有 original_text 和 new_text，original_text 必须从完整读取的原文中逐字复制。提交前核对必填字段齐全；一次 replacements 尽量不超过五处。
+- 局部修改用 replacements，每一项都必须同时有 original_text 和 new_text，original_text 必须从完整读取的原文中逐字复制。提交前核对必填字段齐全；一次 replacements 尽量不超过五处。修改小说正文（body）时，系统自动启用数字/时间/量词守恒锁与单段引号闭合检查；确需修正账本数值时才显式传 allow_numeric_change=true。
 - edit 也可以带 meta 修改标题或关联字段。切换章卡主剧情点用 edit(id=<chapter_id>, meta={primary_arc_id:<同卷 arc_id>}, summary=<说明>)；解除关联传 primary_arc_id:null。仅改章卡信息可省略 document，换绑保持章节顺序并预览关联影响。
 - delete 删除一个具体对象；存在下游引用时，工具会报告级联影响，由用户在审批卡上确认。
 - 世界观分类、人物类型等容器的新建、删除、改名、排序以及分类格式切换不在工具范围内；需要时请用户在界面中操作。
@@ -50,6 +50,7 @@ const LONG_WORKSPACE_WRITE_RULES_ZH = `【章卡与写作】
 - 用 propose_continuity_commit 提交本书中一章已写完的章节，或按叙事顺序连续的一批已写完、未提交的章节；单章提交就是长度为一的批次。
 - 多章批次要读取每一章的正文作为依据，只在最后一章（检查点）上创建或修改连续性文档，内容概括整批结束后的状态；不要为中间章节生成或绑定单独的连续性记录。chapter_card_ids 按叙事顺序提交，最后一个 id 即检查点，整批成为所有成员章节共用的一条账本记录。
 - 优先在 propose_continuity_commit 的 documents 中一并提供 chapter_end_state、handoff，以及需要的 world_reveals、characters（character_id、current_state、history）；形成一张可审阅文件差异的卡，文件和账本一起保存。修改非空连续性文件前仍须完整读取。不传 documents 时保留先 create/edit 文件、再登记的旧流程。
+- handoff 严守倒金字塔结构与 <=1,000 字硬预算（防止超过系统 1,200 字自动取证上限被头部截断）：长篇剧情流水账与心理变化写入 chapter_end_state 与人物 current_state/history，handoff 只置顶三块：①即时时空与动作接续点；②五维硬账本快照（资财耗材/伤病体力/机制冷却/人情债务/线索进度，严格区分口头提议、意向未交割、物理落袋三态，首章先做初始基数 Seed 建账）；③审校发现的跨章必圆隐患。
 - 提案生成后，用 list(scope_id=<检查点章 id>, view=continuity) 查询本批账本。只有查到本批记录，才能回复「已归档」。账本显示未提交或无法查询时，只能报告归档申请已提出、结果尚未确认。读到提案中的连续性文件只能核对提案内容。
 - 伏笔总览是设计来源。账本只能核对批次内已有的伏笔节点，并把它们标为已兑现或已错过，不能新建伏笔线或伏笔节点。正文里出现疑似伏笔但总览中没有对应条目时，只在对话中提醒用户补充设计。
 
@@ -80,7 +81,7 @@ Every object is addressed by one stable business id, and its prefix sets its typ
 - While drafting, do not read character history, relationships or entire core profiles, absent characters, unrelated setting, or entire other chapters; use excerpts as needed. If the card conflicts with written events, follow the facts established by that point in the story and identify the card that needs updating in the handoff. When the author explicitly revises earlier events, identify affected later cards and propose revisions within the requested scope. Put new facts in the continuity ledger, not later chapter cards.`;
 
 const LONG_WORKSPACE_WRITE_RULES_EN = `[Chapter cards and drafting]
-When planning or refining a card, add a writing-context section to card as needed: the transition, relevant character states and motives, setting, callbacks and foreshadowing, and facts not to reveal yet. Include only what this chapter needs; do not copy profiles or encyclopedias. The format and length are not mandatory.
+When planning or refining a card, add a writing-context section to card as needed: the transition, relevant character states and motives, setting, callbacks and foreshadowing, and explicit POV guard lines using the keys POV:, Do not reveal:, Must not spoil:, Knowledge boundary: so the runtime extracts the limited-POV firewall automatically (add a one-line arithmetic/stake self-check when inventory, clocks, or deals matter). Include only what this chapter needs; do not copy profiles or encyclopedias.
 If the user asks for the next chapter but it has no card, the main agent must first use ask_user_question once with “Draft a card for your confirmation, then write” and “Do not write yet”. Create the card and draft only after the user supplies points or confirms. A member without that question tool must report the missing card without creating one. Before delegation, confirm the card exists; the task supplies only its id and extra requirements, never copied profiles, setting or prose.
 
 [Creating]
@@ -94,7 +95,7 @@ Every object is a body of text plus compact metadata, including objects without 
 [Editing and deleting]
 - edit supports whole-document writes and local edits. A short summary is recommended for every edit; if omitted or blank, the system generates one.
 - Write an empty target directly with content. Before overwriting existing non-empty text, read it in full and explicitly allow the overwrite.
-- For local edits use replacements: every item needs both original_text and new_text, and original_text must be copied exactly from the fully read text. Check that every required field is present before submitting, and keep one call to about five replacements at most.
+- For local edits use replacements: every item needs both original_text and new_text, and original_text must be copied exactly from the fully read text. Check that every required field is present before submitting, and keep one call to about five replacements at most. Manuscript body edits enforce numeric/time/measure conservation and paragraph-balanced quotes; pass allow_numeric_change=true only when intentionally correcting a ledger value.
 - edit may also carry meta to change a title or relationship field. To change a chapter card's primary plot point, use edit(id=<chapter_id>, meta={primary_arc_id:<arc_id in the same volume>}, summary=<reason>); use primary_arc_id:null to unlink it. Metadata-only edits may omit document; rebinding preserves chapter order and previews the relationship impact.
 - delete removes one specific object. When downstream references exist, the tool reports the cascading impact for the user to confirm on the approval card.
 - Creating, deleting, renaming or reordering containers such as worldbuilding categories and character types, and switching a category's format, are outside the tools; ask the user to do them in the interface.
@@ -104,6 +105,7 @@ Every object is a body of text plus compact metadata, including objects without 
 - Use propose_continuity_commit to submit one written chapter of this book, or a contiguous narrative-order batch of written, uncommitted chapters; a single chapter is a batch of one.
 - For a batch, read every chapter's manuscript as evidence, and create or edit continuity documents only on the final checkpoint chapter, summarizing the state after the whole batch. Do not generate or bind separate continuity records for intermediate chapters. Submit chapter_card_ids in narrative order; the last id is the checkpoint, and the batch becomes one ledger record shared by all its chapters.
 - Prefer providing documents in propose_continuity_commit: chapter_end_state, handoff, and optional world_reveals and characters (character_id, current_state, history). This forms one review card with file diffs, saving files and ledger together. Fully read non-empty continuity files before replacing them. Omitting documents preserves the old create/edit-then-register flow.
+- Keep handoff strictly within <=1,000 characters in inverted-pyramid order (avoiding the runtime's 1,200-character head-truncation ceiling): put full plot logs in chapter_end_state and character current_state/history, and pin only three blocks at the top of handoff: (1) immediate time/location/action anchor, (2) 5-dimension hard ledger snapshot (inventory/resources, injuries/stamina, cooldowns, favors/debts, clue progress—distinguishing verbal proposal, agreed-untransferred, and physically settled states, with Seed baselines in Chapter 1), and (3) cross-chapter must-resolve hazards from review.
 - After proposing an archive, check the batch ledger with list(scope_id=<checkpoint chapter id>, view=continuity). Report it as archived only when the lookup returns the batch record. If it shows no commit or the lookup is unavailable, report that the archive was proposed and remains unconfirmed. Reading proposal text only verifies its contents.
 - The foreshadowing overview is the design source. The ledger may only check existing beats of the chapters in the batch and mark them paid off or missed; it never creates threads or beats. When the manuscript holds something that looks like foreshadowing with no matching overview entry, just tell the user in the conversation that the design needs it.
 

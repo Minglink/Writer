@@ -13,6 +13,7 @@ import {
   longAgentsMdCharacterCount,
   normalizeWebNovelTropes,
   portableBookSchema,
+  resolveDefaultNarrativeDialsForGenre,
   resolveLongBookFrameworkPreset,
   writingContextCharacterCount
 } from "./index";
@@ -283,5 +284,37 @@ describe("Chinese web-novel genre & trope frameworks", () => {
         tropes: ["虐渣打脸"]
       }).success
     ).toBe(false);
+  });
+
+  it("supports universal narrative manifold dials and genre register defaults within AGENTS.md budget", () => {
+    expect(resolveDefaultNarrativeDialsForGenre("科幻末世")).toEqual({
+      lexiconRegister: "scifi_system",
+      povMode: "third_limited",
+      hookWaveform: "double_cliffhanger"
+    });
+    expect(resolveDefaultNarrativeDialsForGenre("种田")).toEqual({
+      lexiconRegister: "slice_daily",
+      povMode: "third_limited",
+      hookWaveform: "harvest_milestone"
+    });
+
+    const agentsMd = buildLongAgentsMdForGenre(DEFAULT_LONG_AGENTS_MD, "悬疑", {
+      pacingMode: "qidian",
+      tropes: ["无限流"],
+      narrativeDials: {
+        lexiconRegister: "literary_realism",
+        povMode: "first_person",
+        hookWaveform: "revelation_echo",
+        fusionTags: ["规则怪谈", "年代烟火"]
+      }
+    });
+    expect(agentsMd).toContain("万书同源调音");
+    expect(agentsMd).toContain("第一人称沉浸视角");
+    expect(agentsMd).toContain("规则怪谈 + 年代烟火");
+    expect(agentsMd).toContain("现实/出版语域");
+    expect(agentsMd).toContain("口头提议、意向未交割与物理落袋三态");
+    expect(longAgentsMdCharacterCount(agentsMd)).toBeLessThanOrEqual(
+      LONG_AGENTS_MD_MAX_CHARACTERS
+    );
   });
 });

@@ -358,6 +358,8 @@ function resetDraft(): void {
   agentTeamIds.value = [];
 }
 
+const titleError = ref("");
+
 function requestClose(): void {
   if (!props.submitting) emit("close");
 }
@@ -365,10 +367,12 @@ function requestClose(): void {
 function submit(): void {
   const normalizedTitle = title.value.trim();
   if (!normalizedTitle) {
-    uiMessage.warning(t("enterABookTitle"));
+    titleError.value = t("enterABookTitle");
+    titleInput.value?.scrollIntoView({ block: "center", behavior: "smooth" });
     titleInput.value?.focus();
     return;
   }
+  titleError.value = "";
   const linkedMaterialIdsByKind = bindings.value?.linkedMaterialIdsByKind;
   const linkedSkillIdsByKind = bindings.value?.linkedSkillIdsByKind;
   const teamChoice = agentTeamIds.value.length
@@ -608,6 +612,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
                 ref="titleInput"
                 v-model="title"
                 type="text"
+                :aria-invalid="Boolean(titleError)"
+                :class="{ 'is-invalid': Boolean(titleError) }"
                 :maxlength="
                   workspaceType === 'long'
                     ? 256
@@ -626,7 +632,15 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
                         : t('enterABookTitle')
                 "
                 :disabled="submitting"
+                @input="titleError = ''"
               />
+              <small
+                v-if="titleError"
+                class="create-book-field-error"
+                role="alert"
+              >
+                {{ titleError }}
+              </small>
             </label>
 
             <template v-if="workspaceType === 'academic'">
@@ -773,7 +787,11 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
                 id="create-book-pacing-heading"
                 class="create-book-genre-legend"
               >
-                {{ t("pacingStyle") }}
+                {{
+                  workspaceType === "short"
+                    ? t("shortPacingStyle")
+                    : t("pacingStyle")
+                }}
               </span>
               <div
                 v-if="workspaceType === 'long'"
@@ -1039,6 +1057,17 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
+}
+
+.create-short-book-field input.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+
+.create-book-field-error {
+  color: var(--danger-text);
+  font-size: 0.785714rem;
+  line-height: 1.4;
 }
 
 .create-workspace-type-options .create-workspace-type-tab {

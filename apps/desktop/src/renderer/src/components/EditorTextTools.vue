@@ -8,6 +8,7 @@ defineProps<{
   canUndo: boolean;
   canRedo: boolean;
   disabled?: boolean;
+  replaceDisabled?: boolean;
   findPanelOpen: boolean;
   findPanelMode: "find" | "replace";
   versionVisible?: boolean;
@@ -66,7 +67,7 @@ const emit = defineEmits<{
     type="button"
     :aria-label="t('replace')"
     :title="t('replaceFCtrlH')"
-    :disabled="disabled"
+    :disabled="disabled || replaceDisabled"
     :aria-pressed="findPanelOpen && findPanelMode === 'replace'"
     @mousedown.prevent
     @click="emit('toggleFind', 'replace')"

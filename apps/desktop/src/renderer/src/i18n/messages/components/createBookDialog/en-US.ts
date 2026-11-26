@@ -26,6 +26,7 @@ export default {
   channelMale: "Male",
   channelFemale: "Female",
   pacingStyle: "Serialization & pacing style",
+  shortPacingStyle: "Short-story pacing style",
   pacingFanqie: "Fast-paced traffic",
   pacingFanqieDesc:
     "300-word hook & cheat · 3-chapter counterstrike · cliffhangers",

@@ -778,7 +778,11 @@ async function saveAndSmoothTransition(): Promise<void> {
           id="book-positioning-pacing-heading"
           class="book-positioning-legend"
         >
-          {{ bookT("pacingStyle") }}
+          {{
+            bookType === "short"
+              ? bookT("shortPacingStyle")
+              : bookT("pacingStyle")
+          }}
         </span>
         <div v-if="bookType === 'long'" class="book-positioning-pacing-grid">
           <button
@@ -1237,6 +1241,7 @@ async function saveAndSmoothTransition(): Promise<void> {
   display: grid;
   gap: 6px;
   min-width: 0;
+  padding-bottom: 14px;
 }
 
 .book-positioning-note-field textarea {

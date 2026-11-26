@@ -5,6 +5,7 @@ import {
   type ShortWorkspaceStageId
 } from "@writer/contracts";
 import { draftBodyFeedback } from "./draft-feedback";
+import { formatProseSoftNotices, lintProseBody } from "../prose-guards";
 import { trackWritingMutation } from "./settlement";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import { appendWritingContentCounts } from "../writing-content-counts";
@@ -132,16 +133,26 @@ export function formShortContentProposal(
               .wordCountRequirement
           )
         : "";
-    return textResult([message, feedback].filter(Boolean).join("\n"), {
-      kind: "workspace-expert-draft-file-mutation",
-      workspaceId: input.workspace.id,
-      stageId: "draft",
-      documentId: target.documentId,
-      sectionId: target.sectionId!,
-      fileKind: target.fileKind!,
-      text: content,
-      baseRevision,
-      summary
-    });
+    const proseHint =
+      target.fileKind === "body"
+        ? formatProseSoftNotices(
+            lintProseBody(content).softNotices,
+            input.promptLocale
+          ).trim()
+        : "";
+    return textResult(
+      [message, feedback, proseHint].filter(Boolean).join("\n"),
+      {
+        kind: "workspace-expert-draft-file-mutation",
+        workspaceId: input.workspace.id,
+        stageId: "draft",
+        documentId: target.documentId,
+        sectionId: target.sectionId!,
+        fileKind: target.fileKind!,
+        text: content,
+        baseRevision,
+        summary
+      }
+    );
   });
 }

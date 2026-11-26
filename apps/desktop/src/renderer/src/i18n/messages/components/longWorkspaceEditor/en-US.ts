@@ -108,8 +108,11 @@ export default {
   noStoryEventsYet: "No story events yet",
   noSummaryYet: "No summary yet",
   noChapterCardContentYet: "No chapter card content yet",
+  noChapterEndStateYet: "No chapter end state yet",
+  noHandoffYet: "No next-chapter handoff yet",
   noVolumeOutlineYet: "No volume outline yet",
   noManuscriptYet: "No manuscript yet",
+  expandSidebar: "Expand sidebar",
   selectAFileInThisFolderToLoadIts:
     "Select a file in this folder to load its content here.",
   resizeRightEntryList: "Resize right entry list",

@@ -74,7 +74,11 @@ const advancedSummary = computed(() => {
     );
   }
   if (agentMode.value !== "standard" && draw.value?.enabled) {
-    parts.push(t("drawSummary", { arg0: draw.value.count }));
+    parts.push(
+      draw.value.countMode === "auto"
+        ? t("drawSummaryAuto")
+        : t("drawSummary", { arg0: draw.value.count })
+    );
   }
   if (props.subagent.modelMode === "custom") {
     const model = props.modelOptions.find(

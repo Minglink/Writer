@@ -27,6 +27,9 @@ const props = withDefaults(
   }>(),
   { documentKey: "", iconOnly: false }
 );
+const emit = defineEmits<{
+  open: [];
+}>();
 
 const trigger = ref<HTMLButtonElement | null>(null);
 const card = ref<HTMLElement | null>(null);
@@ -67,10 +70,29 @@ function positionCard(): void {
   const availableHeight = opensUpward ? spaceAbove : spaceBelow;
   const maxHeight = Math.max(118, Math.min(390, availableHeight));
   const renderedHeight = Math.min(card.value.scrollHeight, maxHeight);
-  const left = Math.min(
-    Math.max(viewportMargin, triggerRect.right - width),
-    window.innerWidth - width - viewportMargin
+  const paneBounds = trigger.value
+    .closest<HTMLElement>(
+      ".long-editor-pane, .right-editor-pane, .editor-pane, .mystery-editor-pane"
+    )
+    ?.getBoundingClientRect();
+  const minLeft = Math.max(
+    viewportMargin,
+    paneBounds ? Math.round(paneBounds.left) + viewportMargin : viewportMargin
   );
+  const maxLeft = Math.max(
+    minLeft,
+    Math.min(
+      window.innerWidth - width - viewportMargin,
+      paneBounds
+        ? Math.round(paneBounds.right) - width - viewportMargin
+        : window.innerWidth - width - viewportMargin
+    )
+  );
+  const preferredLeft =
+    triggerRect.left + width <= maxLeft + width
+      ? triggerRect.left
+      : triggerRect.right - width;
+  const left = Math.min(Math.max(minLeft, preferredLeft), maxLeft);
   const top = opensUpward
     ? triggerRect.top - gap - renderedHeight
     : triggerRect.bottom + gap;
@@ -80,12 +102,13 @@ function positionCard(): void {
     left: `${left}px`,
     width: `${width}px`,
     maxHeight: `${maxHeight}px`,
-    transformOrigin: opensUpward ? "bottom right" : "top right"
+    transformOrigin: opensUpward ? "bottom left" : "top left"
   };
 }
 
 async function openCard(focusItem = false, fromEnd = false): Promise<void> {
   if (open.value) return;
+  emit("open");
   itemButtons.value = [];
   open.value = true;
   await nextTick();

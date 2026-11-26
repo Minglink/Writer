@@ -55,6 +55,12 @@ describe("builtin long-form web-novel craft skills", () => {
     expect(resolveBuiltinLongCraftSkill("换地图")?.id).toBe(
       "map-upgrade-anticipation"
     );
+    expect(resolveBuiltinLongCraftSkill("对标拆书")?.id).toBe(
+      "benchmark-pressure-teardown"
+    );
+    expect(resolveBuiltinLongCraftSkill("三番四震")?.id).toBe(
+      "high-energy-sequence-locks"
+    );
   });
 
   it("loads builtin craft skills through load_skill while giving attached user skills priority", async () => {

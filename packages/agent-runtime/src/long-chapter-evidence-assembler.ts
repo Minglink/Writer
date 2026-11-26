@@ -16,6 +16,7 @@ import {
   resolveLongChapterEvidenceTarget,
   type LongChapterWriteIntent
 } from "./long-chapter-evidence-target";
+import { extractPovGuardLinesFromCard } from "./prose-guards";
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_EVIDENCE_BUDGET_TOKENS = 3_600;
@@ -59,16 +60,7 @@ interface ReadExcerptResult {
 }
 
 function extractPovGuardLines(cardContent: string): string[] {
-  const lines: string[] = [];
-  for (const rawLine of cardContent.split(/\r?\n/u)) {
-    const trimmed = rawLine.trim();
-    if (
-      /^(?:[-*]\s*)?(?:视角|禁止透露|不能写破|知情边界)[：:]/u.test(trimmed)
-    ) {
-      lines.push(trimmed);
-    }
-  }
-  return lines;
+  return [...extractPovGuardLinesFromCard(cardContent).guardLines];
 }
 
 async function readBoundedExcerpt(
@@ -484,6 +476,11 @@ export async function assembleLongChapterEvidence(
 
   if (handoffRes && selection.priorCheckpoint) {
     const cp = selection.priorCheckpoint.checkpoint;
+    if (handoffRes.totalCharacters > HANDOFF_MAX_CHARS) {
+      gaps.push(
+        `检查点交接包 ${cp.chapterCardId}/handoff 全长 ${handoffRes.totalCharacters} 字，超过 ${HANDOFF_MAX_CHARS} 字自动取证上限已发生头部截断，建议压缩为 <=1,000 字倒金字塔置顶格式，必要时调用 read 核对尾部。`
+      );
+    }
     const meta: LongChapterEvidenceSourceMeta = {
       chapterCardId: cp.chapterCardId,
       document: "handoff",

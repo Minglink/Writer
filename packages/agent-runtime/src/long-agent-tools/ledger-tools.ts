@@ -70,8 +70,13 @@ export function buildLedgerCommitTool(ctx: LongToolContext): AgentTool {
       ),
       documents: Type.Optional(
         strictObject({
-          chapter_end_state: Type.String(),
-          handoff: Type.String(),
+          chapter_end_state: Type.String({
+            description: "末章完整章末状态与本批剧情轨迹记录。"
+          }),
+          handoff: Type.String({
+            description:
+              "下一章置顶交接包，严格控制在 1,000 字以内（避免超过 1,200 字自动取证上限被截断），倒金字塔置顶三块：①即时时空与动作接续点；②五维硬账本快照（区分口头提议/意向未交割/物理落袋三态，首章先做初始基数 Seed 建账）；③跨章必圆隐患。长篇流水账放入 chapter_end_state。"
+          }),
           world_reveals: Type.Optional(Type.String()),
           characters: Type.Optional(
             Type.Array(

@@ -8,6 +8,41 @@ export const LONG_WEB_NOVEL_PACING_MODES = [
 export type LongWebNovelPacingMode =
   (typeof LONG_WEB_NOVEL_PACING_MODES)[number];
 
+export const NARRATIVE_LEXICON_REGISTERS = [
+  "general_webnovel",
+  "scifi_system",
+  "xianxia_classical",
+  "slice_daily",
+  "modern_business",
+  "literary_realism"
+] as const;
+export type NarrativeLexiconRegister =
+  (typeof NARRATIVE_LEXICON_REGISTERS)[number];
+
+export const NARRATIVE_POV_MODES = [
+  "third_limited",
+  "first_person",
+  "dual_alternating",
+  "multi_pov_ensemble"
+] as const;
+export type NarrativePovMode = (typeof NARRATIVE_POV_MODES)[number];
+
+export const NARRATIVE_HOOK_WAVEFORMS = [
+  "double_cliffhanger",
+  "revelation_echo",
+  "emotional_linger",
+  "harvest_milestone",
+  "flexible"
+] as const;
+export type NarrativeHookWaveform = (typeof NARRATIVE_HOOK_WAVEFORMS)[number];
+
+export interface LongNarrativeDials {
+  readonly lexiconRegister?: NarrativeLexiconRegister | undefined;
+  readonly povMode?: NarrativePovMode | undefined;
+  readonly hookWaveform?: NarrativeHookWaveform | undefined;
+  readonly fusionTags?: readonly string[] | undefined;
+}
+
 export const SHORT_WEB_NOVEL_PACING_MODES = [
   "viral_short",
   "refined_short"
@@ -773,9 +808,101 @@ export function resolveLongBookFrameworkPreset(
   );
 }
 
+const LEXICON_REGISTER_GUIDES: Record<NarrativeLexiconRegister, string> = {
+  general_webnovel:
+    "通用白话语域：禁跨时代互联网黑话与伪科幻大词，用动作与具象细节推进。",
+  scifi_system:
+    "科幻/系统语域：允许规则界面、高维物理或机械术语，但严禁拿面板流水账替代人物抉择。",
+  xianxia_classical:
+    "古典/仙侠语域：严锁现代职场黑话与科技出戏词，以礼法分寸、器物意象与境界代价立骨。",
+  slice_daily:
+    "日常/种田语域：贴合年代物价、农时风物与邻里烟火，允许波谷留白与阶段收获余韵。",
+  modern_business:
+    "都市/商战语域：角色对白可自然带入行业术语，叙述旁白保持克制具象、拒绝报告腔。",
+  literary_realism:
+    "现实/出版语域：放宽短段比例并允许克制的陌生化比喻，重人物心理潜流与时代肌理。"
+};
+
+const POV_MODE_LABELS: Record<NarrativePovMode, string> = {
+  third_limited: "第三人称有限视角",
+  first_person: "第一人称沉浸视角",
+  dual_alternating: "双主角按章轮转视角",
+  multi_pov_ensemble: "多视角群像（按章锚定单一主视角）"
+};
+
+const HOOK_WAVEFORM_LABELS: Record<NarrativeHookWaveform, string> = {
+  double_cliffhanger: "兑现 + 升维危机双钩",
+  revelation_echo: "认知颠覆 / 信息冰山钩",
+  emotional_linger: "潜台词定格 / 关系余韵钩",
+  harvest_milestone: "阶段收获落袋 + 新涟漪",
+  flexible: "按本章核心意图灵活收束"
+};
+
+export interface ResolvedLongNarrativeDials {
+  readonly lexiconRegister: NarrativeLexiconRegister;
+  readonly povMode: NarrativePovMode;
+  readonly hookWaveform: NarrativeHookWaveform;
+}
+
+export function resolveDefaultNarrativeDialsForGenre(
+  genre: string
+): ResolvedLongNarrativeDials {
+  const preset = resolveLongBookFrameworkPreset(genre);
+  switch (preset.id) {
+    case "scifi_apocalypse":
+    case "quick_transmigration":
+      return {
+        lexiconRegister: "scifi_system",
+        povMode: "third_limited",
+        hookWaveform: "double_cliffhanger"
+      };
+    case "fantasy_cultivation":
+    case "wuxia_jianghu":
+    case "romance_ancient":
+    case "history_military":
+      return {
+        lexiconRegister: "xianxia_classical",
+        povMode: "third_limited",
+        hookWaveform: "revelation_echo"
+      };
+    case "period_farming":
+      return {
+        lexiconRegister: "slice_daily",
+        povMode: "third_limited",
+        hookWaveform: "harvest_milestone"
+      };
+    case "urban_modern":
+    case "game_sports":
+      return {
+        lexiconRegister: "modern_business",
+        povMode: "third_limited",
+        hookWaveform: "double_cliffhanger"
+      };
+    case "romance_modern":
+      return {
+        lexiconRegister: "modern_business",
+        povMode: "dual_alternating",
+        hookWaveform: "emotional_linger"
+      };
+    case "suspense_horror":
+      return {
+        lexiconRegister: "general_webnovel",
+        povMode: "third_limited",
+        hookWaveform: "revelation_echo"
+      };
+    default:
+      return {
+        lexiconRegister: "general_webnovel",
+        povMode: "third_limited",
+        hookWaveform: "flexible"
+      };
+  }
+}
+
 export interface BuildLongWebNovelAgentsMdOptions {
   readonly pacingMode?: LongWebNovelPacingMode | undefined;
   readonly tropes?: readonly string[] | undefined;
+  readonly narrativeDials?: LongNarrativeDials | undefined;
 }
 
 export function buildLongAgentsMdForGenre(
@@ -787,6 +914,13 @@ export function buildLongAgentsMdForGenre(
   const preset = resolveLongBookFrameworkPreset(normalizedGenre);
   const pacing =
     LONG_PACING_GUIDES[options?.pacingMode ?? preset.defaultPacing];
+  const defaultDials = resolveDefaultNarrativeDialsForGenre(normalizedGenre);
+  const lexiconRegister =
+    options?.narrativeDials?.lexiconRegister ?? defaultDials.lexiconRegister;
+  const povMode = options?.narrativeDials?.povMode ?? defaultDials.povMode;
+  const hookWaveform =
+    options?.narrativeDials?.hookWaveform ?? defaultDials.hookWaveform;
+  const fusionTags = normalizeUniqueTropes(options?.narrativeDials?.fusionTags);
   const categories = preset.worldCategories
     .map(([, title]) => title)
     .join("、");
@@ -803,12 +937,13 @@ export function buildLongAgentsMdForGenre(
     "",
     `- 连载风向：${pacing.label}——${pacing.guide}`,
     `- 爽感与核心驱动：${preset.coreDrive}`,
+    `- 万书同源调音（视角：${POV_MODE_LABELS[povMode]}｜收束波形：${HOOK_WAVEFORM_LABELS[hookWaveform]}${fusionTags.length ? `｜跨界融合：${fusionTags.join(" + ")}` : ""}）：以「主体执念 × 客观规则阻力 × 信息差拓扑 × 不可逆代价」驱动冲突；${LEXICON_REGISTER_GUIDES[lexiconRegister]}`,
     ...(tropeLines.length
       ? [`- 核心流派与标签兑现（${tropes.join(" + ")}）：`, ...tropeLines]
       : []),
     `- 专属世界观七维框架：${categories}。只写会制造压迫、限制选择或驱动升级/拉扯的硬设定，严禁写无冲突百科。`,
     `- 黄金三章与换图节奏：${preset.structureRhythm}`,
-    `- 防崩与排雷死线：${preset.guardrails}`
+    `- 状态账本与排雷死线：${preset.guardrails} 五维硬账本（资财耗材/伤病体力/机制冷却/人情债务/线索进度）严格区分口头提议、意向未交割与物理落袋三态。`
   ].join("\n");
   return appendSectionWithinBudget(baseAgentsMd, section);
 }

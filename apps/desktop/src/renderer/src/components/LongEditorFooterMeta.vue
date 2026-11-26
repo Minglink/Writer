@@ -32,6 +32,7 @@ const props = defineProps<{
   isChapterBody: boolean;
   characterCount: number;
   autoSaveEnabled: boolean;
+  readOnly?: boolean;
   saveState?: "saved" | "saving" | "unsaved" | null;
 }>();
 
@@ -104,7 +105,7 @@ const targetLabel = computed(() => {
     >
       {{ targetLabel }}
     </button>
-    <span>
+    <span v-if="!readOnly">
       {{
         t("autosaveMessage", {
           arg0: (autoSaveEnabled ? t("on") : t("off")) ?? ""

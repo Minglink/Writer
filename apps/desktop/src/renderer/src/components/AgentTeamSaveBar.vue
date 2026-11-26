@@ -111,9 +111,15 @@ const emit = defineEmits<{ save: []; discard: [] }>();
 .primary-button:hover:not(:disabled) {
   filter: brightness(1.12);
 }
-.secondary-button:disabled,
-.primary-button:disabled {
+.secondary-button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.45;
+}
+.primary-button:disabled {
+  border-color: var(--theme-line);
+  background: var(--surface-muted);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 1;
 }
 </style>

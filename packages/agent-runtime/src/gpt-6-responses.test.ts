@@ -81,7 +81,7 @@ describe("GPT-6 Responses compatibility", () => {
         {
           name: "read",
           strict: false,
-          parameters: { required: ["kind", "id"] }
+          parameters: { required: ["kind"] }
         }
       ],
       reasoning: { effort: "high" }

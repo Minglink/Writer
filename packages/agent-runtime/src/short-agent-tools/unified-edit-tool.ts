@@ -32,6 +32,12 @@ import {
   resolveShortUnifiedTarget,
   resolveWritingEditKind
 } from "./unified-target";
+import {
+  checkBodyWriteHardBlocks,
+  checkReplacementConservation,
+  formatConservationFailure,
+  formatHardBlockError
+} from "../prose-guards";
 
 export function buildShortUnifiedEditTool(
   input: BuildWritingWorkspaceToolsInput,
@@ -99,7 +105,15 @@ export function buildShortUnifiedEditTool(
                   minLength: 1,
                   maxLength: 200_000
                 }),
-                new_text: Type.String({ maxLength: 200_000 })
+                new_text: Type.String({ maxLength: 200_000 }),
+                allow_numeric_change: Type.Optional(
+                  literalUnion(["true", "false"] as const)
+                ),
+                allowed_removed_measures: Type.Optional(
+                  Type.Array(Type.String({ minLength: 1, maxLength: 64 }), {
+                    maxItems: 20
+                  })
+                )
               },
               { additionalProperties: false }
             ),
@@ -205,6 +219,8 @@ export function buildShortUnifiedEditTool(
             : `未修改：请先用 read 完整读取「${target.title}」。`
         );
       }
+      const isManuscriptBody =
+        target.kind === "draft_section" && target.fileKind === "body";
       if (params.content !== undefined) {
         if (
           target.content.trim() &&
@@ -216,27 +232,64 @@ export function buildShortUnifiedEditTool(
               : WRITING_EDIT_OVERWRITE_RECOVERY
           );
         }
+        const nextContent = String(params.content);
+        if (isManuscriptBody) {
+          const hardBlocks = checkBodyWriteHardBlocks(
+            target.content,
+            nextContent,
+            false
+          );
+          if (hardBlocks.length > 0) {
+            return textResult(
+              formatHardBlockError(hardBlocks, input.promptLocale)
+            );
+          }
+        }
         return formShortContentProposal(
           callInput,
           state,
           readState,
           target,
-          String(params.content),
+          nextContent,
           summary
         );
       }
 
-      if (params.append !== undefined)
+      if (params.append !== undefined) {
+        const nextContent = target.content + params.append;
+        if (isManuscriptBody) {
+          const hardBlocks = checkBodyWriteHardBlocks(
+            target.content,
+            nextContent,
+            true
+          );
+          if (hardBlocks.length > 0) {
+            return textResult(
+              formatHardBlockError(hardBlocks, input.promptLocale)
+            );
+          }
+        }
         return formShortContentProposal(
           callInput,
           state,
           readState,
           target,
-          target.content + params.append,
+          nextContent,
           summary
         );
+      }
 
       const insert = params.insert;
+      if (isManuscriptBody && params.replacements) {
+        for (const replacement of params.replacements) {
+          const check = checkReplacementConservation(replacement);
+          if (!check.ok) {
+            return textResult(
+              formatConservationFailure(check, input.promptLocale)
+            );
+          }
+        }
+      }
       const replacements = insert
         ? [
             {
@@ -255,6 +308,18 @@ export function buildShortUnifiedEditTool(
             ? `Not changed: ${replaced.error ?? "Unknown error"}`
             : `未修改：${replaced.error ?? "未知错误"}`
         );
+      }
+      if (isManuscriptBody) {
+        const hardBlocks = checkBodyWriteHardBlocks(
+          target.content,
+          replaced.next,
+          true
+        );
+        if (hardBlocks.length > 0) {
+          return textResult(
+            formatHardBlockError(hardBlocks, input.promptLocale)
+          );
+        }
       }
       return formShortContentProposal(
         callInput,
