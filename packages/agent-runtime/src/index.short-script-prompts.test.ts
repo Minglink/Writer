@@ -306,7 +306,7 @@ describe("Writer Pi runtime adapter: short and script prompts", () => {
     expect(plotPrompt).toContain("阶段边界与交付标准");
     expect(plotPrompt).toContain("delete 只做真正的删除");
     expect(plotPrompt).toContain(
-      "清空人物总稿或剧情阶段的内容不是删除，用 edit 传"
+      "清空短篇上下文（AGENTS.md）、人物总稿或剧情阶段的内容不是删除，用 edit 传"
     );
     expect(plotPrompt).toContain("create、edit、delete 不受界面当前阶段限制");
     expect(plotPrompt).not.toContain("逐笔询问");

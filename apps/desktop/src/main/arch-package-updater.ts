@@ -34,11 +34,31 @@ export class ArchPackageUpdater extends PacmanUpdater {
   }
 }
 
+const DEFAULT_UPDATER_CACHE_DIR_NAME = "@writerdesktop-updater";
+
+function withMissingUpdateConfigFallback(updater: AppUpdater): AppUpdater {
+  const loadUpdateConfig: unknown = Reflect.get(updater, "loadUpdateConfig");
+  if (typeof loadUpdateConfig !== "function") return updater;
+  Reflect.set(updater, "loadUpdateConfig", async () => {
+    try {
+      return await (loadUpdateConfig as () => Promise<unknown>).call(updater);
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException | undefined)?.code === "ENOENT") {
+        return { updaterCacheDirName: DEFAULT_UPDATER_CACHE_DIR_NAME };
+      }
+      throw error;
+    }
+  });
+  return updater;
+}
+
 export function createUpdateServiceUpdater(
   updater: AppUpdater,
   app?: AppAdapter
 ): AppUpdater {
-  return updater instanceof PacmanUpdater
-    ? new ArchPackageUpdater(undefined, app)
-    : updater;
+  const target =
+    updater instanceof PacmanUpdater
+      ? new ArchPackageUpdater(undefined, app)
+      : updater;
+  return withMissingUpdateConfigFallback(target);
 }

@@ -135,4 +135,65 @@ describe("Arch package updates", () => {
     const updater = new NsisUpdater(undefined, app);
     expect(createUpdateServiceUpdater(updater, app)).toBe(updater);
   });
+
+  it("falls back to the default cache directory when app-update.yml is missing", async () => {
+    const { mkdtemp, rm, writeFile } = await import("node:fs/promises");
+    const { createHash } = await import("node:crypto");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "writer-nsis-updater-"));
+    try {
+      const payload = Buffer.from("writer-installer-payload");
+      const sha512 = createHash("sha512").update(payload).digest("base64");
+      const missingConfigAdapter: AppAdapter = {
+        ...app,
+        appUpdateConfigPath: join(dir, "missing-app-update.yml"),
+        userDataPath: join(dir, "profile"),
+        baseCachePath: join(dir, "cache")
+      };
+      const updater = createUpdateServiceUpdater(
+        new NsisUpdater(undefined, missingConfigAdapter),
+        missingConfigAdapter
+      );
+      updater.logger = null;
+      updater.disableDifferentialDownload = true;
+      updater.disableWebInstaller = true;
+
+      const info: UpdateInfo = {
+        version: "9.8.7",
+        releaseDate: "2026-10-10T00:00:00Z",
+        path: "Writer-9.8.7-win-x64.exe",
+        sha512,
+        files: [
+          { url: "Writer-9.8.7-win-x64.exe", size: payload.length, sha512 }
+        ]
+      };
+      Reflect.set(updater, "httpExecutor", {
+        download: async (_url: URL, destination: string) => {
+          await writeFile(destination, payload);
+          return destination;
+        }
+      });
+      Reflect.set(updater, "updateInfoAndProvider", {
+        info,
+        provider: new GenericProvider(
+          { provider: "generic", url: "https://example.test/updates/" },
+          updater,
+          {
+            platform: "win32",
+            isUseMultipleRangeRequest: false,
+            executor: new ElectronHttpExecutor(() => undefined)
+          }
+        )
+      });
+
+      const downloaded = await updater.downloadUpdate();
+      expect(downloaded).toHaveLength(1);
+      expect(downloaded[0]).toContain("@writerdesktop-updater");
+      expect(downloaded[0]).toContain("Writer-9.8.7-win-x64.exe");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });

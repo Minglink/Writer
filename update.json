@@ -4,12 +4,12 @@
   "minimumSupportedVersion": "0.1.0",
   "version": "0.1.2",
   "feedUrl": "https://github.com/Minglink/Writer/releases/latest/download",
-  "publishedAt": "2026-11-26T18:02:30+08:00",
+  "publishedAt": "2026-11-26T18:31:30+08:00",
   "channel": "stable",
   "releaseNotes": [
     "丰富中国网文男频与女频题材分类、连载节奏模式、流派标签及 12 套七维世界观创作框架。",
     "新增书籍网文定位全周期管理与连载中途平滑变轨，支持长短篇 AGENTS.md 差异提案内联微调与审阅落盘。",
-    "优化新建作品弹窗、三栏自适应编辑器工具栏、底部粘性操作栏、Toast 防遮挡去重、作品包装筛选联动及设置页异常隔离边界。"
+    "优化新建作品弹窗、三栏自适应编辑器工具栏、底部粘性操作栏、Toast 防遮挡去重、作品包装筛选联动及自动更新下载配置。"
   ],
   "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.2",
   "title": "Writer 0.1.2",

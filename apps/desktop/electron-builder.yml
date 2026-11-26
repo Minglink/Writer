@@ -16,11 +16,16 @@ asar: true
 extraMetadata:
   desktopName: Writer
 
+publish:
+  provider: generic
+  url: https://github.com/Minglink/Writer/releases/latest/download
+
 win:
   target: nsis
   icon: build/icon.ico
   requestedExecutionLevel: asInvoker
   forceCodeSigning: false
+  verifyUpdateCodeSignature: false
 
 nsis:
   oneClick: false

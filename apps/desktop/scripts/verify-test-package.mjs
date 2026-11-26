@@ -134,6 +134,10 @@ const resources =
     ? join(unpackedDirectory, "Writer.app", "Contents", "Resources")
     : join(unpackedDirectory, "resources");
 const inventory = verifyPackagedRuntime(join(resources, "app.asar"));
+const appUpdateYml = await readFile(join(resources, "app-update.yml"), "utf8");
+if (!appUpdateYml.includes("updaterCacheDirName:")) {
+  throw new Error("Packaged app-update.yml is missing updaterCacheDirName.");
+}
 if (targetPlatform === "win")
   await verifyWindowsArchitecture(
     join(unpackedDirectory, "Writer.exe"),
