@@ -105,6 +105,7 @@ const emit = defineEmits<{
       runId: string;
       proposalId: string;
       decision: "accept" | "reject";
+      editedText?: string;
     }
   ];
   locateEditProposal: [payload: { runId: string; proposalId: string }];
@@ -464,7 +465,7 @@ function forwardPreviewMutation(
           <LongWritingWorkflowGuide
             :book-title="book.title"
             :genre="book.genre ?? ''"
-            :target-label="selection?.title ?? book.title"
+            :selection="selection"
             :workspace-index="workspaceIndex"
             :runtime-available="runtimeAvailable"
             @fill-prompt="emit('update:draft', $event)"

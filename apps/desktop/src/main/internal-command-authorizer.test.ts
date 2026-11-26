@@ -29,7 +29,7 @@ function queryCommand(
 ): CommandEnvelope {
   const bookId = overrides.bookId ?? BOOK_ID;
   const payload =
-    type === "long.getWorkspaceIndex"
+    type === "long.getWorkspaceIndex" || type === "long.readAgentsMd"
       ? { bookId }
       : type === "long.readDocument"
         ? {
@@ -146,10 +146,11 @@ describe("Main internal command authorizer", () => {
     }
   );
 
-  it("allows only the three long queries for the exact accepted run binding", () => {
+  it("allows only the four long queries for the exact accepted run binding", () => {
     expect(AGENT_CORE_LONG_QUERY_COMMANDS).toEqual([
       "long.getWorkspaceIndex",
       "long.readDocument",
+      "long.readAgentsMd",
       "long.search"
     ]);
     for (const type of AGENT_CORE_LONG_QUERY_COMMANDS) {
@@ -160,6 +161,14 @@ describe("Main internal command authorizer", () => {
         )
       ).toBe(true);
     }
+    expect(
+      authorizeMainInternalCommand(
+        authorizationContext(
+          queryCommand("long.readAgentsMd", { bookId: "longbook_other" })
+        ),
+        acceptedRun()
+      )
+    ).toMatchObject({ authorized: false, code: "main.book_mismatch" });
   });
 
   it.each([

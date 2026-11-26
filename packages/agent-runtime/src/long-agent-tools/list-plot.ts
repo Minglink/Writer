@@ -1,6 +1,10 @@
 import type { LongWorkspaceIndexSnapshot } from "@writer/contracts";
 import { orderedLongChapterCards } from "./chapter-ordering";
-import { longEntityKindForId } from "./entity-registry";
+import {
+  LONG_AGENTS_MD_ID,
+  LONG_AGENTS_MD_TITLE,
+  longEntityKindForId
+} from "./entity-registry";
 import {
   beatTypeLabel,
   bodyStatusLabel,
@@ -42,6 +46,7 @@ function bookLineScopeLines(index: LongWorkspaceIndexSnapshot): string[] {
   return [
     listScopeHeader("plot", "全书故事线", "book_line"),
     "- book_line 全书故事线（可读取正文）",
+    `- ${LONG_AGENTS_MD_ID} ${LONG_AGENTS_MD_TITLE}（可读取正文）`,
     countLine(events.length, "个故事事件"),
     ...events.map(eventLine),
     countLine(threads.length, "条伏笔线"),
@@ -53,7 +58,7 @@ function bookLineScopeLines(index: LongWorkspaceIndexSnapshot): string[] {
     ),
     `关系摘要：事件连接 ${index.plot.eventConnections.length} 条，叙事落点 ${index.plot.narrativePlacements.length} 个。`,
     nextReadLine(
-      "read(id=book_line)，或继续 list(stage=plot, scope_id=<event_id|foreshadowing_id>)"
+      "read(id=book_line)、read(id=agents_md)，或继续 list(stage=plot, scope_id=<event_id|foreshadowing_id>)"
     )
   ];
 }
@@ -266,6 +271,9 @@ export function plotScopeLines(
   scopeId: string
 ): string[] {
   if (scopeId === "book_line") return bookLineScopeLines(index);
+  if (scopeId === LONG_AGENTS_MD_ID) {
+    leafScope(LONG_AGENTS_MD_ID, 'read(id="agents_md")');
+  }
   const volume = index.plot.volumes.find(({ id }) => id === scopeId);
   if (volume) return volumeScopeLines(index, volume);
   const arc = index.plot.arcs.find(({ id }) => id === scopeId);

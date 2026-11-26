@@ -25,6 +25,7 @@ import type {
   LongSearchInput,
   LongSearchResult,
   LongUpdateBindingsInput,
+  LongUpdatePositioningInput,
   LongWorkspaceIndexResult,
   LongWriteDocumentInput,
   LongWriteDocumentResult,
@@ -72,6 +73,9 @@ export interface LongPreloadApi {
   open(input: LongOpenBookInput): Promise<LongOpenBookResult>;
   rename(input: LongRenameBookInput): Promise<LongOpenBookResult>;
   updateBindings(input: LongUpdateBindingsInput): Promise<LongOpenBookResult>;
+  updatePositioning(
+    input: LongUpdatePositioningInput
+  ): Promise<LongOpenBookResult>;
   openExisting(): Promise<LongOpenBookResult | null>;
   getWorkspaceIndex(
     input: LongOpenBookInput

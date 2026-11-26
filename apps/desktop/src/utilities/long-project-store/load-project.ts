@@ -4,6 +4,7 @@ import {
   LongWorkspaceIndexSnapshotSchema,
   assertLongProjectIndexMetadata,
   createLongBookSummary,
+  normalizeWebNovelTropes,
   type LongBook
 } from "@writer/contracts";
 import { recoverProjectTransaction } from "../project-transaction";
@@ -193,12 +194,17 @@ export async function loadProject(
   // large Markdown bodies and ledger records are read only on demand.
   // Both components were validated above, including the shared id/timestamp
   // invariants. Parsing LongBook again would revalidate the entire index.
+  const tropes = normalizeWebNovelTropes(manifest.tropes);
   const book: LongBook = {
     schemaVersion: index.schemaVersion,
     id: manifest.id,
     title: manifest.title,
     bookType: "long",
     genre: manifest.genre,
+    ...(manifest.pacingMode !== undefined
+      ? { pacingMode: manifest.pacingMode }
+      : {}),
+    ...(tropes ? { tropes } : {}),
     status: manifest.status,
     linkedMaterialIdsByKind: manifest.linkedMaterialIdsByKind,
     linkedSkillIdsByKind: manifest.linkedSkillIdsByKind,

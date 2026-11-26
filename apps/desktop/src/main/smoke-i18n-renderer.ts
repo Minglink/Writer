@@ -213,10 +213,9 @@ export async function i18nSmokeInRenderer(
   );
   ensure(settings.length >= 14, "settings categories missing");
   ensure(settings.includes("Custom models"), "custom-models settings missing");
+  ensure(settings.includes("Image models"), "image-models settings missing");
   ensure(
-    !settings.some((label) =>
-      /official site|free models|voice|image models/iu.test(label)
-    ),
+    !settings.some((label) => /official site|free models|voice/iu.test(label)),
     "removed model settings are still visible"
   );
   for (const method of [

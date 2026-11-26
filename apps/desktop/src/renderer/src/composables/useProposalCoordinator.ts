@@ -11,6 +11,7 @@ import {
   acceptLibraryStructureProposal
 } from "./proposal-coordinator/library-structure";
 import { createAcademicProposalLane } from "./proposal-coordinator/academic-proposal-lane";
+import { createAgentsMdProposalLane } from "./proposal-coordinator/agents-md-lane";
 import { longRestorePatch } from "./proposal-coordinator/long-restore";
 import { formatError } from "../i18n/errors";
 import { createScopedTranslator } from "../i18n";
@@ -212,7 +213,14 @@ export interface ProposalCoordinatorContext {
 }
 
 export function useProposalCoordinator(context: ProposalCoordinatorContext) {
-  const acceptedEditDiscard = createAcceptedEditDiscardCoordinator(context);
+  /**
+   * Text the latest accepted agent write left in each document. A base moved
+   * only by agent writes is not a user edit (see proposal-coordinator/stale-base.ts).
+   */
+  const agentWrittenRevisions = new Map<string, string>();
+  const acceptedEditDiscard = createAcceptedEditDiscardCoordinator(context, {
+    agentWrittenRevisions
+  });
   const { api, notifications: uiMessage } = context;
   const {
     snapshot: catalogSnapshot,
@@ -227,11 +235,6 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
     isConflict: isCatalogConflict,
     refreshBookAfterSave: refreshBookAfterSuccessfulDocumentSave
   } = context.catalog;
-  /**
-   * Text the latest accepted agent write left in each document. A base moved
-   * only by agent writes is not a user edit (see proposal-coordinator/stale-base.ts).
-   */
-  const agentWrittenRevisions = new Map<string, string>();
   const {
     documents,
     drafts: editorDrafts,
@@ -326,6 +329,17 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
   }
 
   const academicProposalLane = createAcademicProposalLane(context, {
+    queueAgentEdit: (...args) => queueAgentEdit(...args)
+  });
+
+  const agentsMdProposalLane = createAgentsMdProposalLane(context, {
+    agentWrittenRevisions,
+    isDisposed: () => proposalQueue.isDisposed(),
+    latestProposalForLane: (...args) => latestProposalForLane(...args),
+    blockedAgentEditLaneMessage: (...args) =>
+      blockedAgentEditLaneMessage(...args),
+    notifyAutomaticEditPaused: (...args) => notifyAutomaticEditPaused(...args),
+    holdStaleTextProposal: (...args) => holdStaleTextProposal(...args),
     queueAgentEdit: (...args) => queueAgentEdit(...args)
   });
 
@@ -890,6 +904,7 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
 
   function canReviewAgentEditDuringRun(proposal: AgentEditProposal): boolean {
     return (
+      Boolean(proposal.agentsMdTarget) ||
       Boolean(proposal.libraryStructureTarget) ||
       Boolean(proposal.academicMutationTarget) ||
       Boolean(proposal.libraryTarget) ||
@@ -1094,6 +1109,18 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
       sourceConversation,
       event
     );
+
+    if (
+      event.payload.stageId === "agents_md" ||
+      event.payload.mutationTarget?.kind === "agents-md"
+    ) {
+      await agentsMdProposalLane.stageShortOrScript(
+        event,
+        sourceConversation,
+        runApprovalMode
+      );
+      return;
+    }
 
     const mutationTarget = event.payload.mutationTarget;
     if (
@@ -2239,6 +2266,16 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
       sourceConversation,
       event
     );
+    if (event.payload.review?.targetKind === "agents_md") {
+      void invokeWhileActive(() =>
+        agentsMdProposalLane.stageLong(
+          event,
+          sourceConversation,
+          runApprovalMode
+        )
+      );
+      return;
+    }
     const batch = LongWorkspaceOperationBatchSchema.parse(event.payload.batch);
     const review =
       event.payload.review ?? deriveLongMutationReviewFromBatch(batch);
@@ -4446,6 +4483,16 @@ export function useProposalCoordinator(context: ProposalCoordinatorContext) {
       }
     }
 
+    if (proposal.agentsMdTarget) {
+      await agentsMdProposalLane.accept(
+        conversation,
+        request,
+        proposal,
+        automatic,
+        reserved
+      );
+      return;
+    }
     if (proposal.academicMutationTarget) {
       await academicProposalLane.acceptAcademicWorkspaceProposal(
         conversation,

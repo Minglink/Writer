@@ -39,7 +39,7 @@ export default {
   libraryCategory: "库分类",
   valueLibraryCategory: "{arg0}库分类",
   theFolderContainsDeepwriteJsonWithEntriesInEntries:
-    "文件夹中会保存 writer.json，正文条目位于 entries/*.md；可由 Finder、Git 或文本编辑器直接管理。",
+    "文件夹中会保存 writer.json，正文条目位于 entries/*.md；可由文件管理器、Git 或文本编辑器直接管理。",
   newEntriesAreImmediatelyCreatedAsMarkdownFilesIn:
     "创建后可继续编辑，条目可供所有作品使用。",
   theNewNameIsSavedImmediatelyToTheLocal: "新名称会立即保存到本地资料库项目。",

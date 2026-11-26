@@ -6,7 +6,10 @@ import {
   LongFileIdSchema,
   LongProjectManifestSchema,
   LongWorkspaceIndexSnapshotSchema,
-  longAgentsMdCharacterCount
+  buildLongAgentsMdForGenre,
+  createShortWorkspaceContentRevision,
+  longAgentsMdCharacterCount,
+  normalizeWebNovelTropes
 } from "@writer/contracts";
 import { sliceAgentsMdContent, tryReadAgentsMdFile } from "./agents-md";
 import { documentVersionCurrent } from "../document-versions/version-store";
@@ -37,6 +40,7 @@ import {
   type ReadLongDocumentResult,
   type RenameLongBookInput,
   type UpdateLongBookBindingsInput,
+  type UpdateLongBookPositioningInput,
   LongDocumentConflictError,
   type WriteLongDocumentInput,
   type WriteLongDocumentResult
@@ -144,6 +148,51 @@ export async function renameBook(
   });
 }
 
+export async function updatePositioning(
+  ctx: LongProjectStoreContext,
+  projectDirectory: string,
+  input: UpdateLongBookPositioningInput
+): Promise<OpenedLongBook> {
+  const canonical = await secureDirectory(projectDirectory, "长篇项目目录");
+  return await ctx.runExclusive(canonical, async () => {
+    const loaded = await loadProject(ctx, canonical);
+    const timestamp = ctx.timestamp();
+    const nextIndex = LongWorkspaceIndexSnapshotSchema.parse({
+      ...loaded.index,
+      updatedAt: timestamp
+    });
+    const indexContent = serializeJson(nextIndex);
+    const {
+      pacingMode: _prevPacing,
+      tropes: _prevTropes,
+      ...manifestBase
+    } = loaded.manifest;
+    const nextPacingMode = input.pacingMode ?? undefined;
+    const nextTropes = normalizeWebNovelTropes(input.tropes);
+    const nextManifest = LongProjectManifestSchema.parse({
+      ...manifestBase,
+      genre: input.genre,
+      ...(nextPacingMode !== undefined ? { pacingMode: nextPacingMode } : {}),
+      ...(nextTropes ? { tropes: nextTropes } : {}),
+      updatedAt: timestamp,
+      workspaceIndexFile: {
+        ...loaded.manifest.workspaceIndexFile,
+        updatedAt: timestamp
+      }
+    });
+    await commitLongProjectTransaction({
+      projectRoot: loaded.projectDirectory,
+      operations: [
+        { path: LONG_WORKSPACE_INDEX_PATH, content: indexContent },
+        { path: MANIFEST_PATH, content: serializeJson(nextManifest) }
+      ],
+      maxFileBytes: MAX_LEDGER_RECORD_BYTES
+    });
+    const next = await loadProject(ctx, loaded.projectDirectory);
+    return { book: next.book, summary: next.summary };
+  });
+}
+
 export async function readDocument(
   ctx: LongProjectStoreContext,
   projectDirectory: string,
@@ -183,25 +232,35 @@ export async function readDocument(
 
 export async function readAgentsMd(
   ctx: LongProjectStoreContext,
-  projectDirectory: string
+  projectDirectory: string,
+  options?: { repairMissing?: boolean }
 ): Promise<{ content: string; truncated: boolean }> {
   const canonical = await secureDirectory(projectDirectory, "长篇项目目录");
   return await ctx.runExclusive(canonical, async () => {
-    await loadProject(ctx, canonical);
+    const loaded = await loadProject(ctx, canonical);
     const existing = await tryReadAgentsMdFile(canonical);
     if (!existing) {
-      const content = DEFAULT_LONG_AGENTS_MD;
-      await commitLongProjectTransaction({
-        projectRoot: canonical,
-        operations: [
-          {
-            path: LONG_AGENTS_MD_PATH,
-            content,
-            expectedSha256: null
-          }
-        ],
-        maxFileBytes: MAX_LEDGER_RECORD_BYTES
-      });
+      const content = buildLongAgentsMdForGenre(
+        DEFAULT_LONG_AGENTS_MD,
+        loaded.manifest.genre,
+        {
+          pacingMode: loaded.manifest.pacingMode,
+          tropes: loaded.manifest.tropes
+        }
+      );
+      if (options?.repairMissing !== false) {
+        await commitLongProjectTransaction({
+          projectRoot: canonical,
+          operations: [
+            {
+              path: LONG_AGENTS_MD_PATH,
+              content,
+              expectedSha256: null
+            }
+          ],
+          maxFileBytes: MAX_LEDGER_RECORD_BYTES
+        });
+      }
       return { content, truncated: false };
     }
     return sliceAgentsMdContent(existing.content);
@@ -211,17 +270,37 @@ export async function readAgentsMd(
 export async function writeAgentsMd(
   ctx: LongProjectStoreContext,
   projectDirectory: string,
-  content: string
+  content: string,
+  expectedRevision?: string
 ): Promise<void> {
   const canonical = await secureDirectory(projectDirectory, "长篇项目目录");
   return await ctx.runExclusive(canonical, async () => {
-    await loadProject(ctx, canonical);
+    const loaded = await loadProject(ctx, canonical);
     if (longAgentsMdCharacterCount(content) > LONG_AGENTS_MD_MAX_CHARACTERS) {
       throw new Error(
         `长篇上下文超过 ${LONG_AGENTS_MD_MAX_CHARACTERS} 个字符上限。`
       );
     }
     const existing = await tryReadAgentsMdFile(canonical);
+    if (expectedRevision !== undefined) {
+      const currentContent = existing
+        ? existing.content
+        : buildLongAgentsMdForGenre(
+            DEFAULT_LONG_AGENTS_MD,
+            loaded.manifest.genre,
+            {
+              pacingMode: loaded.manifest.pacingMode,
+              tropes: loaded.manifest.tropes
+            }
+          );
+      if (
+        createShortWorkspaceContentRevision(currentContent) !== expectedRevision
+      ) {
+        throw new LongDocumentConflictError(
+          "长篇上下文已被修改，请刷新后重试。"
+        );
+      }
+    }
     await commitLongProjectTransaction({
       projectRoot: canonical,
       operations: [

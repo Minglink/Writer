@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { computed } from "vue";
+import {
+  LONG_BOOK_GENRES,
+  SHORT_BOOK_GENRES
+} from "@writer/contracts/renderer";
 import { locale, setAppLanguage, t } from "../i18n";
 import {
   genreLabel,
@@ -37,6 +41,9 @@ describe("component language presentation", () => {
   it("translates contract-backed labels while preserving custom content", () => {
     setAppLanguage("en-US", "zh-CN");
     expect(genreLabel("世情")).toBe("Social fiction");
+    for (const genre of new Set([...LONG_BOOK_GENRES, ...SHORT_BOOK_GENRES])) {
+      expect(genreLabel(genre)).not.toBe(genre);
+    }
     expect(plotStageLabel({ id: "worldbuilding", title: "世界观" })).toBe(
       "Worldbuilding"
     );

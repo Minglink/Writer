@@ -39,6 +39,14 @@
   gap: 18px;
   padding: 22px;
 }
+.identity-picker > .analysis-primary-button {
+  justify-self: start;
+  width: fit-content;
+}
+.identity-empty .analysis-primary-button {
+  justify-self: center;
+  width: fit-content;
+}
 .identity-segments,
 .identity-tabs {
   display: flex;

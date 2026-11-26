@@ -6,6 +6,13 @@ export async function prepareIdentitySmokeInRenderer() {
   const ensure = (condition: unknown, reason: string) => {
     if (!condition) throw new Error(`Book identity smoke: ${reason}`);
   };
+  const { settings } = await api.generalSettings.list();
+  await api.generalSettings.save({
+    ...settings,
+    moreFeatures: settings.moreFeatures.map((entry) =>
+      entry.id === "book-identity" ? { ...entry, visible: true } : entry
+    )
+  });
   const created = await api.catalog.createShortBook({
     title: "身份设计冒烟样书",
     genre: "其他"

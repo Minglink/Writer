@@ -39,7 +39,7 @@ export default {
   libraryCategory: "Library category",
   valueLibraryCategory: "{arg0} library category",
   theFolderContainsDeepwriteJsonWithEntriesInEntries:
-    "The folder contains writer.json, with entries in entries/*.md. Manage them directly using Finder, Git, or a text editor.",
+    "The folder contains writer.json, with entries in entries/*.md. Manage them directly using a file manager, Git, or a text editor.",
   newEntriesAreImmediatelyCreatedAsMarkdownFilesIn:
     "Continue editing after creation. Entries can be used across all works.",
   theNewNameIsSavedImmediatelyToTheLocal:

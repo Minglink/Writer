@@ -57,5 +57,7 @@ export default {
   settingsCategories: "Settings categories",
   noMatchingSettings: "No matching settings",
   settingsAreNotConfigured: "” settings are not configured.",
-  settingsAreNotConfiguredMessage: "“{arg0}” settings are not configured."
+  settingsAreNotConfiguredMessage: "“{arg0}” settings are not configured.",
+  panelLoadFailed: "Could not load this section. Try again.",
+  retry: "Retry"
 };

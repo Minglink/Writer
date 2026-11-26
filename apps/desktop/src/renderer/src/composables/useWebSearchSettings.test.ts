@@ -257,14 +257,13 @@ describe("useWebSearchSettings save", () => {
     await controller.save();
     controller.draft.maxResults = 99;
     await controller.save();
+    expect(messages().map((message) => message.kind)).toEqual(["warning"]);
+    uiMessageItems.value.forEach(({ id }) => dismissUiMessage(id));
     controller.draft.maxResults = 8;
     controller.draft.perRunCallLimit = 0;
     await controller.save();
     expect(api.saveSettings).not.toHaveBeenCalled();
-    expect(messages().map((message) => message.kind)).toEqual([
-      "warning",
-      "warning"
-    ]);
+    expect(messages().map((message) => message.kind)).toEqual(["warning"]);
   });
 
   it("keeps the edits and reports the reason when saving fails", async () => {

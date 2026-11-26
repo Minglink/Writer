@@ -698,7 +698,9 @@ describe("external write tools against real stores", () => {
         title: "题材不对",
         genre: "测试"
       })
-    ).rejects.toThrow(/世情、追妻、科幻、悬疑、其他/u);
+    ).rejects.toThrow(
+      /世情、追妻、现代言情、古代言情、宫斗宅斗、豪门世家、青春甜宠、虐恋情深、复仇、重生复仇、真假千金、年代、种田、现言脑洞、古言脑洞、悬疑恋爱、都市、都市脑洞、战神赘婿、玄幻、奇幻仙侠、历史、悬疑、悬疑脑洞、悬疑灵异、规则怪谈、科幻、科幻末世、职场商战、现实、搞笑轻松、其他/u
+    );
   });
 
   it("keeps a deleted work's folder and restores it", async () => {

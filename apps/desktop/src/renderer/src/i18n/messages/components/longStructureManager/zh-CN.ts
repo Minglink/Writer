@@ -53,7 +53,7 @@ export default {
     "选择全书故事线、剧情点和章卡集合的排列方式；左侧树形结构不会改变故事情节面板。",
   selectPlotDesignEntryLayout: "选择剧情设计条目样式",
   describeTheRolesOfWorldbuildingCharactersPlotPointsManuscript:
-    "介绍世界观、人物、剧情点、正文和持续性账本五个阶段的作用。 对话时会注入给当前智能体；内容保存在本书目录的 AGENTS.md。",
+    "介绍世界观、人物、剧情点、正文和连续性账本五个阶段的作用。 对话时会注入给当前智能体；内容保存在本书目录的 AGENTS.md。",
   saving: "保存中…",
   title: "标题",
   contentFormat: "内容格式",

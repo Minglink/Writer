@@ -46,6 +46,9 @@ async function identityVisualStep(
         throw new Error(
           "Current image model identity is squeezed by its selector."
         );
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
       return { theme, fontSize, kind: "image-model-settings" };
     }
     const appearance = await until(

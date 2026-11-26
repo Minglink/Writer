@@ -10,7 +10,10 @@ import type {
 } from "@writer/contracts";
 import { computed, effectScope, nextTick, ref } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { projectCatalogWorkspace } from "../data/catalogWorkspace";
+import {
+  projectCatalogWorkspace,
+  resolveDraftSectionResourceId
+} from "../data/catalogWorkspace";
 import type { LongWorkspaceSelection } from "../types/longWorkspace";
 import type { ResourceTreeNode, WorkspaceDocument } from "../types/workspace";
 import { createResourceTreeLookup } from "../utils/resourceTreeLookup";
@@ -365,6 +368,104 @@ describe("book identity workspace navigation", () => {
       expect(f.selectedResourceId.value).toBe("");
       expect(f.showConversation).not.toHaveBeenCalled();
       expect(f.revealEditor).not.toHaveBeenCalled();
+    }
+  );
+
+  it("preserves the active short draft section when opening with preserveSelection", async () => {
+    const f = fixture();
+    const sectionResourceId = resolveDraftSectionResourceId(
+      f.bookNode,
+      "section_one"
+    )!;
+    const sectionNode = f.navigation.findResourceNodeWhere(
+      (node) => node.id === sectionResourceId
+    )!;
+    await f.navigation.selectResource(sectionNode);
+    await nextTick();
+    expect(f.selectedResourceId.value).toBe(sectionNode.id);
+    expect(f.navigation.activeDocument.value.content).toBe("正文内容");
+
+    f.view.value = "book-identity";
+    f.showConversation.mockClear();
+    f.revealEditor.mockClear();
+
+    const opened = await f.navigation.openExternalTarget(
+      { kind: "short", id: f.book.id },
+      { preserveSelection: true }
+    );
+    expect(opened).toBe(true);
+    expect(f.view.value).toBe("conversation");
+    expect(f.showConversation).toHaveBeenCalledOnce();
+    expect(f.selectedResourceId.value).toBe(sectionNode.id);
+    expect(f.navigation.activeDocument.value.content).toBe("正文内容");
+    expect(f.revealEditor).not.toHaveBeenCalled();
+  });
+
+  it("preserves the active long selection when opening with preserveSelection", async () => {
+    const f = fixture();
+    const draftNodeId = longNavigationNodeId(
+      "longbook_navigation",
+      "root:draft"
+    );
+    f.activeBookId.value = "longbook_navigation";
+    f.activeSummary.value = {
+      id: "longbook_navigation",
+      title: "长篇导航样书"
+    } as LongBookSummary;
+    f.workspaceIndex.value = {
+      bookId: "longbook_navigation"
+    } as LongWorkspaceIndexSnapshot;
+    f.selectedResourceId.value = draftNodeId;
+
+    const opened = await f.navigation.openExternalTarget(
+      { kind: "long", id: "longbook_navigation" },
+      { preserveSelection: true }
+    );
+    expect(opened).toBe(true);
+    expect(f.view.value).toBe("conversation");
+    expect(f.showConversation).toHaveBeenCalledOnce();
+    expect(f.openBook).not.toHaveBeenCalled();
+    expect(f.selectWorkspaceFile).not.toHaveBeenCalled();
+    expect(f.selection.value?.key).toBe("root:draft");
+    expect(f.selectedResourceId.value).toBe(draftNodeId);
+  });
+
+  it("selects the target book when preserveSelection is true and another book or empty selection is active", async () => {
+    const f = fixture();
+    await expect(
+      f.navigation.openExternalTarget(
+        { kind: "short", id: f.book.id },
+        { preserveSelection: true }
+      )
+    ).resolves.toBe(true);
+    expect(f.selectedResourceId.value).toBe(f.characterNode.id);
+
+    await expect(
+      f.navigation.openExternalTarget(
+        { kind: "long", id: "longbook_navigation" },
+        { preserveSelection: true }
+      )
+    ).resolves.toBe(true);
+    expect(f.activeBookId.value).toBe("longbook_navigation");
+    expect(f.selectedResourceId.value).toBe(f.worldbuildingNode.id);
+  });
+
+  it.each(["short", "long"] as const)(
+    "returns false from openExternalTarget when saving aborts %s navigation",
+    async (kind) => {
+      const f = fixture();
+      f.saveBeforeLeaving.mockResolvedValueOnce(false);
+      await expect(
+        f.navigation.openExternalTarget(
+          {
+            kind,
+            id: kind === "long" ? "longbook_navigation" : f.book.id
+          },
+          { preserveSelection: true }
+        )
+      ).resolves.toBe(false);
+      expect(f.selectedResourceId.value).toBe("");
+      expect(f.showConversation).not.toHaveBeenCalled();
     }
   );
 });

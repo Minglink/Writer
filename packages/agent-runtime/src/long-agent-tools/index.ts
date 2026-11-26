@@ -35,7 +35,11 @@ import type { LongWorkspaceToolSharedState } from "./proposal-overlay";
 export type LongQueryCommandEnvelope = Extract<
   LongWorkspaceCommandEnvelope,
   {
-    type: "long.getWorkspaceIndex" | "long.readDocument" | "long.search";
+    type:
+      | "long.getWorkspaceIndex"
+      | "long.readAgentsMd"
+      | "long.readDocument"
+      | "long.search";
   }
 >;
 

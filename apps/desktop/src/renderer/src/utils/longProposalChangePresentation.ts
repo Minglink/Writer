@@ -113,6 +113,7 @@ const ZH_CN_MESSAGES = {
   kindBookLine: "全书故事线",
   kindCharacterOverview: "人物概览",
   kindContinuityFile: "连续性文件",
+  kindAgentsMd: "长篇上下文",
   connBefore: "早于",
   connSameTime: "同时",
   connOverlaps: "交叠",
@@ -263,6 +264,7 @@ const EN_US_MESSAGES: Record<ChangeMessageKey, string> = {
   kindBookLine: "Book Storyline",
   kindCharacterOverview: "Character Overview",
   kindContinuityFile: "Continuity File",
+  kindAgentsMd: "Long Context (AGENTS.md)",
   connBefore: "Before",
   connSameTime: "Simultaneous",
   connOverlaps: "Overlaps",
@@ -456,7 +458,8 @@ const TARGET_KIND_KEYS: Record<
   "worldbuilding-item": "kindWorldbuildingItem",
   book_line: "kindBookLine",
   character_overview: "kindCharacterOverview",
-  continuity_file: "kindContinuityFile"
+  continuity_file: "kindContinuityFile",
+  agents_md: "kindAgentsMd"
 };
 
 function labelFromMap(

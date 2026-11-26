@@ -42,7 +42,42 @@ export const portableBookSchema = z
     createdAt: timestamp,
     updatedAt: timestamp,
     bookType: z.enum(["short", "script"]),
-    genre: z.enum(["世情", "追妻", "科幻", "悬疑", "其他"]),
+    genre: z.enum([
+      "世情",
+      "追妻",
+      "现代言情",
+      "古代言情",
+      "宫斗宅斗",
+      "豪门世家",
+      "青春甜宠",
+      "虐恋情深",
+      "复仇",
+      "重生复仇",
+      "真假千金",
+      "年代",
+      "种田",
+      "现言脑洞",
+      "古言脑洞",
+      "悬疑恋爱",
+      "都市",
+      "都市脑洞",
+      "战神赘婿",
+      "玄幻",
+      "奇幻仙侠",
+      "历史",
+      "悬疑",
+      "悬疑脑洞",
+      "悬疑灵异",
+      "规则怪谈",
+      "科幻",
+      "科幻末世",
+      "职场商战",
+      "现实",
+      "搞笑轻松",
+      "其他"
+    ]),
+    pacingMode: z.enum(["viral_short", "refined_short"]).optional(),
+    tropes: z.array(z.string().trim().min(1).max(32)).max(6).optional(),
     status: z.enum(["editing", "completed"]),
     linkedMaterialIdsByKind: z
       .object({
@@ -113,6 +148,16 @@ export const portableBookSchema = z
   })
   .strict()
   .superRefine((value, context) => {
+    if (
+      value.bookType === "script" &&
+      (value.pacingMode !== undefined || value.tropes !== undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: [value.pacingMode !== undefined ? "pacingMode" : "tropes"],
+        message: "剧本作品不支持短篇网文定位字段。"
+      });
+    }
     const references = [
       ...value.documents,
       ...value.draft.sections.flatMap((entry) => [

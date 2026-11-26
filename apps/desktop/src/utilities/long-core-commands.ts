@@ -159,6 +159,15 @@ export async function handleLongCoreCommand(
       )
     };
   }
+  if (command.type === "long.updatePositioning") {
+    return {
+      status: "accepted",
+      requestId: command.id,
+      payload: LongOpenBookResultSchema.parse(
+        await service.updatePositioning(command.payload)
+      )
+    };
+  }
   if (command.type === "long.getWorkspaceIndex") {
     return {
       status: "accepted",
@@ -182,7 +191,10 @@ export async function handleLongCoreCommand(
       status: "accepted",
       requestId: command.id,
       payload: LongReadAgentsMdResultSchema.parse(
-        await service.readAgentsMd(command.payload)
+        await service.readAgentsMd(
+          command.payload,
+          command.context.runId ? { repairMissing: false } : undefined
+        )
       )
     };
   }

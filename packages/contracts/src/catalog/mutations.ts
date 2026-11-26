@@ -104,6 +104,8 @@ export type CatalogReadDocumentResult = z.infer<
 export const CreateShortBookInputSchema = z.object({
   title: CatalogTitleSchema,
   genre: ShortBookGenreSchema,
+  pacingMode: z.enum(["viral_short", "refined_short"]).optional(),
+  tropes: z.array(z.string().trim().min(1).max(32)).max(6).optional(),
   defaultPlotStageIds: z
     .array(CreativePlotStageIdSchema)
     .min(1)
@@ -176,7 +178,9 @@ export const UpdateBookInputSchema = z
     baseProjectRevision: z.number().int().nonnegative().optional(),
     force: z.boolean().optional(),
     title: CatalogTitleSchema.optional(),
-    genre: ShortBookGenreSchema.optional(),
+    genre: z.union([ShortBookGenreSchema, ScriptBookGenreSchema]).optional(),
+    pacingMode: z.enum(["viral_short", "refined_short"]).nullable().optional(),
+    tropes: z.array(z.string().trim().min(1).max(32)).max(6).optional(),
     subtype: AcademicBookSubtypeSchema.optional(),
     citationStyle: AcademicCitationStyleSchema.optional(),
     status: z.enum(["editing", "completed"]).optional(),

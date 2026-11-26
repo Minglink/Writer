@@ -53,15 +53,15 @@ export function buildShortUnifiedEditTool(
         : `修改${input.workspaceType === "script" ? "剧本" : "短篇"}对象`,
     description:
       (input.promptLocale === "en-US"
-        ? "Edit an existing object. Always supply kind and stable id. Choose exactly one of content (full text), replacements (unique local passages), append (exact suffix), insert (before/after a unique anchor), or meta (supported structural fields). draft_section file edits require document=body or state (State). Renames use meta.title without document or content. Use meta.move for cards or manuscript entries; for draft_section, meta.after_id sets an exact position and meta.word_count_requirement updates or clears the length target. Changes to global plot titles/descriptions affect all short-fiction and screenplay works and require confirmation."
-        : "修改已有对象。显式提供 kind 和稳定 id。content、replacements、append（原样续写）、insert（在唯一锚点前后插入）、meta 只能选择一种。修改小节或剧集的正文或状态时必须指定 document；改名只传 meta.title。人物、小节或剧集可用 meta.move 上下移动，小节或剧集还可用 meta.after_id 定位，或用 meta.word_count_requirement 设置或清空篇幅要求。剧情结构的标题与说明由所有短篇和剧本共用，修改需要用户确认。") +
+        ? "Edit an existing object. Always supply kind and stable id (for kind=agents_md, id is optional and defaults to agents_md, and the document cannot exceed 10000 characters). Choose exactly one of content (full text), replacements (unique local passages), append (exact suffix), insert (before/after a unique anchor), or meta (supported structural fields). draft_section file edits require document=body or state (State). Renames use meta.title without document or content. Use meta.move for cards or manuscript entries; for draft_section, meta.after_id sets an exact position and meta.word_count_requirement updates or clears the length target. Changes to global plot titles/descriptions affect all short-fiction and screenplay works and require confirmation."
+        : "修改已有对象。显式提供 kind 和稳定 id（kind=agents_md 时 id 可省略，默认 agents_md，且全文不超过 10000 个字符）。content、replacements、append（原样续写）、insert（在唯一锚点前后插入）、meta 只能选择一种。修改小节或剧集的正文或状态时必须指定 document；改名只传 meta.title。人物、小节或剧集可用 meta.move 上下移动，小节或剧集还可用 meta.after_id 定位，或用 meta.word_count_requirement 设置或清空篇幅要求。剧情结构的标题与说明由所有短篇和剧本共用，修改需要用户确认。") +
       (input.promptLocale === "en-US"
         ? " Proposal counts exclude whitespace and do not confirm a save."
         : WRITING_CONTENT_COUNT_DESCRIPTION),
     parameters: Type.Object(
       {
         kind: Type.Optional(writingEditKindParameter),
-        id: stableWritingIdParameter,
+        id: Type.Optional(stableWritingIdParameter),
         document: Type.Optional(writingDocumentParameter),
         content: Type.Optional(
           Type.Unsafe<string>({
@@ -136,9 +136,13 @@ export function buildShortUnifiedEditTool(
             : "修改 draft_section 正文时必须指定 document=body 或 state。"
         );
       }
+      const rawId =
+        kind === "agents_md" && params.id === undefined
+          ? "agents_md"
+          : String(params.id ?? "");
       const target = resolveShortUnifiedTarget(callInput, state, {
         kind,
-        id: String(params.id),
+        id: rawId,
         ...(params.document ? { document: params.document } : {})
       });
       assertWritingDocumentAvailable(input, state, target.documentId);

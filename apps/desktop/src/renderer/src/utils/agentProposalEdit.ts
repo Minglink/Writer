@@ -244,6 +244,9 @@ export function proposalEditBaseText(
   ) {
     return undefined;
   }
+  if (proposal.agentsMdTarget) {
+    return proposal.staleBase ? undefined : proposal.agentsMdTarget.beforeText;
+  }
   const long = longEditTarget(proposal);
   if (long) return long.beforeText;
   if (

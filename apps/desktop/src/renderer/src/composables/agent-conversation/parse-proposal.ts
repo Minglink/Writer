@@ -34,6 +34,33 @@ import {
   parseStoredLongPlotDesignTarget,
   parseStoredLongDraftTarget
 } from "./parse-long-targets";
+
+function parseStoredAgentsMdTarget(
+  value: unknown
+): AgentEditProposal["agentsMdTarget"] | undefined {
+  if (
+    !isRecord(value) ||
+    (value.workspaceType !== "short" &&
+      value.workspaceType !== "script" &&
+      value.workspaceType !== "long") ||
+    typeof value.bookId !== "string" ||
+    !value.bookId.trim() ||
+    typeof value.beforeText !== "string" ||
+    (value.expectedRevision !== undefined &&
+      typeof value.expectedRevision !== "string")
+  ) {
+    return undefined;
+  }
+  return {
+    workspaceType: value.workspaceType,
+    bookId: value.bookId,
+    beforeText: value.beforeText,
+    ...(value.expectedRevision === undefined
+      ? {}
+      : { expectedRevision: value.expectedRevision })
+  };
+}
+
 export function parseStoredEditProposal(
   value: unknown
 ): AgentEditProposal | undefined {
@@ -101,6 +128,7 @@ export function parseStoredEditProposal(
   if (value.libraryStructureTarget !== undefined && !libraryStructureTarget)
     return undefined;
   const libraryTarget = parseStoredLibraryTarget(value.libraryTarget);
+  const agentsMdTarget = parseStoredAgentsMdTarget(value.agentsMdTarget);
   const longWorldbuildingTarget = parseStoredLongWorldbuildingTarget(
     value.longWorldbuildingTarget
   );
@@ -132,6 +160,8 @@ export function parseStoredEditProposal(
     longDraftTarget
   );
   if (
+    (value.stageId === "agents_md" && !agentsMdTarget) ||
+    (value.stageId !== "agents_md" && value.agentsMdTarget !== undefined) ||
     (value.stageId === "library" &&
       !libraryTarget &&
       !libraryStructureTarget) ||
@@ -278,6 +308,7 @@ export function parseStoredEditProposal(
         }
       : {}),
     ...(libraryStructureTarget ? { libraryStructureTarget } : {}),
+    ...(agentsMdTarget ? { agentsMdTarget } : {}),
     ...(academicMutationTarget ? { academicMutationTarget } : {}),
     ...(academicBaseProjectRevision === undefined
       ? {}

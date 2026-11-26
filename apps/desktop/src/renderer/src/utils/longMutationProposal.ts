@@ -27,7 +27,8 @@ const ENTITY_KIND_LABELS: Record<LongMutationReview["targetKind"], string> = {
   narrative_placement: "叙事落点",
   foreshadowing: "伏笔线",
   foreshadowing_beat: "伏笔触点",
-  continuity_file: "连续性文件"
+  continuity_file: "连续性文件",
+  agents_md: "长篇上下文"
 };
 
 function entityDisplayTitle(

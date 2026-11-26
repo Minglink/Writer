@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { LongWorkspaceIndexSnapshot } from "@writer/contracts";
+import type { LongWorkspaceSelection } from "../types/longWorkspace";
 import {
   computeLongWorkflowSteps,
   longCraftT,
@@ -11,7 +12,7 @@ import AppIcon from "./AppIcon.vue";
 const props = defineProps<{
   bookTitle: string;
   genre: string;
-  targetLabel?: string;
+  selection: LongWorkspaceSelection | null;
   workspaceIndex: LongWorkspaceIndexSnapshot | null;
   runtimeAvailable: boolean;
 }>();
@@ -33,7 +34,12 @@ const hasWrittenDraft = computed(
     ) ?? false
 );
 const craftSkills = computed(() =>
-  resolveWebNovelCraftSkills(props.bookTitle, props.genre)
+  resolveWebNovelCraftSkills(
+    props.bookTitle,
+    props.genre,
+    props.workspaceIndex,
+    props.selection
+  )
 );
 const planPrompt = computed(() => steps.value[0]?.prompt ?? "");
 </script>
@@ -50,8 +56,10 @@ const planPrompt = computed(() => steps.value[0]?.prompt ?? "");
           <h1>{{ bookTitle }}</h1>
           <span v-if="genre" class="long-craft-genre-pill">{{ genre }}</span>
         </div>
-        <p v-if="targetLabel" class="long-craft-target">
-          {{ longCraftT("targetScope", { target: targetLabel }) }}
+        <p class="long-craft-target">
+          {{
+            longCraftT("targetScope", { target: selection?.title ?? bookTitle })
+          }}
         </p>
       </div>
     </header>

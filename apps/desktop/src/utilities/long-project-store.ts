@@ -19,6 +19,7 @@ import {
   readDocument,
   renameBook,
   updateBindings,
+  updatePositioning,
   writeAgentsMd,
   writeDocument
 } from "./long-project-store/documents";
@@ -43,6 +44,7 @@ import type {
   ImportContinuationLongBookInput,
   ImportWriteClawLongBookOptions,
   LongProjectStoreOptions,
+  OpenedLongBook,
   ReadLongDocumentInput,
   RenameLongBookInput,
   SearchLongProjectInput,
@@ -50,6 +52,7 @@ import type {
   StoreDeleteLongLedgerCommitInput,
   StoreWriteLongChapterInput,
   UpdateLongBookBindingsInput,
+  UpdateLongBookPositioningInput,
   WriteLongDocumentInput
 } from "./long-project-store/types";
 import { writeChapter } from "./long-project-store/write-chapter";
@@ -156,16 +159,35 @@ export class LongProjectStore {
     return await renameBook(this.context, projectDirectory, input);
   }
 
+  async updatePositioning(
+    projectDirectory: string,
+    input: UpdateLongBookPositioningInput
+  ): Promise<OpenedLongBook> {
+    return await updatePositioning(this.context, projectDirectory, input);
+  }
+
   async readDocument(projectDirectory: string, input: ReadLongDocumentInput) {
     return await readDocument(this.context, projectDirectory, input);
   }
 
-  async readAgentsMd(projectDirectory: string) {
-    return await readAgentsMd(this.context, projectDirectory);
+  async readAgentsMd(
+    projectDirectory: string,
+    options?: { repairMissing?: boolean }
+  ) {
+    return await readAgentsMd(this.context, projectDirectory, options);
   }
 
-  async writeAgentsMd(projectDirectory: string, content: string) {
-    return await writeAgentsMd(this.context, projectDirectory, content);
+  async writeAgentsMd(
+    projectDirectory: string,
+    content: string,
+    expectedRevision?: string
+  ) {
+    return await writeAgentsMd(
+      this.context,
+      projectDirectory,
+      content,
+      expectedRevision
+    );
   }
 
   async readChapterNotes(projectDirectory: string) {

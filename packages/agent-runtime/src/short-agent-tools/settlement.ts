@@ -1,5 +1,6 @@
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import {
+  WRITING_CONTEXT_PATH,
   createShortWorkspaceContentRevision,
   plotStructureCreationStageId,
   type WritingIndex,
@@ -52,6 +53,7 @@ const orderFields = [
 function snapshot(state: ShortWorkspaceToolSharedState): Snapshot {
   return structuredClone(
     Object.fromEntries([
+      ["agentsMd", state.agentsMd],
       ...mapFields.map((key) => [key, Object.fromEntries(state[key])]),
       ...orderFields.map((key) => [key, state[key]])
     ])
@@ -89,6 +91,11 @@ function apply(data: Snapshot, patch: Patch): void {
 }
 
 function restore(state: ShortWorkspaceToolSharedState, data: Snapshot): void {
+  const agentsMd = data.agentsMd as
+    ShortWorkspaceToolSharedState["agentsMd"] | undefined;
+  if (agentsMd) {
+    state.agentsMd = structuredClone(agentsMd);
+  }
   for (const key of mapFields) {
     const map = state[key] as Map<string, unknown>;
     map.clear();
@@ -159,6 +166,8 @@ export function trackWritingMutation(
 }
 
 function textPath(details: ShortWorkspaceToolDetails): string[] | undefined {
+  if (details.kind === "workspace-agents-md-mutation")
+    return ["agentsMd", "content"];
   if (details.kind === "workspace-editor-mutation")
     return ["stageBodies", details.stageId];
   if (details.kind === "workspace-character-file-mutation" && details.itemId)
@@ -247,6 +256,17 @@ export function replayWritingMutations(
   index: WritingIndex
 ): void {
   const data = snapshot(base);
+  const agentsMdCount = index.counts.find(
+    (item) => item.id === WRITING_CONTEXT_PATH
+  );
+  if (
+    agentsMdCount &&
+    data.agentsMd &&
+    typeof data.agentsMd === "object" &&
+    !Array.isArray(data.agentsMd)
+  ) {
+    data.agentsMd.revision = agentsMdCount.revision;
+  }
   const journal = journals.get(state);
   if (journal) {
     journal.entries = journal.entries.filter((entry) => {
@@ -421,11 +441,13 @@ export function settleWritingMutations(
     const path = textPath(entry.details);
     if (!path) continue;
     const documentId =
-      entry.details.kind === "workspace-editor-mutation"
-        ? entry.details.stageId
-        : "documentId" in entry.details
-          ? entry.details.documentId
-          : "";
+      entry.details.kind === "workspace-agents-md-mutation"
+        ? WRITING_CONTEXT_PATH
+        : entry.details.kind === "workspace-editor-mutation"
+          ? entry.details.stageId
+          : "documentId" in entry.details
+            ? entry.details.documentId
+            : "";
     if (
       entry.result.editedText === undefined ||
       entry.result.editedTextTruncated

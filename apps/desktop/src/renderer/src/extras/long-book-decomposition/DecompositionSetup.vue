@@ -40,7 +40,7 @@ const concurrencyOptions = Array.from(
   (_, index) => ({ value: index + 1, label: String(index + 1) })
 );
 const targets = computed(() =>
-  props.controller.books.value.map(({ id, title }) => ({
+  (props.controller.books?.value ?? []).map(({ id, title }) => ({
     value: id,
     label: title
   }))
@@ -58,14 +58,15 @@ const estimate = computed(() => {
 });
 const reuseOptions = computed(() => [
   { value: "", label: t("noReuse") },
-  ...props.controller.jobs.value
+  ...(props.controller.jobs?.value ?? [])
     .filter(
       (job) =>
+        Boolean(job?.source?.fingerprint) &&
         job.source.fingerprint ===
-          props.controller.confirmation.value?.fingerprint &&
-        job.source.range.start === props.range.start &&
-        job.source.range.end === props.range.end &&
-        job.units["registry:merge"]?.status === "done"
+          props.controller.confirmation?.value?.fingerprint &&
+        job.source.range?.start === props.range.start &&
+        job.source.range?.end === props.range.end &&
+        job.units?.["registry:merge"]?.status === "done"
     )
     .map((job) => ({
       value: job.id,
@@ -128,7 +129,7 @@ function create() {
         <PopupSelect
           v-model="controller.profileId.value"
           :options="
-            controller.profiles.value.map(({ id, name }) => ({
+            (controller.profiles?.value ?? []).map(({ id, name }) => ({
               value: id,
               label: name
             }))

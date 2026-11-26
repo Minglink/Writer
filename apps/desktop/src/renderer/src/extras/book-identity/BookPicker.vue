@@ -7,7 +7,7 @@ const props = defineProps<{
   books: readonly IdentityBookChoice[];
   selected?: IdentityBookChoice | undefined;
 }>();
-defineEmits<{ select: [key: string]; open: []; create: [] }>();
+const emit = defineEmits<{ select: [key: string]; open: []; create: [] }>();
 const filter = ref("all");
 const options = computed(() =>
   props.books
@@ -16,6 +16,17 @@ const options = computed(() =>
     )
     .map((b) => ({ value: b.key, label: b.title, description: b.description }))
 );
+function selectFilter(next: string): void {
+  filter.value = next;
+  if (
+    next !== "all" &&
+    props.selected &&
+    props.selected.book.projectType !== next &&
+    options.value[0]
+  ) {
+    emit("select", options.value[0].value);
+  }
+}
 </script>
 <template>
   <section class="analysis-card identity-picker">
@@ -24,7 +35,7 @@ const options = computed(() =>
         v-for="type in ['all', 'short', 'script', 'long']"
         :key="type"
         :class="{ 'is-active': filter === type }"
-        @click="filter = type"
+        @click="selectFilter(type)"
       >
         {{ t(type) }}
       </button>

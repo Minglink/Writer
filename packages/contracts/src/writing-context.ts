@@ -1,8 +1,15 @@
 import { z } from "zod";
 import { EnvelopeBaseSchema } from "./envelope";
+import {
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  writingContextCharacterCount
+} from "./writing-context-limits";
 
-export const WRITING_CONTEXT_PATH = "AGENTS.md" as const;
-export const WRITING_CONTEXT_MAX_CHARACTERS = 10_000;
+export {
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  WRITING_CONTEXT_PATH,
+  writingContextCharacterCount
+} from "./writing-context-limits";
 export const WritingContextWorkspaceTypeSchema = z.enum([
   "short",
   "script",
@@ -97,10 +104,6 @@ export const DEFAULT_ACADEMIC_WRITING_CONTEXT = `# 学术写作上下文
 - 完成本节修订后，同步更新 \`节末状态\`（记录本节首次定义的缩写与符号、实际引用的 \`citeKey\`、已兑现论点及对后文的跨节承诺）。
 `;
 
-export function writingContextCharacterCount(content: string): number {
-  return Array.from(content).length;
-}
-
 function refineWritingContext(
   content: string,
   context: z.core.$RefinementCtx<unknown>,
@@ -116,6 +119,7 @@ function refineWritingContext(
 }
 
 const WritingContextBookIdSchema = z.string().trim().min(1).max(512);
+const WritingContextRevisionSchema = z.string().trim().min(1).max(160);
 
 export const ReadWritingContextInputSchema = z
   .object({ bookId: WritingContextBookIdSchema })
@@ -129,7 +133,8 @@ export const ReadWritingContextResultSchema = z
     bookId: WritingContextBookIdSchema,
     workspaceType: WritingContextWorkspaceTypeSchema,
     content: z.string().max(WRITING_CONTEXT_MAX_CHARACTERS * 2),
-    truncated: z.boolean()
+    truncated: z.boolean(),
+    revision: WritingContextRevisionSchema.optional()
   })
   .strict()
   .superRefine((value, context) => {
@@ -142,7 +147,8 @@ export type ReadWritingContextResult = z.infer<
 export const WriteWritingContextInputSchema = z
   .object({
     bookId: WritingContextBookIdSchema,
-    content: z.string().max(WRITING_CONTEXT_MAX_CHARACTERS * 2)
+    content: z.string().max(WRITING_CONTEXT_MAX_CHARACTERS * 2),
+    expectedRevision: WritingContextRevisionSchema.optional()
   })
   .strict()
   .superRefine((value, context) => {
@@ -155,7 +161,8 @@ export type WriteWritingContextInput = z.infer<
 export const WriteWritingContextResultSchema = z
   .object({
     bookId: WritingContextBookIdSchema,
-    workspaceType: WritingContextWorkspaceTypeSchema
+    workspaceType: WritingContextWorkspaceTypeSchema,
+    revision: WritingContextRevisionSchema.optional()
   })
   .strict();
 export type WriteWritingContextResult = z.infer<

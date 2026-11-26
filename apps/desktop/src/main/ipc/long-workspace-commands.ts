@@ -35,6 +35,7 @@ export async function handleLongWorkspaceCommands(
     command.type === "long.duplicateBook" ||
     command.type === "long.rename" ||
     command.type === "long.updateBindings" ||
+    command.type === "long.updatePositioning" ||
     command.type === "long.getWorkspaceIndex" ||
     command.type === "long.readDocument" ||
     command.type === "long.readAgentsMd" ||
@@ -71,6 +72,7 @@ export async function handleLongWorkspaceCommands(
         case "long.duplicateBook":
         case "long.rename":
         case "long.updateBindings":
+        case "long.updatePositioning":
           payload = LongOpenBookResultSchema.parse(result.payload);
           break;
         case "long.getWorkspaceIndex":

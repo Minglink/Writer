@@ -371,9 +371,11 @@ export type AgentRuntimeEvent =
       payload: {
         toolCallId: string;
         workspaceId: string;
-        stageId: import("@writer/contracts").ShortWorkspaceStageId;
+        stageId:
+          import("@writer/contracts").ShortWorkspaceStageId | "agents_md";
         text: string;
         mutationTarget?:
+          | import("@writer/contracts").AgentsMdMutationTarget
           | {
               kind: "expert-draft-file";
               documentId: string;

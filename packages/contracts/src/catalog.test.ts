@@ -5,7 +5,10 @@ import {
   CATALOG_LIBRARY_OVERVIEW_MAX_CHARACTERS,
   BookProjectDraftSectionManifestSchema,
   CatalogDocumentSchema,
+  CatalogIndexBookSchema,
+  CatalogIndexSnapshotSchema,
   CurrentBookProjectManifestSchema,
+  CurrentShortBookSchema,
   CatalogDraftSectionSchema,
   CatalogDraftRecoverySchema,
   CatalogProjectManifestSchema,
@@ -15,6 +18,8 @@ import {
   CreateDraftSectionsInputSchema,
   CreateDraftSectionsResultSchema,
   CreateLibraryInputSchema,
+  ShortBookSchema,
+  UpdateBookInputSchema,
   UpdateLibraryInputSchema,
   MoveLibraryEntryInputSchema,
   CreateLibraryEntryInputSchema,
@@ -30,6 +35,7 @@ import {
   UpdateLibraryGroupInputSchema,
   catalogDraftBodyDocumentId,
   catalogDraftCharacterStateDocumentId,
+  createCatalogDraftDirectory,
   createEnvelope,
   createDefaultBookPlotStages,
   createDefaultCreativePlotStages,
@@ -1270,5 +1276,341 @@ describe("catalog contracts", () => {
     expect(
       parsed.documents.find(({ id }) => id === "character_design")?.title
     ).toBe(BOOK_CHARACTER_OVERVIEW_TITLE);
+  });
+
+  it("round-trips short-book web-novel positioning across book, v4 manifest, and catalog index schemas while rejecting script positioning", () => {
+    const plotStages = createDefaultBookPlotStages();
+    const linkedMaterialIdsByKind = {
+      character: [],
+      gimmick: [],
+      plot: [],
+      draft: [],
+      other: []
+    };
+    const linkedSkillIdsByKind = {
+      general: [],
+      plot: [],
+      style: [],
+      other: []
+    };
+
+    const shortBookInput = {
+      id: "book-short-positioning",
+      title: "灰烬余温",
+      bookType: "short" as const,
+      genre: "追妻" as const,
+      pacingMode: "refined_short" as const,
+      tropes: ["追妻火葬场", "破镜重圆"],
+      status: "editing" as const,
+      linkedMaterialIdsByKind,
+      linkedSkillIdsByKind,
+      characterStructure: { format: "text" as const },
+      plotStages,
+      documents: [
+        {
+          id: "character_design",
+          title: "人物设计",
+          content: "",
+          createdAt: now,
+          updatedAt: now
+        },
+        ...plotStages.map((stage) => ({
+          id: stage.id,
+          title: stage.title,
+          content: "",
+          createdAt: now,
+          updatedAt: now
+        }))
+      ],
+      draft: createCatalogDraftDirectory(now),
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const currentShort = CurrentShortBookSchema.parse(shortBookInput);
+    expect(currentShort.pacingMode).toBe("refined_short");
+    expect(currentShort.tropes).toEqual(["追妻火葬场", "破镜重圆"]);
+
+    const migratedShort = ShortBookSchema.parse(shortBookInput);
+    expect(migratedShort.pacingMode).toBe("refined_short");
+    expect(migratedShort.tropes).toEqual(["追妻火葬场", "破镜重圆"]);
+
+    const v4ShortManifestInput = {
+      schemaVersion: 4 as const,
+      revision: 1,
+      kind: "writer.book" as const,
+      id: "book-short-positioning",
+      title: "灰烬余温",
+      bookType: "short" as const,
+      genre: "追妻" as const,
+      pacingMode: "refined_short" as const,
+      tropes: ["追妻火葬场", "破镜重圆"],
+      status: "editing" as const,
+      characterStructure: { format: "text" as const },
+      plotStages,
+      linkedMaterialIdsByKind,
+      linkedSkillIdsByKind,
+      documents: [
+        {
+          id: "character_design",
+          title: "人物设计",
+          path: "stages/character_design.md",
+          createdAt: now,
+          updatedAt: now
+        },
+        ...plotStages.map((stage) => ({
+          id: stage.id,
+          title: stage.title,
+          path: `stages/${stage.id}.md`,
+          createdAt: now,
+          updatedAt: now
+        }))
+      ],
+      draft: {
+        id: "draft" as const,
+        title: "正文编写",
+        sections: [
+          {
+            id: "section-1",
+            title: "第一节",
+            wordCountRequirement: "1200字",
+            body: {
+              id: "draft-section:section-1:body",
+              title: "第一节",
+              path: "stages/draft/section-1.body.md",
+              createdAt: now,
+              updatedAt: now
+            },
+            characterState: {
+              id: "draft-section:section-1:character-state",
+              title: "第一节 · 人物状态",
+              path: "stages/draft/section-1.state.md",
+              createdAt: now,
+              updatedAt: now
+            },
+            createdAt: now,
+            updatedAt: now
+          }
+        ],
+        createdAt: now,
+        updatedAt: now
+      },
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const parsedShortManifest =
+      CurrentBookProjectManifestSchema.parse(v4ShortManifestInput);
+    expect(parsedShortManifest.bookType).toBe("short");
+    if (parsedShortManifest.bookType !== "short") {
+      throw new Error("Expected short manifest");
+    }
+    expect(parsedShortManifest.pacingMode).toBe("refined_short");
+    expect(parsedShortManifest.tropes).toEqual(["追妻火葬场", "破镜重圆"]);
+
+    const {
+      pacingMode: _pacingMode,
+      tropes: _tropes,
+      ...baseManifestWithoutPositioning
+    } = v4ShortManifestInput;
+    const v4ScriptManifest = {
+      ...baseManifestWithoutPositioning,
+      bookType: "script" as const,
+      genre: "悬疑" as const
+    };
+    expect(
+      CurrentBookProjectManifestSchema.parse(v4ScriptManifest).bookType
+    ).toBe("script");
+    expect(
+      CurrentBookProjectManifestSchema.safeParse({
+        ...v4ScriptManifest,
+        pacingMode: "refined_short"
+      }).success
+    ).toBe(false);
+    expect(
+      CurrentBookProjectManifestSchema.safeParse({
+        ...v4ScriptManifest,
+        tropes: ["追妻火葬场"]
+      }).success
+    ).toBe(false);
+
+    const indexShortBookInput = {
+      ...shortBookInput,
+      documents: shortBookInput.documents.map((doc) => ({
+        ...doc,
+        content: "" as const,
+        contentBytes: 0,
+        contentStamp: "fs-v1:0"
+      })),
+      draft: {
+        id: "draft" as const,
+        title: "正文",
+        sections: [
+          {
+            id: "section-1",
+            title: "第一节",
+            wordCountRequirement: "",
+            body: {
+              id: "draft-section:section-1:body",
+              title: "第一节",
+              content: "" as const,
+              contentBytes: 0,
+              contentStamp: "fs-v1:0",
+              createdAt: now,
+              updatedAt: now
+            },
+            characterState: {
+              id: "draft-section:section-1:character-state",
+              title: "第一节 · 状态",
+              content: "" as const,
+              contentBytes: 0,
+              contentStamp: "fs-v1:0",
+              createdAt: now,
+              updatedAt: now
+            },
+            createdAt: now,
+            updatedAt: now
+          }
+        ],
+        createdAt: now,
+        updatedAt: now
+      }
+    };
+
+    const parsedIndexBook = CatalogIndexBookSchema.parse(indexShortBookInput);
+    expect(parsedIndexBook.bookType).toBe("short");
+    if (parsedIndexBook.bookType !== "short") {
+      throw new Error("Expected short index book");
+    }
+    expect(parsedIndexBook.pacingMode).toBe("refined_short");
+    expect(parsedIndexBook.tropes).toEqual(["追妻火葬场", "破镜重圆"]);
+
+    const parsedIndexSnapshot = CatalogIndexSnapshotSchema.parse({
+      schemaVersion: 1,
+      revision: 1,
+      creativePlotStages: createDefaultCreativePlotStages(),
+      books: [indexShortBookInput],
+      materials: [],
+      materialGroups: [],
+      skills: [],
+      skillGroups: [],
+      updatedAt: now
+    });
+    const indexedBook = parsedIndexSnapshot.books[0];
+    expect(indexedBook?.bookType).toBe("short");
+    if (!indexedBook || indexedBook.bookType !== "short") {
+      throw new Error("Expected short book in catalog index snapshot");
+    }
+    expect(indexedBook.pacingMode).toBe("refined_short");
+    expect(indexedBook.tropes).toEqual(["追妻火葬场", "破镜重圆"]);
+
+    const {
+      pacingMode: _idxPacing,
+      tropes: _idxTropes,
+      ...indexWithoutPositioning
+    } = indexShortBookInput;
+    expect(
+      CatalogIndexBookSchema.safeParse({
+        ...indexWithoutPositioning,
+        bookType: "script",
+        pacingMode: "refined_short"
+      }).success
+    ).toBe(false);
+    expect(
+      CatalogIndexBookSchema.safeParse({
+        ...indexWithoutPositioning,
+        bookType: "script",
+        tropes: ["追妻火葬场"]
+      }).success
+    ).toBe(false);
+  });
+
+  it("accepts short-book positioning updates and clearing patches in UpdateBookInputSchema", () => {
+    expect(
+      UpdateBookInputSchema.parse({
+        bookId: "book_1",
+        pacingMode: "viral_short",
+        tropes: ["打脸"]
+      })
+    ).toEqual({
+      bookId: "book_1",
+      pacingMode: "viral_short",
+      tropes: ["打脸"]
+    });
+
+    expect(
+      UpdateBookInputSchema.parse({
+        bookId: "book_1",
+        pacingMode: null
+      })
+    ).toEqual({
+      bookId: "book_1",
+      pacingMode: null
+    });
+
+    expect(
+      UpdateBookInputSchema.parse({
+        bookId: "book_1",
+        tropes: []
+      })
+    ).toEqual({
+      bookId: "book_1",
+      tropes: []
+    });
+
+    expect(
+      CommandEnvelopeSchema.parse(
+        createEnvelope(
+          "catalog.updateBook",
+          {
+            bookId: "book_1",
+            baseProjectRevision: 3,
+            pacingMode: null
+          },
+          { id: "catalog-clear-pacing" }
+        )
+      ).payload
+    ).toEqual({
+      bookId: "book_1",
+      baseProjectRevision: 3,
+      pacingMode: null
+    });
+
+    expect(
+      CreateShortBookInputSchema.parse({
+        title: "爆款短篇",
+        genre: "真假千金",
+        pacingMode: "viral_short",
+        tropes: ["真假千金", "虐渣打脸"]
+      })
+    ).toMatchObject({
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "虐渣打脸"]
+    });
+
+    expect(
+      UpdateBookInputSchema.safeParse({
+        bookId: "book_1",
+        baseProjectRevision: 3
+      }).success
+    ).toBe(false);
+    expect(
+      UpdateBookInputSchema.safeParse({
+        bookId: "book_1",
+        pacingMode: "fanqie"
+      }).success
+    ).toBe(false);
+    expect(
+      UpdateBookInputSchema.safeParse({
+        bookId: "book_1",
+        tropes: ["标签1", "标签2", "标签3", "标签4", "标签5", "标签6", "标签7"]
+      }).success
+    ).toBe(false);
+    expect(
+      UpdateBookInputSchema.safeParse({
+        bookId: "book_1",
+        tropes: ["字".repeat(33)]
+      }).success
+    ).toBe(false);
   });
 });

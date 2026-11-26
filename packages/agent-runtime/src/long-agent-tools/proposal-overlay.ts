@@ -137,6 +137,7 @@ function patchFile(
 export function createProposalOverlay() {
   const structure: Creation[] = [];
   const documents = new Map<string, OverlayDocument>();
+  let pendingAgentsMd: string | undefined;
 
   return {
     remember(
@@ -152,6 +153,12 @@ export function createProposalOverlay() {
         }
       }
       for (const write of writes) documents.set(write.file.id, write);
+    },
+    rememberAgentsMd(content: string): void {
+      pendingAgentsMd = content;
+    },
+    agentsMd(): string | undefined {
+      return pendingAgentsMd;
     },
     applyToIndex(
       index: LongWorkspaceIndexSnapshot
@@ -182,6 +189,7 @@ export function createProposalOverlay() {
     clear(): void {
       structure.length = 0;
       documents.clear();
+      pendingAgentsMd = undefined;
     }
   };
 }

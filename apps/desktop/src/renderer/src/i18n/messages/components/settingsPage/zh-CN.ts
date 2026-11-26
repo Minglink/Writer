@@ -55,5 +55,7 @@ export default {
   settingsCategories: "设置分类",
   noMatchingSettings: "没有匹配的设置",
   settingsAreNotConfigured: "」设置项待配置。",
-  settingsAreNotConfiguredMessage: "「{arg0}」设置项待配置。"
+  settingsAreNotConfiguredMessage: "「{arg0}」设置项待配置。",
+  panelLoadFailed: "无法加载此设置项，请重试。",
+  retry: "重试"
 };

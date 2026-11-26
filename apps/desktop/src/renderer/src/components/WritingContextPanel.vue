@@ -9,6 +9,8 @@ import {
   type WritingContextWorkspaceType
 } from "@writer/contracts/renderer";
 import { uiMessage } from "../ui-feedback";
+import { handoffWritingContextToAgent } from "./writingContextCoCreationHandoff";
+import { writingContextCoCreationT } from "./writingContextCoCreationMessages";
 
 const t = createScopedTranslator("components.writingContextPanel");
 
@@ -17,15 +19,22 @@ export interface WritingContextSaveCompletion {
   fail(): void;
 }
 
-const props = defineProps<{
-  content: string | null;
-  loading: boolean;
-  pending: boolean;
-  workspaceType: WritingContextWorkspaceType | "mystery" | "long";
-}>();
+const props = withDefaults(
+  defineProps<{
+    content: string | null;
+    loading: boolean;
+    pending: boolean;
+    workspaceType: WritingContextWorkspaceType | "mystery" | "long";
+    bookId?: string | null;
+  }>(),
+  {
+    bookId: null
+  }
+);
 
 const emit = defineEmits<{
   save: [content: string, completion: WritingContextSaveCompletion];
+  requestClose: [];
 }>();
 
 const draft = ref("");
@@ -97,6 +106,32 @@ async function flushIfNeeded(): Promise<boolean> {
   }
 }
 
+const handoffPending = ref(false);
+const showCoCreateButton = computed(
+  () => Boolean(props.bookId) && props.workspaceType !== "academic"
+);
+
+async function coCreateWithAgent(): Promise<void> {
+  if (
+    !props.bookId ||
+    props.workspaceType === "academic" ||
+    handoffPending.value
+  ) {
+    return;
+  }
+  if (!(await flushIfNeeded())) return;
+  handoffPending.value = true;
+  try {
+    emit("requestClose");
+    await handoffWritingContextToAgent({
+      bookId: props.bookId,
+      workspaceType: props.workspaceType
+    });
+  } finally {
+    handoffPending.value = false;
+  }
+}
+
 defineExpose({ flushIfNeeded });
 </script>
 
@@ -120,11 +155,23 @@ defineExpose({ flushIfNeeded });
         >{{ count }} / {{ maxCharacters }}</strong
       >
       <button
+        v-if="showCoCreateButton"
+        class="dialog-secondary-button"
+        type="button"
+        :disabled="
+          loading || pending || handoffPending || count > maxCharacters
+        "
+        @click="coCreateWithAgent"
+      >
+        {{ writingContextCoCreationT("coCreateWithAgent") }}
+      </button>
+      <button
         class="dialog-primary-button"
         type="button"
         :disabled="
           loading ||
           pending ||
+          handoffPending ||
           !dirty ||
           (workspaceType === 'long' && count > maxCharacters)
         "

@@ -80,6 +80,8 @@ export function createShortBookCreator<Lease>(
               : await api.createShortBook({
                   title: input.title,
                   genre: input.genre,
+                  pacingMode: input.pacingMode,
+                  tropes: input.tropes,
                   characterFormat: input.characterFormat,
                   defaultPlotStageIds: input.defaultPlotStageIds,
                   linkedMaterialIdsByKind: input.linkedMaterialIdsByKind,

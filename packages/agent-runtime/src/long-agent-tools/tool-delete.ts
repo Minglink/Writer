@@ -8,7 +8,11 @@ import {
   strictObject,
   summaryParameter
 } from "./schemas";
-import { LONG_ENTITY_KIND_LABELS, LONG_STAGE_ROOTS } from "./entity-registry";
+import {
+  LONG_AGENTS_MD_ID,
+  LONG_ENTITY_KIND_LABELS,
+  LONG_STAGE_ROOTS
+} from "./entity-registry";
 import { resolveLongEntityTarget } from "./entity-target";
 import { resolveLongTarget } from "./target";
 import {
@@ -33,6 +37,11 @@ export function buildDeleteTool(ctx: LongToolContext): AgentTool {
     }),
     executionMode: "sequential",
     execute: async (toolCallId, params, signal) => {
+      if (params.id === LONG_AGENTS_MD_ID) {
+        throw new Error(
+          '长篇上下文（AGENTS.md）是固定单例，不支持删除；如需清空或调整内容，请使用 edit(id="agents_md")。'
+        );
+      }
       let index = await loadIndex(signal);
       const timestamp = new Date().toISOString();
 

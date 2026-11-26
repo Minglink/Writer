@@ -24,6 +24,7 @@ import {
   longLedgerCommitFileId,
   longWorldbuildingOverviewContentPath,
   longWorldbuildingOverviewFileId,
+  resolveLongBookFrameworkPreset,
   type LongContinuationImportEncoding,
   type LongContinuationImportScan,
   type LongProjectManifest,
@@ -38,15 +39,6 @@ const NATURAL_COLLATOR = new Intl.Collator("zh-CN", {
   numeric: true,
   sensitivity: "base"
 });
-const DEFAULT_WORLD_CATEGORIES = [
-  ["world_rules", "规则"],
-  ["world_factions", "势力"],
-  ["world_geography", "地理"],
-  ["world_history", "历史"],
-  ["world_terminology", "术语"],
-  ["world_realms", "境界"],
-  ["world_items", "物品"]
-] as const;
 const EMPTY_LINKED_MATERIALS = {
   character: [],
   gimmick: [],
@@ -573,7 +565,8 @@ export async function createContinuationImportPlan(
     "long/plot/book-line.md",
     ""
   );
-  const worldbuilding = DEFAULT_WORLD_CATEGORIES.map(([id, title], index) => ({
+  const framework = resolveLongBookFrameworkPreset(input.genre);
+  const worldbuilding = framework.worldCategories.map(([id, title], index) => ({
     id,
     title,
     order: index + 1,

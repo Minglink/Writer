@@ -16,6 +16,15 @@ import type { AgentUserInputRequester } from "../runtime-types";
 export type ShortWorkspaceToolDetails =
   | { kind: "none" }
   | {
+      kind: "workspace-agents-md-mutation";
+      workspaceId: string;
+      workspaceType: WritingWorkspaceType;
+      beforeText: string;
+      text: string;
+      baseRevision: string;
+      summary: string;
+    }
+  | {
       kind: "workspace-editor-mutation";
       workspaceId: string;
       stageId: ShortWorkspaceStageId;
@@ -178,6 +187,15 @@ export type WritingWorkspaceType = "short" | "script";
 export interface WritingWorkspaceSnapshot {
   readSource?: "core" | undefined;
   coreFiles?: ShortWorkspaceToolSharedState["coreFiles"];
+  agentsMd?: string | undefined;
+  agentsMdTruncated?: boolean | undefined;
+  agentsMdFile?:
+    | {
+        content: string;
+        revision: string;
+        truncated?: boolean | undefined;
+      }
+    | undefined;
   id: ShortWorkspaceSnapshot["id"];
   title: ShortWorkspaceSnapshot["title"];
   activeStageId: ShortWorkspaceStageId;
@@ -222,8 +240,19 @@ export interface ShortWorkspaceToolSharedState {
   provisionalPlotIds?: Map<string, string>;
   coreFiles?: Map<
     string,
-    { length: number; characters: number; revision: string }
+    {
+      length: number;
+      characters: number;
+      revision: string;
+      content?: string;
+      truncated?: boolean;
+    }
   >;
+  agentsMd: {
+    content: string;
+    revision: string;
+    truncated?: boolean;
+  };
   stageBodies: Map<ShortWorkspaceStageId, string>;
   stageRevisions: Map<ShortWorkspaceStageId, string>;
   characterItems: Map<

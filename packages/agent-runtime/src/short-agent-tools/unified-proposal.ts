@@ -1,4 +1,9 @@
-import { SHORT_WORKSPACE_FILE_MAX_CHARACTERS } from "@writer/contracts";
+import {
+  SHORT_WORKSPACE_FILE_MAX_CHARACTERS,
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  writingContextCharacterCount,
+  type ShortWorkspaceStageId
+} from "@writer/contracts";
 import { draftBodyFeedback } from "./draft-feedback";
 import { trackWritingMutation } from "./settlement";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
@@ -52,6 +57,17 @@ export function formShortContentProposal(
   rawSummary: string
 ): AgentToolResult<ShortWorkspaceToolDetails> {
   if (content === target.content) return unchanged(input);
+  if (target.kind === "agents_md") {
+    const count = writingContextCharacterCount(content);
+    if (count > WRITING_CONTEXT_MAX_CHARACTERS) {
+      return textResult(
+        input.promptLocale === "en-US"
+          ? `Not changed: work context (AGENTS.md) cannot exceed ${WRITING_CONTEXT_MAX_CHARACTERS} characters (currently ${count} characters). Shorten it and retry.`
+          : `未修改：作品上下文（AGENTS.md）不能超过 ${WRITING_CONTEXT_MAX_CHARACTERS} 个字符（当前 ${count} 个字符），请精简后重试。`,
+        { kind: "none" }
+      );
+    }
+  }
   if (content.length > SHORT_WORKSPACE_FILE_MAX_CHARACTERS)
     throw new Error(
       input.promptLocale === "en-US"
@@ -60,6 +76,7 @@ export function formShortContentProposal(
     );
   return trackWritingMutation(input, sharedState, () => {
     const summary = rawSummary.trim();
+    const beforeText = target.content;
     const baseRevision = target.revision;
     const revision = updateShortUnifiedTarget(
       input,
@@ -67,17 +84,28 @@ export function formShortContentProposal(
       target,
       content
     );
-    recordUpdatedReadEvidence(readState, target, content, revision);
+    recordUpdatedReadEvidence(readState, target.documentId, content, revision);
     const message = appendWritingContentCounts(
       shortProposalSummary(input, summary),
       [{ title: target.title, id: target.documentId, content }],
       input.promptLocale
     );
+    if (target.kind === "agents_md") {
+      return textResult(message, {
+        kind: "workspace-agents-md-mutation",
+        workspaceId: input.workspace.id,
+        workspaceType: input.workspaceType,
+        beforeText,
+        text: content,
+        baseRevision,
+        summary
+      });
+    }
     if (target.kind === "character_overview" || target.kind === "plot_stage") {
       return textResult(message, {
         kind: "workspace-editor-mutation",
         workspaceId: input.workspace.id,
-        stageId: target.stageId,
+        stageId: target.stageId as ShortWorkspaceStageId,
         text: content,
         baseRevision,
         summary

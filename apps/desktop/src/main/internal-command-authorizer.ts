@@ -14,6 +14,7 @@ import type {
 export const AGENT_CORE_LONG_QUERY_COMMANDS = [
   "long.getWorkspaceIndex",
   "long.readDocument",
+  "long.readAgentsMd",
   "long.search"
 ] as const satisfies readonly CommandEnvelope["type"][];
 
@@ -394,6 +395,7 @@ export function authorizeMainInternalCommand(
   if (
     command.type !== "long.getWorkspaceIndex" &&
     command.type !== "long.readDocument" &&
+    command.type !== "long.readAgentsMd" &&
     command.type !== "long.search"
   ) {
     return denied(

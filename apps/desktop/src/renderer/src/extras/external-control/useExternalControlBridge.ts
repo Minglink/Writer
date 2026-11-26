@@ -33,7 +33,10 @@ class BridgeFailure extends Error {
 
 export interface ExternalControlBridgePorts {
   api(): WriterApi | undefined;
-  open(target: ExternalWindowTarget): Promise<boolean>;
+  open(
+    target: ExternalWindowTarget,
+    options?: { preserveSelection?: boolean }
+  ): Promise<boolean>;
   /** The conversation shown after opening a target. */
   conversation(): AgentConversationController | null | undefined;
   /** Settles once opened conversations have their saved settings back. */
@@ -45,6 +48,9 @@ export interface ExternalControlBridgePorts {
   send(): Promise<void>;
   longEditorHasUnsavedChanges(bookId: string): boolean;
 }
+
+export let activeWorkspaceControlPorts: ExternalControlBridgePorts | null =
+  null;
 
 /** The send path reads the composer, so the message passes through its draft. */
 async function sendThroughComposer(
@@ -72,6 +78,7 @@ async function sendThroughComposer(
  * entry as the composer, so a run cannot behave differently from a user's.
  */
 export function useExternalControlBridge(ports: ExternalControlBridgePorts) {
+  activeWorkspaceControlPorts = ports;
   const runs = new Map<string, TrackedRun>();
   const recovery = createExternalRunRecovery(ports.api);
   const restoredRuns = new Set<string>();
@@ -412,6 +419,8 @@ export function useExternalControlBridge(ports: ExternalControlBridgePorts) {
     }
   );
   return () => {
+    if (activeWorkspaceControlPorts === ports)
+      activeWorkspaceControlPorts = null;
     unsubscribe();
     for (const run of runs.values()) run.dispose();
     runs.clear();

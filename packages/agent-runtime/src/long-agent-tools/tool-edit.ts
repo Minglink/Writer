@@ -28,7 +28,12 @@ import {
 } from "./schemas";
 import { characterMetadataOperations } from "./character-metadata";
 import { chapterMetadataOperations } from "./chapter-metadata";
-import { LONG_ENTITY_KIND_LABELS, LONG_STAGE_ROOTS } from "./entity-registry";
+import {
+  LONG_AGENTS_MD_ID,
+  LONG_ENTITY_KIND_LABELS,
+  LONG_STAGE_ROOTS
+} from "./entity-registry";
+import { editAgentsMdTarget } from "./agents-md";
 import {
   longEntityContentPatch,
   longEntityUpdateOperationType,
@@ -151,6 +156,15 @@ export function buildEditTool(ctx: LongToolContext): AgentTool {
     }),
     executionMode: "sequential",
     execute: async (toolCallId, params, signal) => {
+      if (params.id === LONG_AGENTS_MD_ID) {
+        return editAgentsMdTarget(
+          ctx,
+          toolCallId,
+          params,
+          applyReplacements,
+          signal
+        );
+      }
       const document =
         params.document ??
         (params.meta &&

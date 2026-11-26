@@ -2,10 +2,15 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { StringEnum, Type } from "@earendil-works/pi-ai";
 import { defineTool, textResult } from "./shared";
 import { listScopeIdParameter, stageParameter, strictObject } from "./schemas";
-import { LONG_STAGE_ROOTS, type LongStage } from "./entity-registry";
+import {
+  LONG_AGENTS_MD_ID,
+  LONG_STAGE_ROOTS,
+  type LongStage
+} from "./entity-registry";
 import type { LongToolContext } from "./context";
 import { continuityScopeLines, draftScopeLines } from "./list-draft-continuity";
 import { plotScopeLines } from "./list-plot";
+import { leafScope } from "./list-shared";
 import {
   characterScopeLines,
   worldbuildingScopeLines
@@ -32,6 +37,12 @@ export function buildListTool(ctx: LongToolContext): AgentTool {
       }
       if (params.view && params.stage && params.stage !== "continuity") {
         throw new Error("view=continuity 不能与其它 stage 同时使用。");
+      }
+      if (scopeId === LONG_AGENTS_MD_ID) {
+        if (readableRoots.size === 0) {
+          throw new Error("当前智能体无权读取长篇上下文。");
+        }
+        leafScope(LONG_AGENTS_MD_ID, 'read(id="agents_md")');
       }
       const requestedStage = params.view ?? params.stage;
       const index = await (

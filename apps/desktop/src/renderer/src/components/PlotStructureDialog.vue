@@ -10,12 +10,14 @@ import BookManagementChildDialog from "./book-management/BookManagementChildDial
 import BookManagementDialog, {
   type BookManagementSection
 } from "./book-management/BookManagementDialog.vue";
+import BookPositioningPanel from "./BookPositioningPanel.vue";
 import PopupSelect from "./PopupSelect.vue";
 import WritingContextPanel from "./WritingContextPanel.vue";
 import {
   usePlotStructureDialog,
   type PlotStructureDialogEmit
 } from "./usePlotStructureDialog";
+import { writingContextCoCreationT } from "./writingContextCoCreationMessages";
 
 const t = createScopedTranslator("components.plotStructureDialog");
 
@@ -123,6 +125,18 @@ const sections = computed<
     group: "structure",
     label: t("plotStructureLabel"),
     description: t("namesAndNotesApplyGloballyEnabledStateAndOrder")
+  },
+  {
+    id: "positioning",
+    group: "settings",
+    label: writingContextCoCreationT(
+      props.book?.bookType === "script" ? "scriptGenre" : "webNovelPositioning"
+    ),
+    description: writingContextCoCreationT(
+      props.book?.bookType === "script"
+        ? "scriptGenreDescription"
+        : "shortPositioningDescription"
+    )
   },
   {
     id: "context",
@@ -255,15 +269,26 @@ async function openRename(): Promise<void> {
         {{ t("newStagesApplyToAllShortStoriesAndScreenplays") }}
       </p>
     </template>
+    <BookPositioningPanel
+      v-else-if="activeStructureTab === 'positioning'"
+      :book-type="book.bookType"
+      :book-id="book.id"
+      :book="book"
+      :disabled="locked"
+      :flush-context="flushWritingContext"
+      @request-close="close"
+    />
     <WritingContextPanel
       v-else
       :key="book.id"
       ref="writingContextPanel"
+      :book-id="book.id"
       :content="writingContext"
       :loading="writingContextLoading"
       :pending="writingContextPending"
       :workspace-type="book.bookType"
       @save="saveWritingContext"
+      @request-close="close"
     />
 
     <BookManagementChildDialog

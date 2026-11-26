@@ -25,6 +25,7 @@ import {
   LongRenameBookInputSchema,
   LongSearchInputSchema,
   LongUpdateBindingsInputSchema,
+  LongUpdatePositioningInputSchema,
   LongWriteAgentsMdInputSchema,
   LongWriteDocumentInputSchema
 } from "./long-workspace-api";
@@ -116,6 +117,11 @@ export const LongUpdateBindingsCommandEnvelopeSchema =
   EnvelopeBaseSchema.extend({
     type: z.literal("long.updateBindings"),
     payload: LongUpdateBindingsInputSchema
+  });
+export const LongUpdatePositioningCommandEnvelopeSchema =
+  /* @__PURE__ */ EnvelopeBaseSchema.extend({
+    type: z.literal("long.updatePositioning"),
+    payload: LongUpdatePositioningInputSchema
   });
 export const LongOpenBookAtPathCommandEnvelopeSchema =
   EnvelopeBaseSchema.extend({
@@ -219,6 +225,7 @@ export const LongWorkspaceCommandSchemas = [
   LongOpenBookCommandEnvelopeSchema,
   LongRenameBookCommandEnvelopeSchema,
   LongUpdateBindingsCommandEnvelopeSchema,
+  LongUpdatePositioningCommandEnvelopeSchema,
   LongOpenExistingBookCommandEnvelopeSchema,
   LongOpenBookAtPathCommandEnvelopeSchema,
   LongUnregisterBookCommandEnvelopeSchema,

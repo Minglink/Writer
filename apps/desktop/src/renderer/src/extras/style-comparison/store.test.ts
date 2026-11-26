@@ -4,6 +4,7 @@ import { createExtrasAgentsFake } from "../agent-runtime/extrasAgent.test-suppor
 import { useStyleComparisonStore } from "./store";
 import {
   DEFAULT_STYLE_COMPARISON_METHOD,
+  INITIAL_STYLE_COMPARISON_METHOD,
   PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD
 } from "./method";
 
@@ -65,7 +66,8 @@ describe("文风比对方法保存", () => {
 
   it("drops the previous or current default without saving it", async () => {
     for (const method of [
-      PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD,
+      INITIAL_STYLE_COMPARISON_METHOD,
+      PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD.replace(/\n/g, "\r\n"),
       DEFAULT_STYLE_COMPARISON_METHOD
     ]) {
       storage.set(LEGACY_METHOD_KEY, method);
@@ -77,6 +79,16 @@ describe("文风比对方法保存", () => {
       store.$dispose();
     }
     expect(fake.save).not.toHaveBeenCalled();
+  });
+
+  it("retains a custom legacy method if the settings save fails", async () => {
+    storage.set(LEGACY_METHOD_KEY, "重启后应继续迁移的个人比对方法");
+    fake.save.mockRejectedValueOnce(new Error("保存失败"));
+    store = useStyleComparisonStore();
+    await flush();
+    expect(storage.get(LEGACY_METHOD_KEY)).toBe(
+      "重启后应继续迁移的个人比对方法"
+    );
   });
 
   it("keeps an already customized profile over a leftover legacy method", async () => {

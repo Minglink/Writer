@@ -881,7 +881,7 @@ onBeforeUnmount(() => {
       >
         <slot name="toolbar-start" />
         <span
-          v-if="showDraftFileTabs || $slots['related-files']"
+          v-if="Boolean($slots['toolbar-start'])"
           class="toolbar-separator"
         />
         <div class="view-tabs" role="tablist" :aria-label="t('textView')">
@@ -1096,3 +1096,44 @@ onBeforeUnmount(() => {
     </footer>
   </aside>
 </template>
+
+<style scoped>
+.editor-toolbar {
+  container-type: inline-size;
+}
+
+.editor-toolbar-actions {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+@container (max-width: 490px) {
+  .editor-toolbar-actions {
+    gap: 2px;
+  }
+
+  .view-tabs button {
+    padding: 0 6px;
+  }
+
+  .toolbar-separator {
+    margin: 0 1px;
+  }
+
+  .editor-text-tools {
+    gap: 1px;
+  }
+
+  .editor-text-tools :deep(.text-tool-button),
+  .editor-text-tools :deep(.preview-outline-trigger.is-icon-only) {
+    width: 25px;
+    height: max(26px, 1.85em);
+  }
+
+  .editor-toolbar :deep(.editor-pane-toggle) {
+    width: 26px;
+    height: 26px;
+  }
+}
+</style>

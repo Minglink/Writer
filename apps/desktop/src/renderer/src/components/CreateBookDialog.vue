@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { genreLabel } from "./catalogLabels";
-import { createScopedTranslator } from "../i18n";
+import { createScopedTranslator, locale } from "../i18n";
 import {
   computed,
   nextTick,
@@ -13,17 +13,22 @@ import {
   ACADEMIC_BOOK_SUBTYPES,
   ACADEMIC_CITATION_STYLES,
   DEFAULT_ACADEMIC_FRAMEWORK_STAGES,
-  LONG_BOOK_GENRES,
+  LONG_BOOK_GENRE_CHANNELS,
   MYSTERY_BOOK_GENRES,
   SCRIPT_BOOK_GENRES,
-  SHORT_BOOK_GENRES,
+  SHORT_BOOK_GENRE_CHANNELS,
+  WEB_NOVEL_CHANNEL_TROPES,
   LongBookGenreSchema,
   MysteryBookGenreSchema,
   ScriptBookGenreSchema,
   ShortBookGenreSchema,
   getAcademicSubtypePreset,
+  resolveLongBookFrameworkPreset,
   type AcademicBookSubtype,
-  type AcademicCitationStyle
+  type AcademicCitationStyle,
+  type BookGenreChannel,
+  type LongWebNovelPacingMode,
+  type ShortWebNovelPacingMode
 } from "@writer/contracts/renderer";
 import type {
   LinkedMaterialIdsByKind,
@@ -38,6 +43,7 @@ import { mysteryLabels } from "../features/mystery/mysterySharedLabels";
 import { uiMessage } from "../ui-feedback";
 import {
   longCraftT,
+  resolveShortWebNovelBlueprint,
   resolveWebNovelGenreBlueprint
 } from "../data/longWebNovelCraft";
 import BookAgentTeamBindings from "./BookAgentTeamBindings.vue";
@@ -86,10 +92,125 @@ const title = ref("");
 const workspaceType = ref<"short" | "script" | "long" | "academic" | "mystery">(
   "long"
 );
-const genre = ref<string>(LONG_BOOK_GENRES[0]!);
+const ALLOWED_TROPES_BY_CHANNEL: Record<
+  BookGenreChannel,
+  ReadonlySet<string>
+> = {
+  male: new Set(WEB_NOVEL_CHANNEL_TROPES.male.map((item) => item.tag)),
+  female: new Set(WEB_NOVEL_CHANNEL_TROPES.female.map((item) => item.tag))
+};
+
+function defaultLongPacingFor(
+  targetGenre: string,
+  channel: BookGenreChannel
+): LongWebNovelPacingMode {
+  const preset = resolveLongBookFrameworkPreset(targetGenre);
+  if (channel === "female" && preset.defaultPacing === "qidian") {
+    return "jinjiang";
+  }
+  return preset.defaultPacing;
+}
+
+const genreChannel = ref<BookGenreChannel>("male");
+const genre = ref<string>(LONG_BOOK_GENRE_CHANNELS.male[0]);
+const longPacingMode = ref<LongWebNovelPacingMode>(
+  defaultLongPacingFor(LONG_BOOK_GENRE_CHANNELS.male[0], "male")
+);
+const pacingManuallyOverridden = ref(false);
+const shortPacingMode = ref<ShortWebNovelPacingMode>("viral_short");
+const selectedTropes = ref<string[]>([]);
+const selectedTropeSet = computed(() => new Set(selectedTropes.value));
 const longGenreBlueprint = computed(() =>
   resolveWebNovelGenreBlueprint(genre.value)
 );
+const shortGenreBlueprint = computed(() =>
+  resolveShortWebNovelBlueprint(genre.value)
+);
+const longGenreFrameworkSummary = computed(() =>
+  resolveLongBookFrameworkPreset(genre.value)
+    .worldCategories.map(([, label]) => label)
+    .join(" · ")
+);
+const tropeOptions = computed(
+  () => WEB_NOVEL_CHANNEL_TROPES[genreChannel.value]
+);
+const longPacingOptions = computed(
+  (): readonly {
+    value: LongWebNovelPacingMode;
+    label: string;
+    description: string;
+  }[] => [
+    {
+      value: "fanqie",
+      label: t("pacingFanqie"),
+      description: t("pacingFanqieDesc")
+    },
+    {
+      value: "qidian",
+      label: t("pacingQidian"),
+      description: t("pacingQidianDesc")
+    },
+    {
+      value: "jinjiang",
+      label: t("pacingJinjiang"),
+      description: t("pacingJinjiangDesc")
+    }
+  ]
+);
+const shortPacingOptions = computed(
+  (): readonly {
+    value: ShortWebNovelPacingMode;
+    label: string;
+    description: string;
+  }[] => [
+    {
+      value: "viral_short",
+      label: t("pacingViralShort"),
+      description: t("pacingViralShortDesc")
+    },
+    {
+      value: "refined_short",
+      label: t("pacingRefinedShort"),
+      description: t("pacingRefinedShortDesc")
+    }
+  ]
+);
+const positioningSummary = computed(() => {
+  const channelText =
+    genreChannel.value === "male" ? t("channelMale") : t("channelFemale");
+  const pacingText =
+    workspaceType.value === "long"
+      ? (longPacingOptions.value.find(
+          (item) => item.value === longPacingMode.value
+        )?.label ?? "")
+      : (shortPacingOptions.value.find(
+          (item) => item.value === shortPacingMode.value
+        )?.label ?? "");
+  const parts = [channelText, genreLabel(genre.value), pacingText].filter(
+    Boolean
+  );
+  if (selectedTropes.value.length > 0) {
+    parts.push(selectedTropes.value.join(" + "));
+  }
+  return parts.join(" · ");
+});
+
+function selectLongPacingMode(mode: LongWebNovelPacingMode): void {
+  longPacingMode.value = mode;
+  pacingManuallyOverridden.value = true;
+}
+
+function toggleTrope(tag: string): void {
+  if (selectedTropeSet.value.has(tag)) {
+    selectedTropes.value = selectedTropes.value.filter((item) => item !== tag);
+    return;
+  }
+  if (selectedTropes.value.length >= 6) {
+    uiMessage.warning(t("tropeLimitReached"));
+    return;
+  }
+  selectedTropes.value = [...selectedTropes.value, tag];
+}
 const academicSubtype = ref<AcademicBookSubtype>("empirical_paper");
 const academicCitationStyle = ref<AcademicCitationStyle>(
   getAcademicSubtypePreset("empirical_paper").defaultCitationStyle
@@ -158,14 +279,17 @@ const academicCitationOptions = computed(() =>
     description: academicCitationStyleDescription(style)
   }))
 );
+const showGenreChannelSwitch = computed(
+  () => workspaceType.value === "long" || workspaceType.value === "short"
+);
 const genreOptions = computed<readonly string[]>(() =>
   workspaceType.value === "long"
-    ? LONG_BOOK_GENRES
+    ? LONG_BOOK_GENRE_CHANNELS[genreChannel.value]
     : workspaceType.value === "mystery"
       ? MYSTERY_BOOK_GENRES
       : workspaceType.value === "script"
         ? SCRIPT_BOOK_GENRES
-        : SHORT_BOOK_GENRES
+        : SHORT_BOOK_GENRE_CHANNELS[genreChannel.value]
 );
 const titleInput = ref<HTMLInputElement | null>(null);
 const bindings = ref<{
@@ -220,7 +344,12 @@ function toggleAcademicStage(stageId: string, checked: boolean): void {
 function resetDraft(): void {
   title.value = "";
   workspaceType.value = "long";
-  genre.value = LONG_BOOK_GENRES[0]!;
+  genreChannel.value = "male";
+  genre.value = LONG_BOOK_GENRE_CHANNELS.male[0];
+  pacingManuallyOverridden.value = false;
+  longPacingMode.value = defaultLongPacingFor(genre.value, "male");
+  shortPacingMode.value = "viral_short";
+  selectedTropes.value = [];
   applyAcademicSubtypePreset("empirical_paper");
   mysteryPlayerCount.value = 6;
   mysteryActCountTarget.value = 4;
@@ -272,6 +401,10 @@ function submit(): void {
       workspaceType: "long",
       title: normalizedTitle,
       genre: LongBookGenreSchema.parse(genre.value),
+      pacingMode: longPacingMode.value,
+      ...(selectedTropes.value.length > 0
+        ? { tropes: [...selectedTropes.value] }
+        : {}),
       linkedMaterialIdsByKind,
       linkedSkillIdsByKind,
       ...teamChoice
@@ -321,6 +454,10 @@ function submit(): void {
     workspaceType: "short",
     title: normalizedTitle,
     genre: ShortBookGenreSchema.parse(genre.value),
+    pacingMode: shortPacingMode.value,
+    ...(selectedTropes.value.length > 0
+      ? { tropes: [...selectedTropes.value] }
+      : {}),
     linkedMaterialIdsByKind,
     linkedSkillIdsByKind,
     ...teamChoice
@@ -342,9 +479,36 @@ watch(
 );
 
 watch(workspaceType, () => {
+  pacingManuallyOverridden.value = false;
   genre.value = genreOptions.value[0] ?? "世情";
+  if (workspaceType.value === "long") {
+    longPacingMode.value = defaultLongPacingFor(
+      genre.value,
+      genreChannel.value
+    );
+  }
+  selectedTropes.value = [];
   bindings.value = undefined;
   agentTeamIds.value = [];
+});
+
+watch(genreChannel, (channel) => {
+  if (!genreOptions.value.includes(genre.value)) {
+    genre.value = genreOptions.value[0] ?? "其他";
+  }
+  const allowedTags = ALLOWED_TROPES_BY_CHANNEL[channel];
+  selectedTropes.value = selectedTropes.value.filter((tag) =>
+    allowedTags.has(tag)
+  );
+  if (workspaceType.value === "long" && !pacingManuallyOverridden.value) {
+    longPacingMode.value = defaultLongPacingFor(genre.value, channel);
+  }
+});
+
+watch(genre, (nextGenre) => {
+  if (workspaceType.value === "long" && !pacingManuallyOverridden.value) {
+    longPacingMode.value = defaultLongPacingFor(nextGenre, genreChannel.value);
+  }
 });
 
 onMounted(() => document.addEventListener("keydown", handleKeydown));
@@ -524,21 +688,63 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
               </fieldset>
             </template>
 
-            <fieldset v-else class="create-short-genre-field">
-              <legend>
-                {{
-                  workspaceType === "long"
-                    ? t("novelGenre")
-                    : workspaceType === "mystery"
-                      ? mysteryLabels("mysteryGenre")
-                      : t("valueCategory", {
-                          arg0:
-                            workspaceType === "script"
-                              ? t("screenplay")
-                              : t("shortStory")
-                        })
-                }}
-              </legend>
+            <fieldset
+              v-else
+              class="create-short-genre-field"
+              aria-labelledby="create-book-genre-heading"
+            >
+              <div class="create-book-genre-header">
+                <span
+                  id="create-book-genre-heading"
+                  class="create-book-genre-legend"
+                >
+                  {{
+                    workspaceType === "long"
+                      ? t("novelGenre")
+                      : workspaceType === "mystery"
+                        ? mysteryLabels("mysteryGenre")
+                        : t("valueCategory", {
+                            arg0:
+                              workspaceType === "script"
+                                ? t("screenplay")
+                                : t("shortStory")
+                          })
+                  }}
+                </span>
+                <div
+                  v-if="showGenreChannelSwitch"
+                  class="create-book-channel-switch"
+                  role="radiogroup"
+                  :aria-label="t('genreChannel')"
+                >
+                  <label
+                    class="create-book-channel-option"
+                    :class="{ 'is-selected': genreChannel === 'male' }"
+                  >
+                    <input
+                      v-model="genreChannel"
+                      type="radio"
+                      name="bookGenreChannel"
+                      value="male"
+                      :disabled="submitting"
+                    />
+                    <span>{{ t("channelMale") }}</span>
+                  </label>
+                  <label
+                    class="create-book-channel-option"
+                    :class="{ 'is-selected': genreChannel === 'female' }"
+                  >
+                    <input
+                      v-model="genreChannel"
+                      type="radio"
+                      name="bookGenreChannel"
+                      value="female"
+                      :disabled="submitting"
+                    />
+                    <span>{{ t("channelFemale") }}</span>
+                  </label>
+                </div>
+              </div>
               <div class="create-short-genre-options">
                 <label
                   v-for="option in genreOptions"
@@ -558,6 +764,89 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
               </div>
             </fieldset>
 
+            <fieldset
+              v-if="workspaceType === 'long' || workspaceType === 'short'"
+              class="create-short-genre-field"
+              aria-labelledby="create-book-pacing-heading"
+            >
+              <span
+                id="create-book-pacing-heading"
+                class="create-book-genre-legend"
+              >
+                {{ t("pacingStyle") }}
+              </span>
+              <div
+                v-if="workspaceType === 'long'"
+                class="create-book-pacing-grid"
+              >
+                <button
+                  v-for="option in longPacingOptions"
+                  :key="option.value"
+                  type="button"
+                  class="create-book-pacing-card"
+                  :class="{ 'is-selected': longPacingMode === option.value }"
+                  :disabled="submitting"
+                  @click="selectLongPacingMode(option.value)"
+                >
+                  <strong>{{ option.label }}</strong>
+                  <small>{{ option.description }}</small>
+                </button>
+              </div>
+              <div v-else class="create-book-pacing-grid is-two-col">
+                <button
+                  v-for="option in shortPacingOptions"
+                  :key="option.value"
+                  type="button"
+                  class="create-book-pacing-card"
+                  :class="{ 'is-selected': shortPacingMode === option.value }"
+                  :disabled="submitting"
+                  @click="shortPacingMode = option.value"
+                >
+                  <strong>{{ option.label }}</strong>
+                  <small>{{ option.description }}</small>
+                </button>
+              </div>
+            </fieldset>
+
+            <fieldset
+              v-if="workspaceType === 'long' || workspaceType === 'short'"
+              class="create-short-genre-field"
+              aria-labelledby="create-book-tropes-heading"
+            >
+              <div class="create-book-genre-header">
+                <span
+                  id="create-book-tropes-heading"
+                  class="create-book-genre-legend"
+                >
+                  {{ t("webNovelTropes") }}
+                </span>
+                <span class="create-book-tropes-count">
+                  {{
+                    t("tropesSelectedCount", {
+                      count: selectedTropes.length
+                    })
+                  }}
+                </span>
+              </div>
+              <div class="create-book-trope-chips">
+                <button
+                  v-for="item in tropeOptions"
+                  :key="item.tag"
+                  type="button"
+                  class="create-book-trope-chip"
+                  :class="{
+                    'is-selected': selectedTropeSet.has(item.tag)
+                  }"
+                  :title="locale === 'zh-CN' ? item.craftRule : undefined"
+                  :aria-pressed="selectedTropeSet.has(item.tag)"
+                  :disabled="submitting"
+                  @click="toggleTrope(item.tag)"
+                >
+                  {{ item.tag }}
+                </button>
+              </div>
+            </fieldset>
+
             <section
               v-if="workspaceType === 'long'"
               class="create-long-blueprint"
@@ -567,6 +856,10 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
                 {{ longCraftT("blueprintTitle") }} · {{ genreLabel(genre) }}
               </strong>
               <dl class="create-long-blueprint-list">
+                <div>
+                  <dt>{{ t("selectedPositioningLabel") }}</dt>
+                  <dd>{{ positioningSummary }}</dd>
+                </div>
                 <div>
                   <dt>{{ longCraftT("blueprintHookLabel") }}</dt>
                   <dd>{{ longGenreBlueprint.hookFocus }}</dd>
@@ -578,6 +871,38 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
                 <div>
                   <dt>{{ longCraftT("blueprintOpeningLabel") }}</dt>
                   <dd>{{ longGenreBlueprint.openingRhythm }}</dd>
+                </div>
+                <div>
+                  <dt>{{ longCraftT("blueprintFrameworkLabel") }}</dt>
+                  <dd>{{ longGenreFrameworkSummary }}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section
+              v-else-if="workspaceType === 'short'"
+              class="create-long-blueprint"
+              aria-live="polite"
+            >
+              <strong class="create-long-blueprint-title">
+                {{ t("shortBlueprintTitle") }} · {{ genreLabel(genre) }}
+              </strong>
+              <dl class="create-long-blueprint-list">
+                <div>
+                  <dt>{{ t("selectedPositioningLabel") }}</dt>
+                  <dd>{{ positioningSummary }}</dd>
+                </div>
+                <div>
+                  <dt>{{ t("shortHookLabel") }}</dt>
+                  <dd>{{ shortGenreBlueprint.leadInHook }}</dd>
+                </div>
+                <div>
+                  <dt>{{ t("shortConflictLabel") }}</dt>
+                  <dd>{{ shortGenreBlueprint.conflictAndAce }}</dd>
+                </div>
+                <div>
+                  <dt>{{ t("shortTwistLabel") }}</dt>
+                  <dd>{{ shortGenreBlueprint.coreTwist }}</dd>
                 </div>
               </dl>
             </section>
@@ -682,6 +1007,57 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
 </template>
 
 <style scoped>
+.dialog-backdrop {
+  padding: 16px 24px;
+}
+
+.workspace-dialog.create-short-book-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: min(760px, calc(100vh - 32px));
+  overflow: hidden;
+}
+
+.dialog-content.create-short-book-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 0;
+}
+
+.dialog-actions.create-short-book-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 -22px;
+  padding: 10px 22px 12px;
+  border-top: 1px solid var(--theme-line-soft);
+  background: var(--surface-main);
+}
+
+.create-short-binding-modes.create-workspace-type-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.create-workspace-type-options .create-workspace-type-tab {
+  align-items: flex-start;
+  min-width: 0;
+  padding: 7px 8px;
+}
+
+.create-workspace-type-options .create-workspace-type-tab > span {
+  min-width: 0;
+}
+
+.create-workspace-type-options .create-workspace-type-tab strong,
+.create-workspace-type-options .create-workspace-type-tab small {
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .academic-subtype-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -776,5 +1152,175 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
   color: var(--text-secondary);
   font-size: 0.785714rem;
   line-height: 1.5;
+}
+
+.create-book-genre-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.create-book-genre-legend {
+  color: var(--text-secondary, #55595e);
+  font-size: 0.785714rem;
+  font-weight: 570;
+}
+
+.create-book-channel-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--theme-line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.create-book-channel-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 7px;
+  color: var(--text-secondary);
+  font-size: 0.785714rem;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.create-book-channel-option:hover {
+  color: var(--text-primary);
+}
+
+.create-book-channel-option.is-selected {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.create-book-channel-option:has(input:focus-visible) {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.create-book-channel-option:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.create-book-channel-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.create-short-genre-option {
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+.create-book-pacing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.create-book-pacing-grid.is-two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.create-book-pacing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 9px 11px;
+  border: 1px solid var(--theme-line);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  text-align: left;
+  cursor: pointer;
+}
+
+.create-book-pacing-card:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.create-book-pacing-card.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.create-book-pacing-card strong {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.create-book-pacing-card small {
+  color: var(--text-secondary);
+  font-size: 0.714286rem;
+  line-height: 1.4;
+}
+
+.create-book-tropes-count {
+  color: var(--text-tertiary);
+  font-size: 0.714286rem;
+}
+
+.create-book-trope-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.create-book-trope-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--theme-line);
+  border-radius: 999px;
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  font-size: 0.785714rem;
+  cursor: pointer;
+}
+
+.create-book-trope-chip:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.create-book-trope-chip.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.create-book-pacing-card:disabled,
+.create-book-trope-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .create-book-pacing-grid,
+  .create-book-pacing-grid.is-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 719px) {
+  .create-short-binding-modes.create-workspace-type-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 </style>

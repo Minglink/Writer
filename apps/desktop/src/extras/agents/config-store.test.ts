@@ -8,6 +8,7 @@ import {
   ExtrasAgentSettingsInputSchema
 } from "@writer/contracts";
 import { ExtrasAgentConfigStore } from "./config-store";
+import { loadStyleComparisonMethods } from "@writer/contracts/renderer";
 import { previousLongBookPrompts } from "./previous-long-book-prompts";
 import { EXTRAS_AGENT_PROFILE_CATALOGS } from "./profile-catalogs";
 
@@ -308,7 +309,7 @@ describe("extras agent config store", () => {
     ).toBe("用户原先修改的文风提示词");
   });
 
-  it("updates the short plot prompt once after an upgrade", async () => {
+  it("preserves edited short plot methods even without the old revision marker", async () => {
     const { path, store } = await createStore();
     const original = (await store.list("short-book-analysis")).profiles.map(
       ({ builtin: _builtin, ...profile }) => profile
@@ -340,10 +341,7 @@ describe("extras agent config store", () => {
     const upgraded = await store.list("short-book-analysis");
     expect(upgraded.profiles[0]).toMatchObject({
       description: "保留剧情预设的其他设置",
-      systemPrompt:
-        EXTRAS_AGENT_PROFILE_CATALOGS[
-          "short-book-analysis"
-        ].defaults[0]!.systemPrompt.trim()
+      systemPrompt: "旧版用户修改的剧情提示词"
     });
     expect(upgraded.profiles.at(-1)?.systemPrompt).toBe("保留自定义提示词");
     expect(upgraded.profiles[1]?.systemPrompt).toBe(original[1]?.systemPrompt);
@@ -360,6 +358,43 @@ describe("extras agent config store", () => {
     expect(JSON.parse(await readFile(configPath, "utf8"))).toMatchObject({
       promptRevisions: { "plot-structure": 1 }
     });
+  });
+
+  it("resolves an untouched prior packaging method while keeping the author's settings and copies", async () => {
+    const { path, store } = await createStore();
+    const original =
+      "第一句就是钩子。交代主角是谁、处境是什么、想要什么与阻碍是什么，突出一两个高光看点，结尾留悬念，不剧透结局。符合目标字数，并与采用书名呼应。一轮覆盖悬念、爽点、情感、人设与世界观等角度。";
+    const preset = await store.resolve("book-synopsis-design", "default");
+    const customized = { ...preset, targetLength: 150, systemPrompt: original };
+    const configPath = join(
+      path,
+      "config",
+      "extras-agents",
+      "book-synopsis-design.json"
+    );
+    await writeJson(configPath, {
+      version: 1,
+      profiles: [
+        customized,
+        { ...customized, id: "my-copy", name: "我的简介方法" }
+      ]
+    });
+    expect(
+      await store.resolve("book-synopsis-design", "default")
+    ).toMatchObject({
+      targetLength: 150,
+      systemPrompt: preset.systemPrompt
+    });
+    expect(
+      (await store.resolve("book-synopsis-design", "my-copy")).systemPrompt
+    ).toBe(original);
+    await writeJson(configPath, {
+      version: 1,
+      profiles: [{ ...customized, systemPrompt: `${original} 用第一人称。` }]
+    });
+    expect(
+      (await store.resolve("book-synopsis-design", "default")).systemPrompt
+    ).toBe(`${original} 用第一人称。`);
   });
 
   it("upgrades only the unchanged older short character prompt", async () => {
@@ -483,5 +518,48 @@ describe("extras agent config store", () => {
         ]
       })
     ).rejects.toThrow();
+  });
+
+  it("updates old default review methods from both settings stores", async () => {
+    const { path, store } = await createStore();
+    const oldRevision = [
+      "你是修改分析智能体。阅读修改前后完整正文，优先学习用户在修改后版本中表现的目标和偏好，并以用户填写的修改理由为优先依据。",
+      "分析报告应包含修改概览、各差异组的变化及作用、用户修改偏好和可复用修改方向；结论引用差异编号。",
+      "未提供理由时明确标注动机为推断，不虚构用户意图；单次局部修改限定适用条件，不泛化为通用定律。",
+      "同时生成能脱离本次文档独立使用的技能：提供技能标题、简短描述（说明用途与适用场景）和正文；正文包含适用场景、修改目标、具体规则、执行步骤、检查清单和少量前后示例。避免大段照抄正文。"
+    ].join("\r\n");
+    await writeJson(join(path, "revision-analysis-settings.json"), {
+      systemPrompt: oldRevision
+    });
+    expect(
+      (await store.resolve("revision-analysis", "default")).systemPrompt
+    ).toBe(DEFAULT_REVISION_METHOD);
+
+    const { PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD } =
+      await loadStyleComparisonMethods();
+    const original = await store.resolve("style-comparison", "default");
+    const configPath = join(
+      path,
+      "config",
+      "extras-agents",
+      "style-comparison.json"
+    );
+    await writeJson(configPath, {
+      version: 1,
+      profiles: [
+        { ...original, systemPrompt: PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD }
+      ]
+    });
+    expect(
+      (await store.resolve("style-comparison", "default")).systemPrompt
+    ).toBe(DEFAULT_STYLE_COMPARISON_METHOD);
+    const custom = `${PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD}\n只分析对白。`;
+    await writeJson(configPath, {
+      version: 1,
+      profiles: [{ ...original, systemPrompt: custom }]
+    });
+    expect(
+      (await store.resolve("style-comparison", "default")).systemPrompt
+    ).toBe(custom);
   });
 });

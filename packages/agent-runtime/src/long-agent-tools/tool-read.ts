@@ -8,7 +8,8 @@ import {
   entityIdParameter,
   strictObject
 } from "./schemas";
-import { LONG_STAGE_ROOTS } from "./entity-registry";
+import { LONG_AGENTS_MD_ID, LONG_STAGE_ROOTS } from "./entity-registry";
+import { readAgentsMdTarget } from "./agents-md";
 import { longEntityMeta } from "./entity-records";
 import { resolveLongTarget } from "./target";
 import type { LongToolContext } from "./context";
@@ -71,6 +72,17 @@ export function buildReadTool(ctx: LongToolContext): AgentTool {
       const maximum = params.max_chars ?? 2_000;
       if (!Number.isSafeInteger(maximum) || maximum < 1 || maximum > 8_000)
         throw new Error("max_chars 必须是1–8000的整数。");
+      if (params.id === LONG_AGENTS_MD_ID) {
+        return readAgentsMdTarget(
+          ctx,
+          toolCallId,
+          params,
+          maximum,
+          rawParams.max_chars !== undefined,
+          result,
+          signal
+        );
+      }
       const index = await ctx.reloadIndex(signal);
       const target = resolveLongTarget(index, {
         id: params.id,

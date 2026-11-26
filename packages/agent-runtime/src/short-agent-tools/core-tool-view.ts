@@ -1,6 +1,9 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import {
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  WRITING_CONTEXT_PATH,
   createExpertDraftDirectoryRevision,
+  writingContextCharacterCount,
   type WritingFile,
   type WritingIndex
 } from "@writer/contracts";
@@ -42,9 +45,26 @@ function projectIndex(
     return { documentId: ref.id, title: ref.title, ...document(ref.id) };
   }
   const structure = index.characterStructure;
+  const agentsMdLoaded = files.get(WRITING_CONTEXT_PATH);
+  const agentsMdTruncated =
+    agentsMdLoaded?.truncated === true ||
+    (agentsMdLoaded !== undefined &&
+      writingContextCharacterCount(agentsMdLoaded.content) >
+        WRITING_CONTEXT_MAX_CHARACTERS);
   return {
     ...workspace,
     readSource: "core" as const,
+    ...(agentsMdLoaded && !agentsMdTruncated
+      ? { agentsMd: agentsMdLoaded.content }
+      : {}),
+    agentsMdFile: {
+      content: agentsMdLoaded?.content ?? "",
+      revision:
+        agentsMdLoaded?.revision ??
+        counts.get(WRITING_CONTEXT_PATH)?.revision ??
+        "unloaded",
+      ...(agentsMdTruncated ? { truncated: true } : {})
+    },
     title: index.title,
     plotStages: index.plotStages,
     stages: [
@@ -102,15 +122,36 @@ async function refresh(
       : undefined;
   const index = await reader.index(counts, signal);
   const files = new Map<string, WritingFile>();
-  const metrics = new Map(index.counts.map((item) => [item.id, item]));
+  const metrics = new Map<
+    string,
+    {
+      id: string;
+      revision: string;
+      length: number;
+      characters: number;
+      content?: string;
+      truncated?: boolean;
+    }
+  >(index.counts.map((item) => [item.id, item]));
   async function load(id: string, range?: { offset?: number; limit?: number }) {
     const file = await reader!.file(id, range, signal);
     files.set(id, file);
+    const truncated =
+      file.truncated === true ||
+      (id === WRITING_CONTEXT_PATH &&
+        writingContextCharacterCount(file.content) >
+          WRITING_CONTEXT_MAX_CHARACTERS);
     metrics.set(id, {
       id,
+      content: file.content,
       revision: file.revision,
       length: file.length,
-      characters: file.characters
+      characters: file.characters,
+      ...(id === WRITING_CONTEXT_PATH
+        ? { truncated }
+        : truncated
+          ? { truncated: true }
+          : {})
     });
   }
   const fileKind =
@@ -133,12 +174,23 @@ async function refresh(
     typeof params.meta.after_id === "string"
   )
     params.meta = { ...params.meta, after_id: resolveId(params.meta.after_id) };
+  const isAgentsMdId =
+    id === "agents_md" ||
+    id === WRITING_CONTEXT_PATH ||
+    id?.replace(/_/gu, "-") === "agents-md";
   const section = index.sections.find((section) => section.id === id);
   const kind =
-    params.kind ?? (params.document || section ? "draft_section" : undefined);
+    params.kind ??
+    (id === "agents_md" || id === WRITING_CONTEXT_PATH
+      ? "agents_md"
+      : params.document || section
+        ? "draft_section"
+        : undefined);
   const textEdit = tool === "edit" && !params.meta;
   const single = tool === "read" || textEdit;
   let docId: string | undefined;
+  if (kind === "agents_md" && (id === undefined || isAgentsMdId) && single)
+    docId = WRITING_CONTEXT_PATH;
   if (kind === "character_overview" && id === "character_design" && single)
     docId = index.overview.id;
   if (kind === "draft_section" && single) docId = section?.[fileKind].id;

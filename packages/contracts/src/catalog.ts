@@ -1,4 +1,12 @@
 import {
+  SCRIPT_BOOK_GENRES,
+  SHORT_BOOK_GENRES,
+  ScriptBookGenreSchema,
+  ShortBookGenreSchema,
+  type ScriptBookGenre,
+  type ShortBookGenre
+} from "./catalog/kinds";
+import {
   DraftSectionChangeSchema,
   SHORT_WORKSPACE_FILE_MAX_CHARACTERS
 } from "./expert-draft";
@@ -10,6 +18,7 @@ import {
 import { CatalogCreateUnboundEntryCommandEnvelopeSchema } from "./library-organization";
 import {
   createBookCreationSchema,
+  createShortBookCreationSchema,
   createBookCreationEnvelope,
   createBookAtPathSchema
 } from "./book-creation";
@@ -125,20 +134,14 @@ const UniqueIdListSchema = z.array(CatalogIdSchema).refine(uniqueIds, {
   message: "Catalog id lists cannot contain duplicates."
 });
 
-export const SHORT_BOOK_GENRES = [
-  "世情",
-  "追妻",
-  "科幻",
-  "悬疑",
-  "其他"
-] as const;
-export const ShortBookGenreSchema = z.enum(SHORT_BOOK_GENRES);
-export type ShortBookGenre = z.infer<typeof ShortBookGenreSchema>;
-
-/** Kept separate so script genres can evolve without changing short books. */
-export const SCRIPT_BOOK_GENRES = [...SHORT_BOOK_GENRES] as const;
-export const ScriptBookGenreSchema = z.enum(SCRIPT_BOOK_GENRES);
-export type ScriptBookGenre = z.infer<typeof ScriptBookGenreSchema>;
+export {
+  SCRIPT_BOOK_GENRES,
+  SHORT_BOOK_GENRES,
+  ScriptBookGenreSchema,
+  ShortBookGenreSchema,
+  type ScriptBookGenre,
+  type ShortBookGenre
+};
 
 export const CREATIVE_PLOT_STAGE_MAX_COUNT = 32;
 export const CreativePlotStageIdSchema = z
@@ -909,11 +912,16 @@ export function migrateCatalogDraftDocument(
   );
 }
 
+const ShortPacingSchema = z.enum(["viral_short", "refined_short"]);
+const ShortTropesSchema = z.array(z.string().trim().min(1).max(32)).max(6);
+
 export const CurrentShortBookSchema = z.object({
   id: CatalogIdSchema,
   title: CatalogTitleSchema,
   bookType: z.literal("short"),
   genre: ShortBookGenreSchema,
+  pacingMode: ShortPacingSchema.optional(),
+  tropes: ShortTropesSchema.optional(),
   status: z.enum(["editing", "completed"]),
   linkedMaterialIdsByKind: LinkedMaterialIdsByKindSchema,
   linkedSkillIdsByKind: LinkedSkillIdsByKindSchema,
@@ -1615,7 +1623,9 @@ const CurrentShortBookProjectManifestObjectSchema = z
   .object({
     ...CurrentBookProjectManifestSharedShape,
     bookType: z.literal("short"),
-    genre: ShortBookGenreSchema
+    genre: ShortBookGenreSchema,
+    pacingMode: ShortPacingSchema.optional(),
+    tropes: ShortTropesSchema.optional()
   })
   .strict();
 
@@ -2182,7 +2192,7 @@ const bookCreationSchemaFields = {
   skillLinks: LinkedSkillIdsByKindInputSchema
 };
 export const CreateShortBookInputSchema =
-  /* @__PURE__ */ createBookCreationSchema(
+  /* @__PURE__ */ createShortBookCreationSchema(
     bookCreationSchemaFields,
     ShortBookGenreSchema
   );
@@ -2244,7 +2254,9 @@ export const UpdateBookInputSchema = z
     baseProjectRevision: z.number().int().nonnegative().optional(),
     force: z.boolean().optional(),
     title: CatalogTitleSchema.optional(),
-    genre: ShortBookGenreSchema.optional(),
+    genre: z.union([ShortBookGenreSchema, ScriptBookGenreSchema]).optional(),
+    pacingMode: ShortPacingSchema.nullable().optional(),
+    tropes: ShortTropesSchema.optional(),
     subtype: AcademicBookSubtypeSchema.optional(),
     citationStyle: AcademicCitationStyleSchema.optional(),
     status: z.enum(["editing", "completed"]).optional(),

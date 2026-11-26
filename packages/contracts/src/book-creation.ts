@@ -23,14 +23,37 @@ export function createBookCreationSchema<
     .min(1)
     .max(schemas.stageLimit)
     .refine((ids) => new Set(ids).size === ids.length, "剧情阶段不能重复");
-  const shape = {
+  return z.object({
     title: schemas.title,
     characterFormat: schemas.characterFormat.optional(),
     defaultPlotStageIds: defaultPlotStageIds.optional(),
     linkedMaterialIdsByKind: schemas.materialLinks.optional(),
-    linkedSkillIdsByKind: schemas.skillLinks.optional()
-  };
-  return z.object({ ...shape, genre });
+    linkedSkillIdsByKind: schemas.skillLinks.optional(),
+    genre
+  });
+}
+
+export function createShortBookCreationSchema<
+  CharacterFormat extends z.ZodType,
+  StageId extends z.ZodType,
+  MaterialLinks extends z.ZodType,
+  SkillLinks extends z.ZodType,
+  Genre extends z.ZodType
+>(
+  schemas: {
+    title: z.ZodString;
+    characterFormat: CharacterFormat;
+    stageId: StageId;
+    stageLimit: number;
+    materialLinks: MaterialLinks;
+    skillLinks: SkillLinks;
+  },
+  genre: Genre
+) {
+  return createBookCreationSchema(schemas, genre).extend({
+    pacingMode: z.enum(["viral_short", "refined_short"]).optional(),
+    tropes: z.array(z.string().trim().min(1).max(32)).max(6).optional()
+  });
 }
 
 /** Keep nested command schema construction out of the Renderer startup graph. */

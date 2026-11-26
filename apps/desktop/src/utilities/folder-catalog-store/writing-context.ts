@@ -6,7 +6,10 @@ import {
   DEFAULT_SHORT_WRITING_CONTEXT,
   WRITING_CONTEXT_MAX_CHARACTERS,
   WRITING_CONTEXT_PATH,
+  buildShortWritingContextForWebNovel,
+  normalizeWebNovelTropes,
   writingContextCharacterCount,
+  type ShortWebNovelPacingMode,
   type WorkspaceType
 } from "@writer/contracts";
 import {
@@ -21,6 +24,12 @@ import {
 const MAX_WRITING_CONTEXT_BYTES = WRITING_CONTEXT_MAX_CHARACTERS * 4 + 4;
 
 export type WritingContextBookType = WorkspaceType | "academic";
+
+export interface ShortWritingContextPositioning {
+  readonly genre: string;
+  readonly pacingMode?: ShortWebNovelPacingMode | undefined;
+  readonly tropes?: readonly string[] | undefined;
+}
 
 export function defaultWritingContext(
   workspaceType: WritingContextBookType
@@ -70,9 +79,45 @@ async function secureWritingContextTarget(
   return target;
 }
 
+export function resolveDefaultWritingContext(
+  workspaceType: WritingContextBookType,
+  shortPositioning?: ShortWritingContextPositioning
+): string {
+  const tropes =
+    workspaceType === "short"
+      ? normalizeWebNovelTropes(shortPositioning?.tropes)
+      : undefined;
+  return workspaceType === "short" &&
+    shortPositioning &&
+    (shortPositioning.pacingMode !== undefined || Boolean(tropes?.length))
+    ? buildShortWritingContextForWebNovel(
+        DEFAULT_SHORT_WRITING_CONTEXT,
+        shortPositioning.genre,
+        {
+          pacingMode: shortPositioning.pacingMode,
+          tropes
+        }
+      )
+    : defaultWritingContext(workspaceType);
+}
+
+export async function readCurrentWritingContextRaw(
+  rawProjectDirectory: string,
+  workspaceType: WritingContextBookType,
+  shortPositioning?: ShortWritingContextPositioning
+): Promise<string> {
+  const projectDirectory = await secureProjectRoot(rawProjectDirectory);
+  const existing = await readExistingWritingContext(projectDirectory);
+  return (
+    existing ?? resolveDefaultWritingContext(workspaceType, shortPositioning)
+  );
+}
+
 export async function readOrCreateWritingContext(
   rawProjectDirectory: string,
-  workspaceType: WritingContextBookType
+  workspaceType: WritingContextBookType,
+  shortPositioning?: ShortWritingContextPositioning,
+  options?: { repairMissing?: boolean }
 ): Promise<{ content: string; truncated: boolean }> {
   const projectDirectory = await secureProjectRoot(rawProjectDirectory);
   const existing = await readExistingWritingContext(projectDirectory);
@@ -87,11 +132,13 @@ export async function readOrCreateWritingContext(
     };
   }
 
-  const content = defaultWritingContext(workspaceType);
-  await atomicWriteText(
-    await secureWritingContextTarget(projectDirectory),
-    content
-  );
+  const content = resolveDefaultWritingContext(workspaceType, shortPositioning);
+  if (options?.repairMissing !== false) {
+    await atomicWriteText(
+      await secureWritingContextTarget(projectDirectory),
+      content
+    );
+  }
   return { content, truncated: false };
 }
 
@@ -113,10 +160,11 @@ export async function writeWritingContextFile(
 
 export async function initializeWritingContextFile(
   rawProjectDirectory: string,
-  workspaceType: WritingContextBookType
+  workspaceType: WritingContextBookType,
+  initialContent?: string
 ): Promise<void> {
   await writeWritingContextFile(
     rawProjectDirectory,
-    defaultWritingContext(workspaceType)
+    initialContent ?? defaultWritingContext(workspaceType)
   );
 }

@@ -2,6 +2,7 @@ import {
   BookSchema,
   CATALOG_DRAFT_DIRECTORY_ID,
   CatalogIndexBookSchema,
+  normalizeWebNovelTropes,
   type Book,
   type BookProjectDocumentManifest,
   type BookProjectDraftSectionManifest,
@@ -146,11 +147,21 @@ export function indexBookFromManifest(
       "Legacy split manifest helper does not index academic books."
     );
   }
+  const tropes =
+    manifest.schemaVersion === 4 && manifest.bookType === "short"
+      ? normalizeWebNovelTropes(manifest.tropes)
+      : undefined;
   const bookInput = {
     id: manifest.id,
     title: manifest.title,
     bookType: manifest.bookType,
     genre: manifest.genre,
+    ...(manifest.schemaVersion === 4 &&
+    manifest.bookType === "short" &&
+    manifest.pacingMode !== undefined
+      ? { pacingMode: manifest.pacingMode }
+      : {}),
+    ...(tropes ? { tropes } : {}),
     status: manifest.status,
     linkedMaterialIdsByKind: manifest.linkedMaterialIdsByKind,
     linkedSkillIdsByKind: manifest.linkedSkillIdsByKind,
@@ -382,11 +393,19 @@ export async function hydrateResource(
         maxProjectContentBytes
       );
       const draftOffset = manifest.documents.length;
+      const tropes =
+        manifest.bookType === "short"
+          ? normalizeWebNovelTropes(manifest.tropes)
+          : undefined;
       return BookSchema.parse({
         id: manifest.id,
         title: manifest.title,
         bookType: manifest.bookType,
         genre: manifest.genre,
+        ...(manifest.bookType === "short" && manifest.pacingMode !== undefined
+          ? { pacingMode: manifest.pacingMode }
+          : {}),
+        ...(manifest.bookType === "short" && tropes ? { tropes } : {}),
         status: manifest.status,
         linkedMaterialIdsByKind: manifest.linkedMaterialIdsByKind,
         linkedSkillIdsByKind: manifest.linkedSkillIdsByKind,
@@ -760,12 +779,20 @@ export async function writeResourceContents(
           updatedAt: section.updatedAt
         });
       }
+      const tropes =
+        book.bookType === "short"
+          ? normalizeWebNovelTropes(book.tropes)
+          : undefined;
       return FolderCurrentBookProjectManifestSchema.parse({
         ...common,
         schemaVersion: 4,
         kind: kindForDomain(domain),
         bookType: book.bookType,
         genre: book.genre,
+        ...(book.bookType === "short" && book.pacingMode !== undefined
+          ? { pacingMode: book.pacingMode }
+          : {}),
+        ...(book.bookType === "short" && tropes ? { tropes } : {}),
         status: book.status,
         linkedMaterialIdsByKind: book.linkedMaterialIdsByKind,
         linkedSkillIdsByKind: book.linkedSkillIdsByKind,
@@ -899,7 +926,8 @@ export async function writeNewResourceProject(
   store: FolderCatalogStoreContext,
   domain: FolderCatalogProjectDomain,
   parentDirectory: string,
-  resource: FolderCatalogResource
+  resource: FolderCatalogResource,
+  initialWritingContext?: string
 ): Promise<string> {
   await mkdir(parentDirectory, { recursive: true, mode: 0o700 });
   const secureParent = await secureDirectory(parentDirectory, "project parent");
@@ -923,7 +951,8 @@ export async function writeNewResourceProject(
     if (domain === "book") {
       await initializeWritingContextFile(
         stagingDirectory,
-        (resource as Book).bookType
+        (resource as Book).bookType,
+        initialWritingContext
       );
     }
     await atomicWriteJson(

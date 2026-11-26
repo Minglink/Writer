@@ -14,7 +14,9 @@ import {
   LongBookSchema,
   LongBookMetadataSchema,
   LongBookSummarySchema,
+  LongBookTropesSchema,
   LongLinkedResourceStageScopesSchema,
+  LongWebNovelPacingModeSchema,
   LongChapterCardIdSchema,
   LongFileIdSchema,
   LongProjectRelativePathSchema,
@@ -69,6 +71,8 @@ export const CreateLongBookInputSchema = z
   .object({
     title: z.string().trim().min(1).max(256),
     genre: LongBookGenreSchema,
+    pacingMode: LongWebNovelPacingModeSchema.optional(),
+    tropes: LongBookTropesSchema.optional(),
     linkedMaterialIdsByKind: LongLinkedMaterialIdsByKindInputSchema.optional(),
     linkedSkillIdsByKind: LongLinkedSkillIdsByKindInputSchema.optional()
   })
@@ -461,6 +465,18 @@ export type LongUpdateBindingsInput = z.infer<
   typeof LongUpdateBindingsInputSchema
 >;
 
+export const LongUpdatePositioningInputSchema = z
+  .object({
+    bookId: LongBookIdSchema,
+    genre: LongBookGenreSchema,
+    pacingMode: LongWebNovelPacingModeSchema.nullable().optional(),
+    tropes: LongBookTropesSchema.optional()
+  })
+  .strict();
+export type LongUpdatePositioningInput = z.infer<
+  typeof LongUpdatePositioningInputSchema
+>;
+
 export const LongListBooksResultSchema = z
   .object({
     updatedAt: z.string().datetime(),
@@ -675,6 +691,8 @@ function refineLongAgentsMdContent(
   }
 }
 
+const LongAgentsMdRevisionSchema = z.string().trim().min(1).max(160);
+
 export const LongReadAgentsMdInputSchema = z
   .object({
     bookId: LongBookIdSchema
@@ -686,7 +704,8 @@ export const LongReadAgentsMdResultSchema = z
   .object({
     bookId: LongBookIdSchema,
     content: z.string().max(LONG_AGENTS_MD_MAX_CHARACTERS * 2),
-    truncated: z.boolean()
+    truncated: z.boolean(),
+    revision: LongAgentsMdRevisionSchema.optional()
   })
   .strict()
   .superRefine((value, context) => {
@@ -699,7 +718,8 @@ export type LongReadAgentsMdResult = z.infer<
 export const LongWriteAgentsMdInputSchema = z
   .object({
     bookId: LongBookIdSchema,
-    content: z.string().max(LONG_AGENTS_MD_MAX_CHARACTERS * 2)
+    content: z.string().max(LONG_AGENTS_MD_MAX_CHARACTERS * 2),
+    expectedRevision: LongAgentsMdRevisionSchema.optional()
   })
   .strict()
   .superRefine((value, context) => {
@@ -711,7 +731,8 @@ export type LongWriteAgentsMdInput = z.infer<
 
 export const LongWriteAgentsMdResultSchema = z
   .object({
-    bookId: LongBookIdSchema
+    bookId: LongBookIdSchema,
+    revision: LongAgentsMdRevisionSchema.optional()
   })
   .strict();
 export type LongWriteAgentsMdResult = z.infer<

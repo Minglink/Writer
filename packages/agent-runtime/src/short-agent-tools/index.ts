@@ -4,6 +4,9 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import {
   SHORT_MATERIAL_KINDS,
   SHORT_SKILL_KINDS,
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  createShortWorkspaceContentRevision,
+  writingContextCharacterCount,
   type ScriptWorkspaceSnapshot,
   type ShortWorkspaceSnapshot,
   type ShortWorkspaceStageId
@@ -63,7 +66,26 @@ function createWritingWorkspaceToolSharedState(
         ] as const
     )
   );
+  const agentsMdContent = workspace.agentsMd ?? "";
+  const agentsMdTruncated =
+    workspace.agentsMdTruncated === true ||
+    writingContextCharacterCount(agentsMdContent) >
+      WRITING_CONTEXT_MAX_CHARACTERS;
   return {
+    agentsMd: workspace.agentsMdFile
+      ? {
+          content: workspace.agentsMdFile.content,
+          revision: workspace.agentsMdFile.revision,
+          ...(workspace.agentsMdFile.truncated ? { truncated: true } : {})
+        }
+      : {
+          content: agentsMdContent,
+          revision:
+            workspace.readSource === "core" && workspace.agentsMd === undefined
+              ? "unloaded"
+              : createShortWorkspaceContentRevision(agentsMdContent),
+          ...(agentsMdTruncated ? { truncated: true } : {})
+        },
     stageBodies: new Map<ShortWorkspaceStageId, string>(
       workspace.stages.map((stage) => [stage.stageId, stage.content])
     ),
@@ -177,6 +199,7 @@ export function isShortWorkspaceToolDetails(
   const kind = (value as { kind?: unknown }).kind;
   return (
     kind === "none" ||
+    kind === "workspace-agents-md-mutation" ||
     kind === "workspace-editor-mutation" ||
     kind === "workspace-character-file-mutation" ||
     kind === "workspace-character-structure-mutation" ||

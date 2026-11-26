@@ -290,6 +290,10 @@ describe("Writer Pi runtime adapter: workspace-prompts", () => {
     expect(prompt).toBe(withWriteApprovalBoundary(profile.systemPrompt));
     expect(prompt).toContain("它们共用同一套工具与定位规则");
     expect(prompt).toContain("固定上下文里已有世界观目录、人物目录和结构导航");
+    expect(prompt).toContain("沿用本书已定的主线、卷、剧情点和章卡");
+    expect(prompt).toContain("后面哪个决定会失去理由");
+    expect(prompt).toContain("新视角人物只能动用当时能知道的事");
+    expect(prompt).toContain("找出受影响的后续章卡");
     expect(prompt).toContain(
       "不要询问、推断或复述文件路径、file_id 等实现细节"
     );

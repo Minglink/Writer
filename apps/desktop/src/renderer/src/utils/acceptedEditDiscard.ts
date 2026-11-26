@@ -1,3 +1,4 @@
+import { createShortWorkspaceContentRevision } from "@writer/contracts/renderer";
 import type { AgentEditProposal } from "../types/conversation";
 
 export class AcceptedEditDiscardConflictError extends Error {
@@ -33,6 +34,16 @@ function isAgentCreationProposal(proposal: AgentEditProposal): boolean {
 export function agentProposalSupportsDiscard(
   proposal: AgentEditProposal
 ): boolean {
+  if (proposal.agentsMdTarget) {
+    return (
+      proposal.status === "accepted" &&
+      proposal.discardState?.status !== "discarded" &&
+      proposal.discardSnapshot?.beforeText !== undefined &&
+      createShortWorkspaceContentRevision(
+        proposal.discardSnapshot.beforeText
+      ) !== proposal.proposedRevision
+    );
+  }
   if (
     proposal.longWorldbuildingTarget ||
     proposal.longCharacterTarget ||

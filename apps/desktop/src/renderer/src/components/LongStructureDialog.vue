@@ -40,9 +40,11 @@ import BookManagementChildDialog from "./book-management/BookManagementChildDial
 import BookManagementDialog, {
   type BookManagementSection
 } from "./book-management/BookManagementDialog.vue";
+import BookPositioningPanel from "./BookPositioningPanel.vue";
 import WritingContextPanel, {
   type WritingContextSaveCompletion
 } from "./WritingContextPanel.vue";
+import { writingContextCoCreationT } from "./writingContextCoCreationMessages";
 
 const t = createScopedTranslator("components.longStructureManager");
 const actionT = createScopedTranslator("components.longBookActionMenu");
@@ -52,7 +54,7 @@ const bookT = createScopedTranslator("components.createBookDialog");
 type BookManagementAction = "rename" | "sync-legacy" | "resolve-conflicts";
 
 type StructurePanel =
-  "worldbuilding" | "characterTypes" | "features" | "agents";
+  "worldbuilding" | "characterTypes" | "positioning" | "features" | "agents";
 
 type ManagerRow = LongStructureDeleteRow;
 
@@ -148,6 +150,12 @@ const sections = computed<BookManagementSection<StructurePanel>[]>(() => [
     description: t(
       "characterTypesManageCategoriesOnlyCharacterContentAlwaysUses"
     )
+  },
+  {
+    id: "positioning",
+    group: "settings",
+    label: writingContextCoCreationT("webNovelPositioning"),
+    description: writingContextCoCreationT("longPositioningDescription")
   },
   {
     id: "features",
@@ -687,7 +695,6 @@ function saveAgentsMd(
               {{ row.detail
               }}{{ row.readOnly ? t("readOnlyMigrationEvidence") : "" }}
             </span>
-            <code>{{ row.id }}</code>
           </div>
           <BookManagementRowActions
             :title="row.title"
@@ -707,6 +714,14 @@ function saveAgentsMd(
         {{ t("reorderingChangesOnlyTheDisplayOrderOfCharacterTypes") }}
       </p>
     </template>
+    <BookPositioningPanel
+      v-else-if="activePanel === 'positioning'"
+      book-type="long"
+      :book-id="bookId"
+      :disabled="mutationLocked"
+      :flush-context="flushContext"
+      @request-close="close"
+    />
     <div
       v-else-if="activePanel === 'features'"
       class="book-management-settings"
@@ -766,10 +781,12 @@ function saveAgentsMd(
       v-else
       ref="contextPanel"
       workspace-type="long"
+      :book-id="bookId"
       :content="agentsMd"
       :loading="agentsMdPending && agentsMd === null"
       :pending="agentsMdPending || pendingMutation?.surface === 'agents'"
       @save="saveAgentsMd"
+      @request-close="close"
     />
 
     <BookManagementChildDialog
@@ -864,7 +881,13 @@ function saveAgentsMd(
     />
     <slot name="child" />
 
-    <template v-if="showBookActions" #footer>
+    <template
+      v-if="
+        showBookActions &&
+        (activePanel === 'worldbuilding' || activePanel === 'characterTypes')
+      "
+      #footer
+    >
       <button
         class="dialog-secondary-button"
         type="button"

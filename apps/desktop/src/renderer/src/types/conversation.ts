@@ -60,6 +60,7 @@ export interface AgentEditProposal {
   workspaceId: string;
   stageId:
     | ShortWorkspaceStageId
+    | "agents_md"
     | "academic"
     | "library"
     | "long-worldbuilding"
@@ -214,6 +215,12 @@ export interface AgentEditProposal {
   provisionalExpertSection?: boolean;
   /** Stable item id for a same-run character create-then-write proposal. */
   provisionalCharacterItemId?: string;
+  agentsMdTarget?: {
+    workspaceType: "short" | "script" | "long";
+    bookId: string;
+    beforeText: string;
+    expectedRevision?: string;
+  };
   academicMutationTarget?: AcademicMutationTarget;
   academicBaseProjectRevision?: number;
 }

@@ -192,10 +192,10 @@ async function plotStageMetaProposal(
     return textResult(shortProposalSummary(input, summary), {
       kind: "workspace-plot-structure-mutation",
       workspaceId: input.workspace.id,
-      stageId: target.stageId,
+      stageId: stage.id,
       mutation: {
         type: "update",
-        stageId: target.stageId,
+        stageId: stage.id,
         previousTitle: stage.title,
         title,
         description
@@ -214,6 +214,13 @@ export async function formShortMetaProposal(
   summary: string,
   request: { toolCallId: string; signal?: AbortSignal }
 ) {
+  if (target.kind === "agents_md") {
+    throw new Error(
+      input.promptLocale === "en-US"
+        ? "The work context (AGENTS.md) does not support meta edits."
+        : "作品上下文（AGENTS.md）不支持 meta 修改。"
+    );
+  }
   if (
     target.kind !== "draft_section" &&
     (meta.after_id !== undefined || meta.word_count_requirement !== undefined)

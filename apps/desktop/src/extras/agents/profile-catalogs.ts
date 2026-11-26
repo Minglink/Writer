@@ -33,7 +33,7 @@ export interface ExtrasAgentProfileCatalog<A extends ExtrasAgentId> {
   agentId: A;
   defaults: readonly StoredExtrasAgentProfile<A>[];
   missingProfileMessage: string;
-  /** One-time replacements for built-in prompts saved by earlier releases. */
+  /** Persisted so older Writer versions do not repeat their one-time upgrades. */
   promptUpdates?: readonly { profileId: string; revision: number }[];
   /**
    * The settings file this agent used before the unified store, relative to

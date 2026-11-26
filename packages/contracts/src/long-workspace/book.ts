@@ -5,6 +5,10 @@ import {
   LinkedSkillIdsByKindSchema
 } from "../catalog";
 import {
+  LONG_WEB_NOVEL_PACING_MODES,
+  normalizeWebNovelTropes
+} from "../long-book-frameworks";
+import {
   LONG_WORKSPACE_INDEX_FILE_ID,
   LONG_WORKSPACE_INDEX_PATH,
   LongBookIdSchema,
@@ -69,11 +73,20 @@ export const EMPTY_LONG_LINKED_RESOURCE_STAGE_SCOPES = {
   skills: {}
 } as const satisfies LongLinkedResourceStageScopes;
 
+export const LongWebNovelPacingModeSchema = /* @__PURE__ */ z.enum(
+  LONG_WEB_NOVEL_PACING_MODES
+);
+export const LongBookTropesSchema = /* @__PURE__ */ z
+  .array(z.string().trim().min(1).max(32))
+  .max(6);
+
 const LongBookSharedShape = {
   id: LongBookIdSchema,
   title: LongTitleSchema,
   bookType: z.literal("long"),
   genre: z.string().trim().min(1).max(120),
+  pacingMode: LongWebNovelPacingModeSchema.optional(),
+  tropes: LongBookTropesSchema.optional(),
   status: z.enum(["editing", "completed"]),
   linkedMaterialIdsByKind: LinkedMaterialIdsByKindSchema,
   linkedSkillIdsByKind: LinkedSkillIdsByKindSchema,
@@ -137,6 +150,7 @@ export const LongBookSummarySchema = LongBookMetadataSchema.extend({
 export type LongBookSummary = z.infer<typeof LongBookSummarySchema>;
 
 export function createLongBookMetadata(book: LongBook): LongBookMetadata {
+  const tropes = normalizeWebNovelTropes(book.tropes);
   return LongBookMetadataSchema.parse({
     schemaVersion: book.schemaVersion,
     kind: "writer.long-book",
@@ -144,6 +158,8 @@ export function createLongBookMetadata(book: LongBook): LongBookMetadata {
     title: book.title,
     bookType: book.bookType,
     genre: book.genre,
+    ...(book.pacingMode !== undefined ? { pacingMode: book.pacingMode } : {}),
+    ...(tropes ? { tropes } : {}),
     status: book.status,
     linkedMaterialIdsByKind: book.linkedMaterialIdsByKind,
     linkedSkillIdsByKind: book.linkedSkillIdsByKind,

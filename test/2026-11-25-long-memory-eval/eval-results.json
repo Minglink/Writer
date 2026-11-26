@@ -1,0 +1,3271 @@
+{
+  "matrixSummaries": [
+    {
+      "arm": "current_writer",
+      "state": "fresh",
+      "label": "Baseline (Current Writer) - Fresh",
+      "totalCases": 8,
+      "passedCases": 0,
+      "completeness": "0.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 0,
+      "failures": {
+        "missing_evidence": 8,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "current_writer",
+      "state": "hot",
+      "label": "Baseline (Current Writer) - Hot",
+      "totalCases": 8,
+      "passedCases": 0,
+      "completeness": "0.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 1,
+      "failures": {
+        "missing_evidence": 8,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "long_context",
+      "state": "hot",
+      "label": "Long Context Baseline (12k Chars) - Hot",
+      "totalCases": 8,
+      "passedCases": 0,
+      "completeness": "47.1%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 1,
+      "failures": {
+        "missing_evidence": 8,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "oracle_evidence",
+      "state": "hot",
+      "label": "Oracle Evidence Baseline - Hot",
+      "totalCases": 8,
+      "passedCases": 8,
+      "completeness": "100.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 1,
+      "failures": {
+        "missing_evidence": 0,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "p1_chapter_evidence",
+      "state": "fresh",
+      "label": "P1 Chapter Evidence - Fresh",
+      "totalCases": 8,
+      "passedCases": 8,
+      "completeness": "100.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 0,
+      "failures": {
+        "missing_evidence": 0,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "p1_chapter_evidence",
+      "state": "hot",
+      "label": "P1 Chapter Evidence - Hot",
+      "totalCases": 8,
+      "passedCases": 8,
+      "completeness": "100.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 1,
+      "failures": {
+        "missing_evidence": 0,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "p1_chapter_evidence",
+      "state": "post_compaction",
+      "label": "P1 Chapter Evidence - Post Compaction",
+      "totalCases": 8,
+      "passedCases": 8,
+      "completeness": "100.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 1,
+      "failures": {
+        "missing_evidence": 0,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    },
+    {
+      "arm": "p1_chapter_evidence",
+      "state": "cold_restore",
+      "label": "P1 Chapter Evidence - Cold Restore",
+      "totalCases": 8,
+      "passedCases": 8,
+      "completeness": "100.0%",
+      "versionPassRate": "100.0%",
+      "assemblyLeaks": 0,
+      "nonAssemblyLeaks": 2,
+      "failures": {
+        "missing_evidence": 0,
+        "wrong_evidence": 0,
+        "model_misuse": 0
+      }
+    }
+  ],
+  "summary": {
+    "generatedAt": "2026-11-24T21:19:20.778Z",
+    "arms": [
+      {
+        "arm": "current_writer",
+        "totalRuns": 16,
+        "passCount": 0,
+        "avgEvidenceCompleteness": 0,
+        "totalForbiddenLeaks": 1,
+        "assemblyLeaks": 0,
+        "historyOrCheckpointLeaks": 1,
+        "failureCounts": {
+          "pass": 0,
+          "missing_evidence": 16,
+          "wrong_evidence": 0,
+          "model_misuse": 0
+        },
+        "avgToolCalls": 0,
+        "p95DurationMs": 47
+      },
+      {
+        "arm": "long_context",
+        "totalRuns": 8,
+        "passCount": 0,
+        "avgEvidenceCompleteness": 0.4583333333333333,
+        "totalForbiddenLeaks": 1,
+        "assemblyLeaks": 0,
+        "historyOrCheckpointLeaks": 1,
+        "failureCounts": {
+          "pass": 0,
+          "missing_evidence": 8,
+          "wrong_evidence": 0,
+          "model_misuse": 0
+        },
+        "avgToolCalls": 0,
+        "p95DurationMs": 24
+      },
+      {
+        "arm": "oracle_evidence",
+        "totalRuns": 8,
+        "passCount": 8,
+        "avgEvidenceCompleteness": 1,
+        "totalForbiddenLeaks": 1,
+        "assemblyLeaks": 0,
+        "historyOrCheckpointLeaks": 1,
+        "failureCounts": {
+          "pass": 8,
+          "missing_evidence": 0,
+          "wrong_evidence": 0,
+          "model_misuse": 0
+        },
+        "avgToolCalls": 0,
+        "p95DurationMs": 52
+      },
+      {
+        "arm": "p1_chapter_evidence",
+        "totalRuns": 32,
+        "passCount": 32,
+        "avgEvidenceCompleteness": 1,
+        "totalForbiddenLeaks": 4,
+        "assemblyLeaks": 0,
+        "historyOrCheckpointLeaks": 4,
+        "failureCounts": {
+          "pass": 32,
+          "missing_evidence": 0,
+          "wrong_evidence": 0,
+          "model_misuse": 0
+        },
+        "avgToolCalls": 0,
+        "p95DurationMs": 60
+      }
+    ],
+    "results": [
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_19/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 33,
+        "durationMs": 37,
+        "usage": {
+          "inputTokens": 13157,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13157,
+          "totalTokens": 26399
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 28,
+        "usage": {
+          "inputTokens": 13181,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13181,
+          "totalTokens": 26447
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_17/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 22,
+        "durationMs": 23,
+        "usage": {
+          "inputTokens": 13182,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13182,
+          "totalTokens": 26450
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 3,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_16/card",
+          "chapter_16/body",
+          "chapter_15/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 16,
+        "usage": {
+          "inputTokens": 13197,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13197,
+          "totalTokens": 26480
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_15/card",
+          "chapter_05/handoff"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 23,
+        "durationMs": 25,
+        "usage": {
+          "inputTokens": 13202,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13202,
+          "totalTokens": 26495
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_17/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 23,
+        "durationMs": 24,
+        "usage": {
+          "inputTokens": 13184,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13184,
+          "totalTokens": 26456
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 10,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 13180,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13180,
+          "totalTokens": 26445
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "current_writer",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_21/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 15,
+        "durationMs": 16,
+        "usage": {
+          "inputTokens": 13113,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13113,
+          "totalTokens": 26314
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_19/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 20,
+        "durationMs": 23,
+        "usage": {
+          "inputTokens": 13157,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13157,
+          "totalTokens": 26399
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 11,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 13181,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13181,
+          "totalTokens": 26447
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_17/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 32,
+        "durationMs": 34,
+        "usage": {
+          "inputTokens": 13182,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13182,
+          "totalTokens": 26450
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 3,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_16/card",
+          "chapter_16/body",
+          "chapter_15/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 21,
+        "durationMs": 22,
+        "usage": {
+          "inputTokens": 13197,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13197,
+          "totalTokens": 26480
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_15/card",
+          "chapter_05/handoff"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 12,
+        "durationMs": 14,
+        "usage": {
+          "inputTokens": 13202,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13202,
+          "totalTokens": 26495
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_17/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 17,
+        "durationMs": 47,
+        "usage": {
+          "inputTokens": 13206,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13206,
+          "totalTokens": 26500
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_18/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 7,
+        "durationMs": 12,
+        "usage": {
+          "inputTokens": 13209,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13209,
+          "totalTokens": 26503
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "current_writer",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_21/card",
+          "chapter_18/body"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 27,
+        "durationMs": 31,
+        "usage": {
+          "inputTokens": 13113,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13113,
+          "totalTokens": 26314
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_19/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 7,
+        "durationMs": 19,
+        "usage": {
+          "inputTokens": 13289,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13289,
+          "totalTokens": 26713
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_18/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 13,
+        "durationMs": 20,
+        "usage": {
+          "inputTokens": 13312,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13312,
+          "totalTokens": 26759
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_18/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 10,
+        "durationMs": 12,
+        "usage": {
+          "inputTokens": 13315,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13315,
+          "totalTokens": 26765
+        },
+        "longContextChars": 531
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 3,
+        "requiredHits": 2,
+        "missingEvidenceIds": [
+          "chapter_16/card"
+        ],
+        "evidenceCompleteness": 0.6666666666666666,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 11,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 13329,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13329,
+          "totalTokens": 26793
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 0,
+        "missingEvidenceIds": [
+          "chapter_15/card",
+          "chapter_05/handoff"
+        ],
+        "evidenceCompleteness": 0,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 9,
+        "durationMs": 11,
+        "usage": {
+          "inputTokens": 13334,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13334,
+          "totalTokens": 26803
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_18/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 10,
+        "durationMs": 17,
+        "usage": {
+          "inputTokens": 13339,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13339,
+          "totalTokens": 26813
+        },
+        "longContextChars": 531
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_18/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 24,
+        "usage": {
+          "inputTokens": 13341,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13341,
+          "totalTokens": 26817
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "long_context",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 1,
+        "missingEvidenceIds": [
+          "chapter_21/card"
+        ],
+        "evidenceCompleteness": 0.5,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "missing_evidence",
+        "toolCalls": 0,
+        "ttftMs": 10,
+        "durationMs": 11,
+        "usage": {
+          "inputTokens": 13245,
+          "outputTokens": 135,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13245,
+          "totalTokens": 26625
+        },
+        "longContextChars": 525
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 24,
+        "durationMs": 25,
+        "usage": {
+          "inputTokens": 13188,
+          "outputTokens": 116,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13188,
+          "totalTokens": 26492
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 18,
+        "durationMs": 20,
+        "usage": {
+          "inputTokens": 13209,
+          "outputTokens": 113,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13209,
+          "totalTokens": 26531
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 12,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 13217,
+          "outputTokens": 121,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13217,
+          "totalTokens": 26555
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 13,
+        "durationMs": 15,
+        "usage": {
+          "inputTokens": 13236,
+          "outputTokens": 125,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13236,
+          "totalTokens": 26597
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 15,
+        "usage": {
+          "inputTokens": 13222,
+          "outputTokens": 111,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13222,
+          "totalTokens": 26555
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 34,
+        "durationMs": 52,
+        "usage": {
+          "inputTokens": 13239,
+          "outputTokens": 121,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13239,
+          "totalTokens": 26599
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 22,
+        "durationMs": 30,
+        "usage": {
+          "inputTokens": 13233,
+          "outputTokens": 109,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13233,
+          "totalTokens": 26575
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "oracle_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 9,
+        "durationMs": 11,
+        "usage": {
+          "inputTokens": 13140,
+          "outputTokens": 115,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13140,
+          "totalTokens": 26395
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 23,
+        "durationMs": 26,
+        "usage": {
+          "inputTokens": 13351,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13351,
+          "totalTokens": 26787
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 17,
+        "durationMs": 18,
+        "usage": {
+          "inputTokens": 13390,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13390,
+          "totalTokens": 26865
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 19,
+        "durationMs": 20,
+        "usage": {
+          "inputTokens": 13419,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13419,
+          "totalTokens": 26924
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 33,
+        "durationMs": 38,
+        "usage": {
+          "inputTokens": 13431,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13431,
+          "totalTokens": 26948
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 34,
+        "durationMs": 38,
+        "usage": {
+          "inputTokens": 13405,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13405,
+          "totalTokens": 26901
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 22,
+        "durationMs": 23,
+        "usage": {
+          "inputTokens": 13421,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13421,
+          "totalTokens": 26930
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 15,
+        "usage": {
+          "inputTokens": 13428,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13428,
+          "totalTokens": 26941
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 15,
+        "durationMs": 17,
+        "usage": {
+          "inputTokens": 13300,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13300,
+          "totalTokens": 26688
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 58,
+        "durationMs": 60,
+        "usage": {
+          "inputTokens": 13351,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13351,
+          "totalTokens": 26787
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 45,
+        "durationMs": 49,
+        "usage": {
+          "inputTokens": 13390,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13390,
+          "totalTokens": 26865
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 13,
+        "durationMs": 18,
+        "usage": {
+          "inputTokens": 13419,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13419,
+          "totalTokens": 26924
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 13,
+        "durationMs": 14,
+        "usage": {
+          "inputTokens": 13431,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13431,
+          "totalTokens": 26948
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 20,
+        "durationMs": 22,
+        "usage": {
+          "inputTokens": 13405,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13405,
+          "totalTokens": 26901
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 22,
+        "durationMs": 26,
+        "usage": {
+          "inputTokens": 13444,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13444,
+          "totalTokens": 26976
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 34,
+        "durationMs": 42,
+        "usage": {
+          "inputTokens": 13457,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13457,
+          "totalTokens": 26999
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 14,
+        "usage": {
+          "inputTokens": 13300,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13300,
+          "totalTokens": 26688
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 30,
+        "durationMs": 32,
+        "usage": {
+          "inputTokens": 13588,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13588,
+          "totalTokens": 27261
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 13,
+        "durationMs": 16,
+        "usage": {
+          "inputTokens": 13474,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13474,
+          "totalTokens": 27033
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 15,
+        "durationMs": 24,
+        "usage": {
+          "inputTokens": 13504,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13504,
+          "totalTokens": 27094
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 66,
+        "durationMs": 67,
+        "usage": {
+          "inputTokens": 13516,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13516,
+          "totalTokens": 27118
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 12,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 13487,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13487,
+          "totalTokens": 27065
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "checkpoint"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 23,
+        "durationMs": 28,
+        "usage": {
+          "inputTokens": 13513,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13513,
+          "totalTokens": 27114
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 50,
+        "durationMs": 51,
+        "usage": {
+          "inputTokens": 13513,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13513,
+          "totalTokens": 27111
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 31,
+        "durationMs": 37,
+        "usage": {
+          "inputTokens": 13529,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13529,
+          "totalTokens": 27146
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 27,
+        "durationMs": 29,
+        "usage": {
+          "inputTokens": 13351,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13351,
+          "totalTokens": 26787
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 15,
+        "durationMs": 18,
+        "usage": {
+          "inputTokens": 13390,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13390,
+          "totalTokens": 26865
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 10,
+        "durationMs": 12,
+        "usage": {
+          "inputTokens": 13419,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13419,
+          "totalTokens": 26924
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 9,
+        "durationMs": 10,
+        "usage": {
+          "inputTokens": 13431,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13431,
+          "totalTokens": 26948
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 11,
+        "durationMs": 12,
+        "usage": {
+          "inputTokens": 13405,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13405,
+          "totalTokens": 26901
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          },
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "checkpoint"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 12,
+        "durationMs": 17,
+        "usage": {
+          "inputTokens": 13536,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13536,
+          "totalTokens": 27160
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 21,
+        "durationMs": 44,
+        "usage": {
+          "inputTokens": 13457,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13457,
+          "totalTokens": 26999
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "cold_restore",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 14,
+        "durationMs": 16,
+        "usage": {
+          "inputTokens": 13300,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 13300,
+          "totalTokens": 26688
+        }
+      }
+    ]
+  },
+  "allResults": [
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_19/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 33,
+      "durationMs": 37,
+      "usage": {
+        "inputTokens": 13157,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13157,
+        "totalTokens": 26399
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 28,
+      "usage": {
+        "inputTokens": 13181,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13181,
+        "totalTokens": 26447
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_17/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 22,
+      "durationMs": 23,
+      "usage": {
+        "inputTokens": 13182,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13182,
+        "totalTokens": 26450
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 3,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_16/card",
+        "chapter_16/body",
+        "chapter_15/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 16,
+      "usage": {
+        "inputTokens": 13197,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13197,
+        "totalTokens": 26480
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_15/card",
+        "chapter_05/handoff"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 23,
+      "durationMs": 25,
+      "usage": {
+        "inputTokens": 13202,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13202,
+        "totalTokens": 26495
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_17/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 23,
+      "durationMs": 24,
+      "usage": {
+        "inputTokens": 13184,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13184,
+        "totalTokens": 26456
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 10,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 13180,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13180,
+        "totalTokens": 26445
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "current_writer",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_21/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 15,
+      "durationMs": 16,
+      "usage": {
+        "inputTokens": 13113,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13113,
+        "totalTokens": 26314
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_19/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 20,
+      "durationMs": 23,
+      "usage": {
+        "inputTokens": 13157,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13157,
+        "totalTokens": 26399
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 11,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 13181,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13181,
+        "totalTokens": 26447
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_17/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 32,
+      "durationMs": 34,
+      "usage": {
+        "inputTokens": 13182,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13182,
+        "totalTokens": 26450
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 3,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_16/card",
+        "chapter_16/body",
+        "chapter_15/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 21,
+      "durationMs": 22,
+      "usage": {
+        "inputTokens": 13197,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13197,
+        "totalTokens": 26480
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_15/card",
+        "chapter_05/handoff"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 12,
+      "durationMs": 14,
+      "usage": {
+        "inputTokens": 13202,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13202,
+        "totalTokens": 26495
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_17/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 17,
+      "durationMs": 47,
+      "usage": {
+        "inputTokens": 13206,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13206,
+        "totalTokens": 26500
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_18/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 7,
+      "durationMs": 12,
+      "usage": {
+        "inputTokens": 13209,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13209,
+        "totalTokens": 26503
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "current_writer",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_21/card",
+        "chapter_18/body"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 27,
+      "durationMs": 31,
+      "usage": {
+        "inputTokens": 13113,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13113,
+        "totalTokens": 26314
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_19/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 7,
+      "durationMs": 19,
+      "usage": {
+        "inputTokens": 13289,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13289,
+        "totalTokens": 26713
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_18/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 13,
+      "durationMs": 20,
+      "usage": {
+        "inputTokens": 13312,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13312,
+        "totalTokens": 26759
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_18/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 10,
+      "durationMs": 12,
+      "usage": {
+        "inputTokens": 13315,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13315,
+        "totalTokens": 26765
+      },
+      "longContextChars": 531
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 3,
+      "requiredHits": 2,
+      "missingEvidenceIds": [
+        "chapter_16/card"
+      ],
+      "evidenceCompleteness": 0.6666666666666666,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 11,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 13329,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13329,
+        "totalTokens": 26793
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 0,
+      "missingEvidenceIds": [
+        "chapter_15/card",
+        "chapter_05/handoff"
+      ],
+      "evidenceCompleteness": 0,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 9,
+      "durationMs": 11,
+      "usage": {
+        "inputTokens": 13334,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13334,
+        "totalTokens": 26803
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_18/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 10,
+      "durationMs": 17,
+      "usage": {
+        "inputTokens": 13339,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13339,
+        "totalTokens": 26813
+      },
+      "longContextChars": 531
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_18/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 24,
+      "usage": {
+        "inputTokens": 13341,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13341,
+        "totalTokens": 26817
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "long_context",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 1,
+      "missingEvidenceIds": [
+        "chapter_21/card"
+      ],
+      "evidenceCompleteness": 0.5,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "missing_evidence",
+      "toolCalls": 0,
+      "ttftMs": 10,
+      "durationMs": 11,
+      "usage": {
+        "inputTokens": 13245,
+        "outputTokens": 135,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13245,
+        "totalTokens": 26625
+      },
+      "longContextChars": 525
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 24,
+      "durationMs": 25,
+      "usage": {
+        "inputTokens": 13188,
+        "outputTokens": 116,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13188,
+        "totalTokens": 26492
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 18,
+      "durationMs": 20,
+      "usage": {
+        "inputTokens": 13209,
+        "outputTokens": 113,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13209,
+        "totalTokens": 26531
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 12,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 13217,
+        "outputTokens": 121,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13217,
+        "totalTokens": 26555
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 13,
+      "durationMs": 15,
+      "usage": {
+        "inputTokens": 13236,
+        "outputTokens": 125,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13236,
+        "totalTokens": 26597
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 15,
+      "usage": {
+        "inputTokens": 13222,
+        "outputTokens": 111,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13222,
+        "totalTokens": 26555
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 34,
+      "durationMs": 52,
+      "usage": {
+        "inputTokens": 13239,
+        "outputTokens": 121,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13239,
+        "totalTokens": 26599
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 22,
+      "durationMs": 30,
+      "usage": {
+        "inputTokens": 13233,
+        "outputTokens": 109,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13233,
+        "totalTokens": 26575
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "oracle_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 9,
+      "durationMs": 11,
+      "usage": {
+        "inputTokens": 13140,
+        "outputTokens": 115,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13140,
+        "totalTokens": 26395
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 23,
+      "durationMs": 26,
+      "usage": {
+        "inputTokens": 13351,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13351,
+        "totalTokens": 26787
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 17,
+      "durationMs": 18,
+      "usage": {
+        "inputTokens": 13390,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13390,
+        "totalTokens": 26865
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 19,
+      "durationMs": 20,
+      "usage": {
+        "inputTokens": 13419,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13419,
+        "totalTokens": 26924
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 33,
+      "durationMs": 38,
+      "usage": {
+        "inputTokens": 13431,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13431,
+        "totalTokens": 26948
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 34,
+      "durationMs": 38,
+      "usage": {
+        "inputTokens": 13405,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13405,
+        "totalTokens": 26901
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 22,
+      "durationMs": 23,
+      "usage": {
+        "inputTokens": 13421,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13421,
+        "totalTokens": 26930
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 15,
+      "usage": {
+        "inputTokens": 13428,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13428,
+        "totalTokens": 26941
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 15,
+      "durationMs": 17,
+      "usage": {
+        "inputTokens": 13300,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13300,
+        "totalTokens": 26688
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 58,
+      "durationMs": 60,
+      "usage": {
+        "inputTokens": 13351,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13351,
+        "totalTokens": 26787
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 45,
+      "durationMs": 49,
+      "usage": {
+        "inputTokens": 13390,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13390,
+        "totalTokens": 26865
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 13,
+      "durationMs": 18,
+      "usage": {
+        "inputTokens": 13419,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13419,
+        "totalTokens": 26924
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 13,
+      "durationMs": 14,
+      "usage": {
+        "inputTokens": 13431,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13431,
+        "totalTokens": 26948
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 20,
+      "durationMs": 22,
+      "usage": {
+        "inputTokens": 13405,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13405,
+        "totalTokens": 26901
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 22,
+      "durationMs": 26,
+      "usage": {
+        "inputTokens": 13444,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13444,
+        "totalTokens": 26976
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 34,
+      "durationMs": 42,
+      "usage": {
+        "inputTokens": 13457,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13457,
+        "totalTokens": 26999
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 14,
+      "usage": {
+        "inputTokens": 13300,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13300,
+        "totalTokens": 26688
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 30,
+      "durationMs": 32,
+      "usage": {
+        "inputTokens": 13588,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13588,
+        "totalTokens": 27261
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 13,
+      "durationMs": 16,
+      "usage": {
+        "inputTokens": 13474,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13474,
+        "totalTokens": 27033
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 15,
+      "durationMs": 24,
+      "usage": {
+        "inputTokens": 13504,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13504,
+        "totalTokens": 27094
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 66,
+      "durationMs": 67,
+      "usage": {
+        "inputTokens": 13516,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13516,
+        "totalTokens": 27118
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 12,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 13487,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13487,
+        "totalTokens": 27065
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "checkpoint"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 23,
+      "durationMs": 28,
+      "usage": {
+        "inputTokens": 13513,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13513,
+        "totalTokens": 27114
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 50,
+      "durationMs": 51,
+      "usage": {
+        "inputTokens": 13513,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13513,
+        "totalTokens": 27111
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 31,
+      "durationMs": 37,
+      "usage": {
+        "inputTokens": 13529,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13529,
+        "totalTokens": 27146
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 27,
+      "durationMs": 29,
+      "usage": {
+        "inputTokens": 13351,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13351,
+        "totalTokens": 26787
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 15,
+      "durationMs": 18,
+      "usage": {
+        "inputTokens": 13390,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13390,
+        "totalTokens": 26865
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 10,
+      "durationMs": 12,
+      "usage": {
+        "inputTokens": 13419,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13419,
+        "totalTokens": 26924
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 9,
+      "durationMs": 10,
+      "usage": {
+        "inputTokens": 13431,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13431,
+        "totalTokens": 26948
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 11,
+      "durationMs": 12,
+      "usage": {
+        "inputTokens": 13405,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13405,
+        "totalTokens": 26901
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        },
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "checkpoint"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 12,
+      "durationMs": 17,
+      "usage": {
+        "inputTokens": 13536,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13536,
+        "totalTokens": 27160
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 21,
+      "durationMs": 44,
+      "usage": {
+        "inputTokens": 13457,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13457,
+        "totalTokens": 26999
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "cold_restore",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 14,
+      "durationMs": 16,
+      "usage": {
+        "inputTokens": 13300,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 13300,
+        "totalTokens": 26688
+      }
+    }
+  ]
+}

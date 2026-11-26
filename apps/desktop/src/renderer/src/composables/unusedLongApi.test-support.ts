@@ -18,6 +18,9 @@ export function createUnusedLongApi(): WriterApi["long"] {
     updateBindings: vi.fn(async () => {
       throw new Error("Long workspace is not used by conversation tests.");
     }),
+    updatePositioning: vi.fn(async () => {
+      throw new Error("Long workspace is not used by conversation tests.");
+    }),
     chooseLegacySyncSource: vi.fn(async () => null),
     applyLegacySync: vi.fn(async () => {
       throw new Error("Long workspace is not used by conversation tests.");

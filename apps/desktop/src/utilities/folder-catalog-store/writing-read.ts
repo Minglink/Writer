@@ -1,5 +1,10 @@
 import {
   BookSchema,
+  WRITING_CONTEXT_PATH,
+  buildShortWritingContextForWebNovel,
+  DEFAULT_SCRIPT_WRITING_CONTEXT,
+  DEFAULT_SHORT_WRITING_CONTEXT,
+  normalizeWebNovelTropes,
   toCreativePlotStage,
   createShortWorkspaceContentRevision,
   type AcademicWritingIndex,
@@ -293,7 +298,8 @@ export async function queryWritingWorkspace(
   query: WritingReadQuery,
   runId: string,
   readMarkdown: (path: string) => Promise<string>,
-  fileCounts: (path: string) => Promise<WritingMetrics>
+  fileCounts: (path: string) => Promise<WritingMetrics>,
+  readWritingContext?: () => Promise<{ content: string; truncated: boolean }>
 ): Promise<
   WritingIndex | AcademicWritingIndex | WritingFile | WritingSearchResult
 > {
@@ -367,7 +373,43 @@ export async function queryWritingWorkspace(
     const path = paths.get(doc.id);
     return path ? readMarkdown(path) : (doc.content ?? "");
   }
+  async function pureAgentsMd(): Promise<{
+    content: string;
+    truncated: boolean;
+  }> {
+    if (readWritingContext) return await readWritingContext();
+    const tropes =
+      book.bookType === "short"
+        ? normalizeWebNovelTropes(book.tropes)
+        : undefined;
+    const content =
+      book.bookType === "short" &&
+      (book.pacingMode !== undefined || Boolean(tropes?.length))
+        ? buildShortWritingContextForWebNovel(
+            DEFAULT_SHORT_WRITING_CONTEXT,
+            book.genre,
+            { pacingMode: book.pacingMode, tropes }
+          )
+        : book.bookType === "script"
+          ? DEFAULT_SCRIPT_WRITING_CONTEXT
+          : DEFAULT_SHORT_WRITING_CONTEXT;
+    return { content, truncated: false };
+  }
   if (query.mode === "file") {
+    if (query.documentId === WRITING_CONTEXT_PATH) {
+      const agentsMd = await pureAgentsMd();
+      const offset = query.offset ?? 0;
+      return {
+        mode: "file",
+        id: WRITING_CONTEXT_PATH,
+        ...writingFileMetrics(agentsMd.content),
+        ...(agentsMd.truncated ? { truncated: true } : {}),
+        content:
+          query.offset !== undefined || query.limit !== undefined
+            ? agentsMd.content.slice(offset, offset + (query.limit ?? 50000))
+            : agentsMd.content
+      };
+    }
     const doc = files.find((file) => file.id === query.documentId);
     if (!doc)
       throw new Error("Document is outside the active writing directory.");
@@ -433,6 +475,13 @@ export async function queryWritingWorkspace(
         ? await fileCounts(path)
         : writingFileMetrics(await contentOf(doc));
       counts.push({ id: doc.id, ...metrics });
+    }
+    if (query.counts === "workspace") {
+      const agentsMd = await pureAgentsMd();
+      counts.push({
+        id: WRITING_CONTEXT_PATH,
+        ...writingFileMetrics(agentsMd.content)
+      });
     }
   }
   const ref = ({ id, title }: { id: string; title: string }) => ({ id, title });

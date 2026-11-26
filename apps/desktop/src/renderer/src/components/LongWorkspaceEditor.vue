@@ -1623,8 +1623,10 @@ function closeStoryPlotActionMenuOnOutsidePointer(event: PointerEvent): void {
 const bookSearchBarT = registerFeatureMessages("longBookSearchBar", {
   "zh-CN": {
     triggerLabel: "全书搜索",
+    triggerShortLabel: "搜索",
     triggerTitle: "搜索整本书（Ctrl+Shift+F）",
     memoryLabel: "笔记与记忆",
+    memoryShortLabel: "笔记",
     memoryTitle: "查看本章笔记、本章记忆与本书记忆（AGENTS.md）",
     continueWritingLabel: "继续写 · {title}",
     continueWritingTitle: "回到上次实际编辑的正文位置",
@@ -1637,8 +1639,10 @@ const bookSearchBarT = registerFeatureMessages("longBookSearchBar", {
   },
   "en-US": {
     triggerLabel: "Book search",
+    triggerShortLabel: "Search",
     triggerTitle: "Search whole book (Ctrl+Shift+F)",
     memoryLabel: "Notes & memory",
+    memoryShortLabel: "Notes",
     memoryTitle:
       "View chapter notes, chapter memory, and book memory (AGENTS.md)",
     continueWritingLabel: "Continue · {title}",
@@ -2787,7 +2791,6 @@ onBeforeUnmount(() => {
             @wheel="handleHorizontalOverflowWheel"
           >
             <template v-if="showToolbarTextTools">
-              <span v-if="showRelatedFileTabs" class="toolbar-separator" />
               <div class="view-tabs" role="tablist" :aria-label="t('textView')">
                 <button
                   type="button"
@@ -2847,6 +2850,11 @@ onBeforeUnmount(() => {
               v-if="canContinueWriting && lastWritingPosition"
               type="button"
               class="long-book-search-trigger is-continue-writing"
+              :aria-label="
+                bookSearchBarT('continueWritingLabel', {
+                  title: lastWritingPosition.title
+                })
+              "
               :title="bookSearchBarT('continueWritingTitle')"
               @click="continueWritingFromLastPosition"
             >
@@ -2862,14 +2870,24 @@ onBeforeUnmount(() => {
               class="long-book-search-trigger"
               :class="{ 'is-active': memoryDrawerOpen }"
               :aria-expanded="memoryDrawerOpen"
+              :aria-label="
+                activeChapterNoteCount > 0
+                  ? `${bookSearchBarT('memoryLabel')} (${activeChapterNoteCount})`
+                  : bookSearchBarT('memoryLabel')
+              "
               :title="bookSearchBarT('memoryTitle')"
               @click="toggleMemoryDrawer"
             >
               <AppIcon name="book" :size="14" />
-              <span>{{
+              <span class="long-book-search-label-full">{{
                 activeChapterNoteCount > 0
                   ? `${bookSearchBarT("memoryLabel")} (${activeChapterNoteCount})`
                   : bookSearchBarT("memoryLabel")
+              }}</span>
+              <span class="long-book-search-label-short" aria-hidden="true">{{
+                activeChapterNoteCount > 0
+                  ? `${bookSearchBarT("memoryShortLabel")} (${activeChapterNoteCount})`
+                  : bookSearchBarT("memoryShortLabel")
               }}</span>
             </button>
             <button
@@ -2877,11 +2895,17 @@ onBeforeUnmount(() => {
               class="long-book-search-trigger"
               :class="{ 'is-active': bookSearchOpen }"
               :aria-expanded="bookSearchOpen"
+              :aria-label="bookSearchBarT('triggerLabel')"
               :title="bookSearchBarT('triggerTitle')"
               @click="toggleBookSearchPanel"
             >
               <AppIcon name="search" :size="14" />
-              <span>{{ bookSearchBarT("triggerLabel") }}</span>
+              <span class="long-book-search-label-full">{{
+                bookSearchBarT("triggerLabel")
+              }}</span>
+              <span class="long-book-search-label-short" aria-hidden="true">{{
+                bookSearchBarT("triggerShortLabel")
+              }}</span>
             </button>
           </div>
           <EditorPaneToggle
@@ -3167,87 +3191,91 @@ onBeforeUnmount(() => {
                 />
                 <div class="long-story-plot-text-toolbar">
                   <div
-                    class="view-tabs"
-                    role="tablist"
-                    :aria-label="t('textView')"
+                    class="editor-toolbar-actions"
+                    @wheel="handleHorizontalOverflowWheel"
                   >
-                    <button
-                      type="button"
-                      role="tab"
-                      :aria-selected="viewMode === 'edit'"
-                      :class="{ 'is-active': viewMode === 'edit' }"
-                      :disabled="!canUseTextTools"
-                      @click="setViewMode('edit')"
+                    <div
+                      class="view-tabs"
+                      role="tablist"
+                      :aria-label="t('textView')"
                     >
-                      {{ t("edit") }}
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      :aria-selected="viewMode === 'preview'"
-                      :class="{ 'is-active': viewMode === 'preview' }"
-                      :disabled="!canUseTextTools"
-                      @click="setViewMode('preview')"
+                      <button
+                        type="button"
+                        role="tab"
+                        :aria-selected="viewMode === 'edit'"
+                        :class="{ 'is-active': viewMode === 'edit' }"
+                        :disabled="!canUseTextTools"
+                        @click="setViewMode('edit')"
+                      >
+                        {{ t("edit") }}
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        :aria-selected="viewMode === 'preview'"
+                        :class="{ 'is-active': viewMode === 'preview' }"
+                        :disabled="!canUseTextTools"
+                        @click="setViewMode('preview')"
+                      >
+                        {{ t("preview") }}
+                      </button>
+                    </div>
+                    <span class="toolbar-separator" />
+                    <div
+                      class="long-editor-text-tools"
+                      role="group"
+                      :aria-label="t('textActions')"
                     >
-                      {{ t("preview") }}
-                    </button>
+                      <EditorTextTools
+                        :can-undo="canUndo"
+                        :can-redo="canRedo"
+                        :disabled="!canUseTextTools"
+                        :find-panel-open="findPanelOpen"
+                        :find-panel-mode="findPanelMode"
+                        :version-visible="versionVisible"
+                        :format-visible="bodyFormatVisible"
+                        :format-disabled="bodyFormatDisabled"
+                        @undo="undo"
+                        @redo="redo"
+                        @toggle-find="toggleFindPanel"
+                        @format="formatBody"
+                        @versions="versionOpen = true"
+                      />
+                      <PreviewOutlinePopover
+                        v-if="viewMode === 'preview'"
+                        icon-only
+                        :content="currentVisibleContent"
+                        :preview-element="documentPreview"
+                        :document-key="currentStoryPlot.id"
+                      />
+                    </div>
                   </div>
-                  <span class="toolbar-separator" />
-                  <div
-                    class="long-editor-text-tools"
-                    role="group"
-                    :aria-label="t('textActions')"
-                  >
-                    <EditorTextTools
-                      :can-undo="canUndo"
-                      :can-redo="canRedo"
-                      :disabled="!canUseTextTools"
-                      :find-panel-open="findPanelOpen"
-                      :find-panel-mode="findPanelMode"
-                      :version-visible="versionVisible"
-                      :format-visible="bodyFormatVisible"
-                      :format-disabled="bodyFormatDisabled"
-                      @undo="undo"
-                      @redo="redo"
-                      @toggle-find="toggleFindPanel"
-                      @format="formatBody"
-                      @versions="versionOpen = true"
-                    />
-                    <PreviewOutlinePopover
-                      v-if="viewMode === 'preview'"
-                      icon-only
-                      :content="currentVisibleContent"
-                      :preview-element="documentPreview"
-                      :document-key="currentStoryPlot.id"
-                    />
-
-                    <LongEditorFindReplaceBar
-                      v-if="findPanelOpen"
-                      v-model:find-panel-element="findPanelElement"
-                      v-model:find-input="findInput"
-                      :find-panel-mode="findPanelMode"
-                      :search-query="searchQuery"
-                      :replacement-text="replacementText"
-                      :search-result-label="searchResultLabel"
-                      :current-read-only="currentReadOnly"
-                      :entry-search-query="entrySearchQuery"
-                      :entry-search-results="entrySearchResults"
-                      :active-entry-search-index="activeEntrySearchIndex"
-                      :entry-search-pending="entrySearchPending"
-                      :entry-search-result-label="entrySearchResultLabel"
-                      @update:search-query="searchQuery = $event"
-                      @update:replacement-text="replacementText = $event"
-                      @update:entry-search-query="entrySearchQuery = $event"
-                      @find-input="handleFindInput"
-                      @find-match="findMatch"
-                      @close="dismissFindPanel"
-                      @replace-current="replaceCurrentMatch"
-                      @replace-all="replaceAllMatches"
-                      @entry-search-input="handleEntrySearchInput"
-                      @move-entry-search="moveActiveEntrySearchResult"
-                      @select-entry-search="selectEntrySearchResult"
-                    />
-                  </div>
+                  <LongEditorFindReplaceBar
+                    v-if="findPanelOpen"
+                    v-model:find-panel-element="findPanelElement"
+                    v-model:find-input="findInput"
+                    :find-panel-mode="findPanelMode"
+                    :search-query="searchQuery"
+                    :replacement-text="replacementText"
+                    :search-result-label="searchResultLabel"
+                    :current-read-only="currentReadOnly"
+                    :entry-search-query="entrySearchQuery"
+                    :entry-search-results="entrySearchResults"
+                    :active-entry-search-index="activeEntrySearchIndex"
+                    :entry-search-pending="entrySearchPending"
+                    :entry-search-result-label="entrySearchResultLabel"
+                    @update:search-query="searchQuery = $event"
+                    @update:replacement-text="replacementText = $event"
+                    @update:entry-search-query="entrySearchQuery = $event"
+                    @find-input="handleFindInput"
+                    @find-match="findMatch"
+                    @close="dismissFindPanel"
+                    @replace-current="replaceCurrentMatch"
+                    @replace-all="replaceAllMatches"
+                    @entry-search-input="handleEntrySearchInput"
+                    @move-entry-search="moveActiveEntrySearchResult"
+                    @select-entry-search="selectEntrySearchResult"
+                  />
                 </div>
                 <EditorSearchHighlight
                   v-if="viewMode === 'edit'"
@@ -3902,6 +3930,16 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.editor-toolbar {
+  container-type: inline-size;
+}
+
+.editor-toolbar-actions {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
 .long-editor-controls.has-file-controls-only {
   display: flex;
 }
@@ -3911,6 +3949,7 @@ onBeforeUnmount(() => {
 }
 
 .long-editor-controls.has-file-controls-only > .editor-toolbar {
+  container-type: normal;
   flex: 0 0 auto;
   padding-left: 0;
 }
@@ -4595,7 +4634,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 28px;
+  height: max(28px, 1.85em);
   padding: 0 9px;
   border: 1px solid var(--theme-line-soft);
   border-radius: 6px;
@@ -4610,6 +4649,19 @@ onBeforeUnmount(() => {
     color 120ms ease;
 }
 
+.long-book-search-trigger.is-continue-writing {
+  max-width: 160px;
+}
+
+.long-book-search-trigger.is-continue-writing > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.long-book-search-label-short {
+  display: none;
+}
+
 .long-book-search-trigger:hover {
   border-color: var(--theme-line);
   background: var(--surface-hover);
@@ -4620,6 +4672,64 @@ onBeforeUnmount(() => {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--theme-line-soft));
   background: color-mix(in srgb, var(--accent) 12%, var(--surface-main));
   color: var(--accent);
+}
+
+@container (max-width: 490px) {
+  .editor-toolbar {
+    gap: 2px;
+    padding: 4px 8px;
+  }
+
+  .editor-toolbar-actions {
+    gap: 2px;
+  }
+
+  .editor-toolbar .view-tabs button {
+    padding: 0 5px;
+  }
+
+  .editor-toolbar .toolbar-separator {
+    margin: 0;
+  }
+
+  .long-editor-text-tools {
+    gap: 1px;
+  }
+
+  .long-editor-text-tools :deep(.text-tool-button),
+  .long-editor-text-tools :deep(.preview-outline-trigger.is-icon-only) {
+    width: 24px;
+    height: max(26px, 1.85em);
+  }
+
+  .editor-toolbar :deep(.editor-pane-toggle) {
+    width: 26px;
+    height: 26px;
+  }
+
+  .long-book-search-trigger {
+    height: max(26px, 1.85em);
+    padding: 0 6px;
+    gap: 3px;
+    font-size: 0.714286rem;
+  }
+
+  .long-book-search-trigger :deep(svg) {
+    width: 13px;
+    height: 13px;
+  }
+
+  .long-book-search-trigger.is-continue-writing {
+    max-width: 120px;
+  }
+
+  .long-book-search-label-full {
+    display: none;
+  }
+
+  .long-book-search-label-short {
+    display: inline;
+  }
 }
 
 .long-jump-back-bar {

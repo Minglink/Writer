@@ -1,9 +1,18 @@
+import {
+  buildLongAgentsMdForGenre,
+  createEnvelope,
+  type LongOpenBookResult
+} from "@writer/contracts";
+import { handleLongCoreCommand } from "./long-core-commands";
+import { LongDocumentConflictError } from "./long-project-store/types";
+import { LongWorkspaceService } from "./long-workspace-service";
 import type { LongForeshadowing } from "./long-project-store.test-support";
 import {
   DEFAULT_LONG_AGENTS_MD,
   FIXED_NOW,
   LONG_AGENTS_MD_PATH,
   LONG_WORKSPACE_INDEX_PATH,
+  LongProjectStore,
   createEmptyLongMarkdownFileReference,
   createFixture,
   createLongFileRevision,
@@ -39,14 +48,18 @@ import {
 describe("LongProjectStore: creation-and-migration", () => {
   it("initializes AGENTS.md, lazily restores missing files, and copies it on duplicate", async () => {
     const { parent, projectStore, created } = await createFixture("agents-md");
+    const expectedDefaultAgentsMd = buildLongAgentsMdForGenre(
+      DEFAULT_LONG_AGENTS_MD,
+      created.book.genre
+    );
     const agentsPath = join(created.projectDirectory, LONG_AGENTS_MD_PATH);
     await expect(readFile(agentsPath, "utf8")).resolves.toBe(
-      DEFAULT_LONG_AGENTS_MD
+      expectedDefaultAgentsMd
     );
     await expect(
       projectStore.readAgentsMd(created.projectDirectory)
     ).resolves.toEqual({
-      content: DEFAULT_LONG_AGENTS_MD,
+      content: expectedDefaultAgentsMd,
       truncated: false
     });
 
@@ -60,11 +73,11 @@ describe("LongProjectStore: creation-and-migration", () => {
     await expect(
       projectStore.readAgentsMd(created.projectDirectory)
     ).resolves.toEqual({
-      content: DEFAULT_LONG_AGENTS_MD,
+      content: expectedDefaultAgentsMd,
       truncated: false
     });
     await expect(readFile(agentsPath, "utf8")).resolves.toBe(
-      DEFAULT_LONG_AGENTS_MD
+      expectedDefaultAgentsMd
     );
 
     await projectStore.writeAgentsMd(created.projectDirectory, custom);
@@ -674,5 +687,344 @@ describe("LongProjectStore: creation-and-migration", () => {
         fileId: reopenedCard.id
       })
     ).resolves.toMatchObject({ content });
+  });
+
+  it("serializes concurrent AGENTS.md lazy repair, writes, opens, and parent-level duplication without deadlock", async () => {
+    const { parent, projectStore, created } = await createFixture(
+      "concurrent-agents-lock"
+    );
+    const agentsPath = join(created.projectDirectory, LONG_AGENTS_MD_PATH);
+    await unlink(agentsPath);
+
+    const results = await Promise.all([
+      projectStore.readAgentsMd(created.projectDirectory),
+      projectStore.writeAgentsMd(created.projectDirectory, "# 并发写入一\n"),
+      projectStore.openBook(created.projectDirectory),
+      projectStore.duplicateBook(parent, created.projectDirectory, "并发副本"),
+      projectStore.writeAgentsMd(created.projectDirectory, "# 并发写入二\n"),
+      projectStore.readAgentsMd(created.projectDirectory)
+    ]);
+
+    expect(results[5]).toEqual({ content: "# 并发写入二\n", truncated: false });
+    await expect(readFile(agentsPath, "utf8")).resolves.toBe("# 并发写入二\n");
+  });
+
+  it("persists web-novel positioning on createBook, omits empty fields, and lazily repairs AGENTS.md with positioning", async () => {
+    const parent = await temporaryParent();
+    const projectStore = store();
+    const created = await projectStore.createBook(parent, {
+      id: "longbook_positioning-create",
+      title: "网文定位创建",
+      genre: "玄幻",
+      pacingMode: "fanqie",
+      tropes: ["系统流", "系统流", " 面板加点 "]
+    });
+
+    expect(created.book.pacingMode).toBe("fanqie");
+    expect(created.book.tropes).toEqual(["系统流", "面板加点"]);
+    expect(created.summary.pacingMode).toBe("fanqie");
+    expect(created.summary.tropes).toEqual(["系统流", "面板加点"]);
+
+    const manifestPath = join(created.projectDirectory, "writer.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(manifest.pacingMode).toBe("fanqie");
+    expect(manifest.tropes).toEqual(["系统流", "面板加点"]);
+
+    const reopened = await store().openBook(created.projectDirectory);
+    expect(reopened.book.pacingMode).toBe("fanqie");
+    expect(reopened.book.tropes).toEqual(["系统流", "面板加点"]);
+    expect(reopened.summary.pacingMode).toBe("fanqie");
+    expect(reopened.summary.tropes).toEqual(["系统流", "面板加点"]);
+
+    const expectedAgentsMd = buildLongAgentsMdForGenre(
+      DEFAULT_LONG_AGENTS_MD,
+      "玄幻",
+      {
+        pacingMode: "fanqie",
+        tropes: ["系统流", "面板加点"]
+      }
+    );
+    const agentsPath = join(created.projectDirectory, LONG_AGENTS_MD_PATH);
+    await expect(readFile(agentsPath, "utf8")).resolves.toBe(expectedAgentsMd);
+
+    await unlink(agentsPath);
+    const repaired = await projectStore.readAgentsMd(created.projectDirectory);
+    expect(repaired).toEqual({ content: expectedAgentsMd, truncated: false });
+    expect(repaired.content).toContain("番茄快节奏");
+    expect(repaired.content).toContain("【系统流】");
+    expect(repaired.content).toContain("【面板加点】");
+    await expect(readFile(agentsPath, "utf8")).resolves.toBe(expectedAgentsMd);
+
+    await unlink(agentsPath);
+    const duplicated = await projectStore.duplicateBook(
+      parent,
+      created.projectDirectory,
+      "网文定位副本"
+    );
+    expect(duplicated.book.pacingMode).toBe("fanqie");
+    expect(duplicated.book.tropes).toEqual(["系统流", "面板加点"]);
+    await expect(
+      projectStore.readAgentsMd(duplicated.projectDirectory)
+    ).resolves.toEqual({ content: expectedAgentsMd, truncated: false });
+
+    const plain = await projectStore.createBook(parent, {
+      id: "longbook_positioning-empty",
+      title: "无定位长篇",
+      genre: "悬疑",
+      tropes: []
+    });
+    const plainManifest = JSON.parse(
+      await readFile(join(plain.projectDirectory, "writer.json"), "utf8")
+    ) as Record<string, unknown>;
+    expect(plainManifest).not.toHaveProperty("pacingMode");
+    expect(plainManifest).not.toHaveProperty("tropes");
+    expect(plain.book).not.toHaveProperty("pacingMode");
+    expect(plain.book).not.toHaveProperty("tropes");
+    expect(plain.summary).not.toHaveProperty("pacingMode");
+    expect(plain.summary).not.toHaveProperty("tropes");
+  });
+
+  it("atomically updates and clears positioning in writer.json and index.json", async () => {
+    const parent = await temporaryParent();
+    let currentNow = "2026-07-26T12:00:00.000Z";
+    const timedStore = new LongProjectStore({ now: () => currentNow });
+    const created = await timedStore.createBook(parent, {
+      id: "longbook_positioning-update",
+      title: "定位变更测试",
+      genre: "玄幻"
+    });
+
+    currentNow = "2026-07-26T13:30:00.000Z";
+    const updated = await timedStore.updatePositioning(
+      created.projectDirectory,
+      {
+        genre: "都市脑洞",
+        pacingMode: "qidian",
+        tropes: [" 迪化脑补 ", "迪化脑补", "幕后黑手"]
+      }
+    );
+    expect(updated.book).toMatchObject({
+      genre: "都市脑洞",
+      pacingMode: "qidian",
+      tropes: ["迪化脑补", "幕后黑手"],
+      updatedAt: currentNow
+    });
+    expect(updated.summary).toMatchObject({
+      genre: "都市脑洞",
+      pacingMode: "qidian",
+      tropes: ["迪化脑补", "幕后黑手"],
+      updatedAt: currentNow
+    });
+
+    const manifestPath = join(created.projectDirectory, "writer.json");
+    const indexPath = join(created.projectDirectory, LONG_WORKSPACE_INDEX_PATH);
+    const updatedManifest = JSON.parse(
+      await readFile(manifestPath, "utf8")
+    ) as {
+      genre: string;
+      pacingMode?: string;
+      tropes?: string[];
+      updatedAt: string;
+      workspaceIndexFile: { updatedAt: string };
+    };
+    const updatedIndex = JSON.parse(await readFile(indexPath, "utf8")) as {
+      updatedAt: string;
+    };
+    expect(updatedManifest.genre).toBe("都市脑洞");
+    expect(updatedManifest.pacingMode).toBe("qidian");
+    expect(updatedManifest.tropes).toEqual(["迪化脑补", "幕后黑手"]);
+    expect(updatedManifest.updatedAt).toBe(currentNow);
+    expect(updatedManifest.workspaceIndexFile.updatedAt).toBe(currentNow);
+    expect(updatedIndex.updatedAt).toBe(currentNow);
+
+    currentNow = "2026-07-26T14:00:00.000Z";
+    const cleared = await timedStore.updatePositioning(
+      created.projectDirectory,
+      {
+        genre: "武侠",
+        pacingMode: null,
+        tropes: []
+      }
+    );
+    expect(cleared.book.genre).toBe("武侠");
+    expect(cleared.book).not.toHaveProperty("pacingMode");
+    expect(cleared.book).not.toHaveProperty("tropes");
+    expect(cleared.summary.genre).toBe("武侠");
+    expect(cleared.summary).not.toHaveProperty("pacingMode");
+    expect(cleared.summary).not.toHaveProperty("tropes");
+
+    const clearedManifest = JSON.parse(
+      await readFile(manifestPath, "utf8")
+    ) as Record<string, unknown>;
+    expect(clearedManifest.genre).toBe("武侠");
+    expect(clearedManifest).not.toHaveProperty("pacingMode");
+    expect(clearedManifest).not.toHaveProperty("tropes");
+    expect(clearedManifest.updatedAt).toBe(currentNow);
+
+    currentNow = "2026-07-26T14:30:00.000Z";
+    await timedStore.updatePositioning(created.projectDirectory, {
+      genre: "仙侠",
+      pacingMode: "fanqie",
+      tropes: ["系统"]
+    });
+    currentNow = "2026-07-26T15:00:00.000Z";
+    const omittedClear = await timedStore.updatePositioning(
+      created.projectDirectory,
+      {
+        genre: "仙侠"
+      }
+    );
+    expect(omittedClear.book).not.toHaveProperty("pacingMode");
+    expect(omittedClear.book).not.toHaveProperty("tropes");
+    expect(omittedClear.summary).not.toHaveProperty("pacingMode");
+    expect(omittedClear.summary).not.toHaveProperty("tropes");
+  });
+
+  it("preserves positioning through LongWorkspaceService createBookAtPath and updates catalog summary via long.updatePositioning", async () => {
+    const root = await realpath(await temporaryParent());
+    let currentNow = "2026-07-26T10:00:00.000Z";
+    const service = new LongWorkspaceService({
+      userDataPath: join(root, "user-data"),
+      now: () => currentNow
+    });
+
+    const createResult = await handleLongCoreCommand(
+      service,
+      createEnvelope(
+        "long.createBookAtPath",
+        {
+          parentDirectory: join(root, "books"),
+          input: {
+            title: "服务层网文定位",
+            genre: "玄幻",
+            pacingMode: "fanqie" as const,
+            tropes: ["系统流", " 面板加点 ", "系统流"]
+          }
+        },
+        { id: "cmd_create_positioning" }
+      )
+    );
+    expect(createResult?.status).toBe("accepted");
+    if (!createResult || createResult.status !== "accepted") {
+      throw new Error("expected accepted long.createBookAtPath result");
+    }
+    const createdPayload = createResult.payload as LongOpenBookResult;
+    expect(createdPayload.book.pacingMode).toBe("fanqie");
+    expect(createdPayload.book.tropes).toEqual(["系统流", "面板加点"]);
+    expect(createdPayload.summary.pacingMode).toBe("fanqie");
+    expect(createdPayload.summary.tropes).toEqual(["系统流", "面板加点"]);
+
+    const bookId = createdPayload.book.id;
+    const agentsMd = await service.readAgentsMd({ bookId });
+    expect(agentsMd.content).toContain("番茄快节奏");
+    expect(agentsMd.content).toContain("【系统流】");
+    expect((await service.list()).books[0]).toMatchObject({
+      id: bookId,
+      genre: "玄幻",
+      pacingMode: "fanqie",
+      tropes: ["系统流", "面板加点"]
+    });
+
+    currentNow = "2026-07-26T11:00:00.000Z";
+    const updateResult = await handleLongCoreCommand(
+      service,
+      createEnvelope(
+        "long.updatePositioning",
+        {
+          bookId,
+          genre: "古代言情",
+          pacingMode: "jinjiang" as const,
+          tropes: ["重生", "虐渣打脸"]
+        },
+        { id: "cmd_update_positioning" }
+      )
+    );
+    expect(updateResult?.status).toBe("accepted");
+    if (!updateResult || updateResult.status !== "accepted") {
+      throw new Error("expected accepted long.updatePositioning result");
+    }
+    const updatedPayload = updateResult.payload as LongOpenBookResult;
+    expect(updatedPayload.summary).toMatchObject({
+      id: bookId,
+      genre: "古代言情",
+      pacingMode: "jinjiang",
+      tropes: ["重生", "虐渣打脸"]
+    });
+    expect((await service.list()).books[0]).toMatchObject({
+      id: bookId,
+      genre: "古代言情",
+      pacingMode: "jinjiang",
+      tropes: ["重生", "虐渣打脸"]
+    });
+    expect(
+      (await service.getWorkspaceIndex({ bookId })).metadata
+    ).toMatchObject({
+      id: bookId,
+      genre: "古代言情",
+      pacingMode: "jinjiang",
+      tropes: ["重生", "虐渣打脸"]
+    });
+
+    currentNow = "2026-07-26T12:00:00.000Z";
+    const clearResult = await handleLongCoreCommand(
+      service,
+      createEnvelope(
+        "long.updatePositioning",
+        {
+          bookId,
+          genre: "历史",
+          pacingMode: null,
+          tropes: []
+        },
+        { id: "cmd_clear_positioning" }
+      )
+    );
+    expect(clearResult?.status).toBe("accepted");
+    const listedSummary = (await service.list()).books[0]!;
+    expect(listedSummary.genre).toBe("历史");
+    expect(listedSummary).not.toHaveProperty("pacingMode");
+    expect(listedSummary).not.toHaveProperty("tropes");
+
+    const currentAgents = await service.readAgentsMd({ bookId });
+    expect(currentAgents.revision).toBeDefined();
+    const updatedAgents = `${currentAgents.content}\n## 平滑变轨\n- 保持前文不动。\n`;
+    const writeRes = await service.writeAgentsMd({
+      bookId,
+      content: updatedAgents,
+      expectedRevision: currentAgents.revision
+    });
+    expect(writeRes.revision).toBeDefined();
+    await expect(
+      service.writeAgentsMd({
+        bookId,
+        content: "# 过期覆盖",
+        expectedRevision: currentAgents.revision
+      })
+    ).rejects.toBeInstanceOf(LongDocumentConflictError);
+
+    const bookDir = await service.resolveProjectDirectory(bookId);
+    await unlink(join(bookDir, "AGENTS.md"));
+    const agentPureRead = await handleLongCoreCommand(
+      service,
+      createEnvelope(
+        "long.readAgentsMd",
+        { bookId },
+        {
+          id: "cmd_agent_read_agents_md",
+          context: {
+            sessionId: "session_1",
+            runId: "run_1",
+            resourceId: bookId
+          }
+        }
+      )
+    );
+    expect(agentPureRead?.status).toBe("accepted");
+    await expect(
+      readFile(join(bookDir, "AGENTS.md"), "utf8")
+    ).rejects.toThrow();
   });
 });

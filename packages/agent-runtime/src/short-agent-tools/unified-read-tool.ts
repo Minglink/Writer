@@ -100,11 +100,12 @@ export function hasCurrentReadEvidence(
 
 export function recordUpdatedReadEvidence(
   state: ShortUnifiedReadState,
-  target: ShortUnifiedTarget,
+  target: ShortUnifiedTarget | string,
   content: string,
   revision: string
 ): void {
-  state.fullyRead.set(target.documentId, { content, revision });
+  const documentId = typeof target === "string" ? target : target.documentId;
+  state.fullyRead.set(documentId, { content, revision });
 }
 
 function fileMetrics(
@@ -222,8 +223,8 @@ export function buildShortUnifiedReadTool(
         : `读取${workspaceKindLabel(input)}对象`,
     description:
       (input.promptLocale === "en-US"
-        ? "Read by stable kind/id from the directory. workspace/workspace lists current objects; draft/draft lists manuscript files and counts. draft_section requires document=body or state (State). section_scope=all_sections on draft returns all files (default body), but above 50000 characters including whitespace returns only the directory. Single objects above that limit require offset/limit reads, which do not authorize full-text overwrites. Read existing text in full before edits."
-        : "按稳定业务 id 一次读全人物概览、人物条目、剧情结构或正文小节，超过 50000 字符（含空白）的对象须用 offset、limit 分段读取，分段读取不授予全文覆盖权限。kind 与 id 必须按目录配对：人物概览用 kind=character_overview、id=character_design；剧情结构用 kind=plot_stage 与目录中原样复制的阶段 id（如 plot_design、plot-stage-8f6f2d36），不能与 character_overview 混用。kind=workspace、id=workspace 获取实时人物、剧情结构和正文小节目录，包含本轮新建对象；不知道目标 id 时先读此目录，不要用人名或标题代替 id。kind=draft_section 必须同时给出 document=body 或 state。kind=draft、id=draft 读取正文目录及各小节的正文、状态字数；再设置 section_scope=all_sections 可一次返回全部小节及合计字数，不传 document 时默认 body。全部正文超过 50000 字符（含空白）时仅返回目录，请分小节读取。修改任何已有正文前必须先 read 完整读取。") +
+        ? "Read by stable kind/id from the directory. kind=agents_md (optional id=agents_md) reads the work context (AGENTS.md) across all stages; workspace/workspace lists current objects; draft/draft lists manuscript files and counts. draft_section requires document=body or state (State). section_scope=all_sections on draft returns all files (default body), but above 50000 characters including whitespace returns only the directory. Single objects above that limit require offset/limit reads, which do not authorize full-text overwrites. Read existing text in full before edits."
+        : "按稳定业务 id 一次读全作品上下文（kind=agents_md，id 可省略或传 agents_md）、人物概览、人物条目、剧情结构或正文小节，超过 50000 字符（含空白）的对象须用 offset、limit 分段读取，分段读取不授予全文覆盖权限。kind 与 id 必须按目录配对：人物概览用 kind=character_overview、id=character_design；剧情结构用 kind=plot_stage 与目录中原样复制的阶段 id（如 plot_design、plot-stage-8f6f2d36），不能与 character_overview 混用。kind=workspace、id=workspace 获取实时人物、剧情结构和正文小节目录，包含本轮新建对象；不知道目标 id 时先读此目录，不要用人名或标题代替 id。kind=draft_section 必须同时给出 document=body 或 state。kind=draft、id=draft 读取正文目录及各小节的正文、状态字数；再设置 section_scope=all_sections 可一次返回全部小节及合计字数，不传 document 时默认 body。全部正文超过 50000 字符（含空白）时仅返回目录，请分小节读取。修改任何已有正文前必须先 read 完整读取。") +
       (input.workspace.readSource === "core"
         ? input.promptLocale === "en-US"
           ? " Reads use the latest saved files and include pending changes from this run."
@@ -235,7 +236,7 @@ export function buildShortUnifiedReadTool(
     parameters: Type.Object(
       {
         kind: writingReadKindParameter,
-        id: stableWritingIdParameter,
+        id: Type.Optional(stableWritingIdParameter),
         document: Type.Optional(writingDocumentParameter),
         offset: Type.Optional(
           Type.Integer({
@@ -278,7 +279,7 @@ export function buildShortUnifiedReadTool(
         );
       }
       if (params.kind === "workspace") {
-        if (String(params.id).trim() !== "workspace") {
+        if (String(params.id ?? "").trim() !== "workspace") {
           throw new Error(
             input.promptLocale === "en-US"
               ? "The work directory id must be workspace."
@@ -301,7 +302,7 @@ export function buildShortUnifiedReadTool(
         );
       }
       if (params.kind === "draft") {
-        if (String(params.id).trim() !== "draft") {
+        if (String(params.id ?? "").trim() !== "draft") {
           throw new Error(
             input.promptLocale === "en-US"
               ? "The manuscript directory id must be draft."
@@ -341,9 +342,13 @@ export function buildShortUnifiedReadTool(
             : "读取 draft_section 必须指定 document=body 或 state。"
         );
       }
+      const rawId =
+        params.kind === "agents_md" && params.id === undefined
+          ? "agents_md"
+          : String(params.id ?? "");
       const target = resolveShortUnifiedTarget(input, sharedState, {
         kind: params.kind,
-        id: String(params.id),
+        id: rawId,
         ...(params.document ? { document: params.document } : {})
       });
       assertWritingDocumentAvailable(input, sharedState, target.documentId);

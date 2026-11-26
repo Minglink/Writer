@@ -8,9 +8,13 @@ import {
   createShortWorkspaceContentRevision,
   DEFAULT_SCRIPT_WRITING_CONTEXT,
   DEFAULT_SHORT_WRITING_CONTEXT,
+  portableBookSchema,
   WRITING_CONTEXT_MAX_CHARACTERS
 } from "@writer/contracts";
-import { FolderCatalogStore } from "./folder-catalog-store";
+import {
+  FolderCatalogConflictError,
+  FolderCatalogStore
+} from "./folder-catalog-store";
 
 const roots: string[] = [];
 
@@ -203,5 +207,269 @@ describe("FolderCatalogStore writing context", () => {
     await expect(
       store.readWritingContext({ bookId: copy.projectId })
     ).resolves.toMatchObject({ workspaceType: "script", content: custom });
+  });
+
+  it("atomically initializes web-novel short AGENTS.md during createShortBook and serializes parallel creations", async () => {
+    const root = await temporaryRoot();
+    const store = new FolderCatalogStore({
+      userDataPath: join(root, "user-data")
+    });
+    const booksDir = join(root, "books");
+
+    const [viralBook, refinedBook] = await Promise.all([
+      store.createShortBook(
+        {
+          title: "真假千金爆款",
+          genre: "真假千金",
+          pacingMode: "viral_short",
+          tropes: ["真假千金", "重生"]
+        },
+        booksDir
+      ),
+      store.createShortBook(
+        {
+          title: "怪谈精品短篇",
+          genre: "规则怪谈",
+          pacingMode: "refined_short",
+          tropes: ["规则怪谈"]
+        },
+        booksDir
+      )
+    ]);
+
+    const viralAgentsMd = await readFile(
+      join(viralBook.projectDirectory, "AGENTS.md"),
+      "utf8"
+    );
+    expect(viralAgentsMd).toContain("## 本篇网文短篇框架（真假千金）");
+    expect(viralAgentsMd).toContain("盐选/番茄爆款短篇");
+    expect(viralAgentsMd).toContain("【真假千金】");
+
+    const refinedAgentsMd = await readFile(
+      join(refinedBook.projectDirectory, "AGENTS.md"),
+      "utf8"
+    );
+    expect(refinedAgentsMd).toContain("## 本篇网文短篇框架（规则怪谈）");
+    expect(refinedAgentsMd).toContain("精品叙事短篇");
+    expect(refinedAgentsMd).toContain("【规则怪谈】");
+  });
+
+  it("persists short web-novel positioning across manifest, index/snapshot reload, and AGENTS.md lazy repair", async () => {
+    const root = await temporaryRoot();
+    const userDataPath = join(root, "user-data");
+    const store = new FolderCatalogStore({ userDataPath });
+    const book = await store.createShortBook(
+      {
+        title: "定位往返短篇",
+        genre: "真假千金",
+        pacingMode: "viral_short",
+        tropes: ["真假千金", "真假千金", " 虐渣打脸 "]
+      },
+      join(root, "books")
+    );
+
+    expect(book.resource).toMatchObject({
+      genre: "真假千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "虐渣打脸"]
+    });
+
+    const rawManifest = await readFile(
+      join(book.projectDirectory, "writer.json"),
+      "utf8"
+    );
+    const parsedManifest = portableBookSchema.parse(JSON.parse(rawManifest));
+    expect(parsedManifest).toMatchObject({
+      bookType: "short",
+      genre: "真假千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "虐渣打脸"]
+    });
+
+    const reloadedStore = new FolderCatalogStore({ userDataPath });
+    const reloadedIndex = await reloadedStore.indexSnapshot();
+    expect(reloadedIndex.books).toHaveLength(1);
+    expect(reloadedIndex.books[0]).toMatchObject({
+      id: book.resource.id,
+      bookType: "short",
+      genre: "真假千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "虐渣打脸"]
+    });
+
+    const reloadedSnapshot = await reloadedStore.snapshot();
+    expect(reloadedSnapshot.books).toHaveLength(1);
+    expect(reloadedSnapshot.books[0]).toMatchObject({
+      id: book.resource.id,
+      bookType: "short",
+      genre: "真假千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "虐渣打脸"]
+    });
+
+    await unlink(join(book.projectDirectory, "AGENTS.md"));
+    const repaired = await reloadedStore.readWritingContext({
+      bookId: book.resource.id
+    });
+    expect(repaired.content).toContain("## 本篇网文短篇框架（真假千金）");
+    expect(repaired.content).toContain("盐选/番茄爆款短篇");
+    expect(repaired.content).toContain("【真假千金】");
+    expect(repaired.content).toContain("【虐渣打脸】");
+
+    const repairedOnDisk = await readFile(
+      join(book.projectDirectory, "AGENTS.md"),
+      "utf8"
+    );
+    expect(repairedOnDisk).toBe(repaired.content);
+  });
+
+  it("updates, preserves on partial patch, and clears short web-novel positioning via updateBook", async () => {
+    const root = await temporaryRoot();
+    const store = new FolderCatalogStore({
+      userDataPath: join(root, "user-data")
+    });
+    const created = await store.createShortBook(
+      {
+        title: "初始短篇",
+        genre: "真假千金",
+        pacingMode: "viral_short",
+        tropes: ["真假千金", "虐渣打脸"]
+      },
+      join(root, "books")
+    );
+
+    const updated = await store.updateBook({
+      bookId: created.resource.id,
+      genre: "追妻",
+      pacingMode: "refined_short",
+      tropes: ["破镜重圆", "破镜重圆"]
+    });
+    expect(updated).toMatchObject({
+      bookType: "short",
+      genre: "追妻",
+      pacingMode: "refined_short",
+      tropes: ["破镜重圆"]
+    });
+
+    const renamed = await store.updateBook({
+      bookId: created.resource.id,
+      title: "新名"
+    });
+    expect(renamed).toMatchObject({
+      bookType: "short",
+      title: "新名",
+      genre: "追妻",
+      pacingMode: "refined_short",
+      tropes: ["破镜重圆"]
+    });
+
+    const cleared = await store.updateBook({
+      bookId: created.resource.id,
+      pacingMode: null,
+      tropes: []
+    });
+    expect(cleared.bookType).toBe("short");
+    if (cleared.bookType === "short") {
+      expect(cleared.pacingMode).toBeUndefined();
+      expect(cleared.tropes).toBeUndefined();
+    }
+
+    const rawClearedManifest = JSON.parse(
+      await readFile(join(created.projectDirectory, "writer.json"), "utf8")
+    ) as Record<string, unknown>;
+    expect(rawClearedManifest).not.toHaveProperty("pacingMode");
+    expect(rawClearedManifest).not.toHaveProperty("tropes");
+    expect(portableBookSchema.parse(rawClearedManifest)).toMatchObject({
+      bookType: "short",
+      title: "新名",
+      genre: "追妻"
+    });
+  });
+
+  it("enforces expectedRevision CAS on writeWritingContext and exposes pure AGENTS.md reads and workspace-only counts", async () => {
+    const root = await temporaryRoot();
+    const store = new FolderCatalogStore({
+      userDataPath: join(root, "user-data")
+    });
+    const created = await store.createShortBook(
+      {
+        title: "CAS短篇",
+        genre: "规则怪谈",
+        pacingMode: "viral_short",
+        tropes: ["规则怪谈"]
+      },
+      join(root, "books")
+    );
+    const bookId = created.resource.id;
+    const initial = await store.readWritingContext({ bookId });
+    expect(initial.revision).toBe(
+      createShortWorkspaceContentRevision(initial.content)
+    );
+
+    const updatedContent = `${initial.content}\n## 追加约束\n- 严禁吃书。\n`;
+    const written = await store.writeWritingContext({
+      bookId,
+      content: updatedContent,
+      expectedRevision: initial.revision
+    });
+    expect(written.revision).toBe(
+      createShortWorkspaceContentRevision(updatedContent)
+    );
+
+    await expect(
+      store.writeWritingContext({
+        bookId,
+        content: "# 过期覆盖",
+        expectedRevision: initial.revision
+      })
+    ).rejects.toBeInstanceOf(FolderCatalogConflictError);
+
+    await unlink(join(created.projectDirectory, "AGENTS.md"));
+    const pureFile = WritingFileSchema.parse(
+      await store.readWritingWorkspace(
+        {
+          bookId,
+          bookType: "short",
+          query: { mode: "file", documentId: "AGENTS.md" }
+        },
+        "run-pure-agents-md"
+      )
+    );
+    expect(pureFile.content).toContain("盐选/番茄爆款短篇");
+    expect(pureFile.content).toContain("【规则怪谈】");
+    await expect(
+      readFile(join(created.projectDirectory, "AGENTS.md"), "utf8")
+    ).rejects.toThrow();
+
+    const workspaceCounts = WritingIndexSchema.parse(
+      await store.readWritingWorkspace(
+        {
+          bookId,
+          bookType: "short",
+          query: { mode: "index", counts: "workspace" }
+        },
+        "run-pure-agents-md"
+      )
+    );
+    expect(workspaceCounts.counts).toContainEqual({
+      id: "AGENTS.md",
+      revision: pureFile.revision,
+      length: pureFile.length,
+      characters: pureFile.characters
+    });
+
+    const draftCounts = WritingIndexSchema.parse(
+      await store.readWritingWorkspace(
+        {
+          bookId,
+          bookType: "short",
+          query: { mode: "index", counts: "draft" }
+        },
+        "run-pure-agents-md"
+      )
+    );
+    expect(draftCounts.counts.some((item) => item.id === "AGENTS.md")).toBe(
+      false
+    );
   });
 });

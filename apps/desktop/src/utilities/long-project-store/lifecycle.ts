@@ -15,6 +15,7 @@ import {
   LongProjectManifestSchema,
   LongWorkspaceFileReferenceSchema,
   LongWorkspaceIndexSnapshotSchema,
+  buildLongAgentsMdForGenre,
   longChapterBodyFileId,
   longChapterCardFileId,
   longChapterCharacterStateFileId,
@@ -23,6 +24,8 @@ import {
   longChapterHandoffFileId,
   longWorldbuildingOverviewContentPath,
   longWorldbuildingOverviewFileId,
+  normalizeWebNovelTropes,
+  resolveLongBookFrameworkPreset,
   type LongLedgerCommitRecord,
   type LongWorkspaceFileReference
 } from "@writer/contracts";
@@ -50,7 +53,6 @@ import { chapterPath, indexedFileSlots } from "./paths";
 import type { LongProjectStoreContext } from "./store-context";
 import {
   BOOK_LINE_PATH,
-  DEFAULT_WORLD_CATEGORIES,
   EMPTY_LINKED_MATERIALS,
   EMPTY_LINKED_SKILLS,
   MANIFEST_PATH,
@@ -243,7 +245,14 @@ export async function duplicateBook(
       operations.push(
         {
           path: LONG_AGENTS_MD_PATH,
-          content: await readAgentsMdContentOrDefault(source.projectDirectory),
+          content: await readAgentsMdContentOrDefault(
+            source.projectDirectory,
+            source.manifest.genre,
+            {
+              pacingMode: source.manifest.pacingMode,
+              tropes: source.manifest.tropes
+            }
+          ),
           expectedSha256: null
         },
         ...(chapterNotesContent !== null
@@ -305,7 +314,8 @@ export function createInitialProjectFiles(
     path,
     updatedAt: timestamp
   });
-  const worldbuilding = DEFAULT_WORLD_CATEGORIES.map(([id, title], index) => ({
+  const framework = resolveLongBookFrameworkPreset(input.genre);
+  const worldbuilding = framework.worldCategories.map(([id, title], index) => ({
     id,
     title,
     order: index + 1,
@@ -398,6 +408,7 @@ export function createInitialProjectFiles(
     ledger: { committedThroughChapterId: null, commits: [] }
   });
   const indexContent = serializeJson(index);
+  const tropes = normalizeWebNovelTropes(input.tropes);
   const manifest = LongProjectManifestSchema.parse({
     schemaVersion: 1,
     kind: "writer.long-book",
@@ -405,6 +416,8 @@ export function createInitialProjectFiles(
     title: input.title,
     bookType: "long",
     genre: input.genre,
+    ...(input.pacingMode !== undefined ? { pacingMode: input.pacingMode } : {}),
+    ...(tropes ? { tropes } : {}),
     status: "editing",
     linkedMaterialIdsByKind:
       input.linkedMaterialIdsByKind ?? EMPTY_LINKED_MATERIALS,
@@ -450,7 +463,14 @@ export function createInitialProjectFiles(
       })),
       {
         path: LONG_AGENTS_MD_PATH,
-        content: DEFAULT_LONG_AGENTS_MD,
+        content: buildLongAgentsMdForGenre(
+          DEFAULT_LONG_AGENTS_MD,
+          input.genre,
+          {
+            pacingMode: input.pacingMode,
+            tropes
+          }
+        ),
         expectedSha256: null as null
       },
       {

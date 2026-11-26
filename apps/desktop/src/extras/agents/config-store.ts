@@ -14,7 +14,8 @@ import {
   EXTRAS_AGENT_PROFILE_CATALOGS,
   type ExtrasAgentProfileCatalog
 } from "./profile-catalogs";
-import { previousLongBookPrompts } from "./previous-long-book-prompts";
+import { promptFingerprint } from "../../main/builtin-agent-prompts";
+import { previousProfileFingerprints } from "./previous-profile-fingerprints";
 import { mergeSettingsById } from "../../main/merge-agent-settings";
 
 interface StoredProfile {
@@ -29,11 +30,6 @@ interface DiskSettings {
   updatedAt?: string;
   promptRevisions?: Record<string, number>;
 }
-
-const previousShortCharacterPrompt =
-  "你是短篇拆书分析师。基于完整短篇，分析人物目标、冲突、关系、关键选择及人物弧光，提炼可复用的人物设计方法。多本输入时比较共性与差异，并标明书名证据。";
-const previousShortStylePrompt =
-  "你是短篇拆书分析师。分析完整短篇的叙述视角、句式、用词、对白和描写，提炼可执行的写作规则及检查清单。多本输入时比较共性与差异，并标明书名证据。避免大段照抄正文。";
 
 async function readJson(path: string): Promise<unknown> {
   try {
@@ -213,32 +209,6 @@ export class ExtrasAgentConfigStore {
       : {};
   }
 
-  private applyPromptUpdates(
-    agentId: ExtrasAgentId,
-    profiles: StoredProfile[],
-    revisions: unknown
-  ): StoredProfile[] {
-    const catalog = this.catalog(agentId);
-    const saved =
-      revisions && typeof revisions === "object"
-        ? (revisions as Record<string, unknown>)
-        : {};
-    return profiles.map((profile) => {
-      const update = catalog.promptUpdates?.find(
-        ({ profileId, revision }) =>
-          profileId === profile.id &&
-          (typeof saved[profileId] !== "number" || saved[profileId] < revision)
-      );
-      if (!update) return profile;
-      const builtin = catalog.defaults.find(
-        (candidate) => candidate.id === update.profileId
-      );
-      return builtin
-        ? { ...profile, systemPrompt: builtin.systemPrompt }
-        : profile;
-    });
-  }
-
   /** Validated stored profiles, or undefined when they cannot be trusted. */
   private parseProfiles(
     agentId: ExtrasAgentId,
@@ -266,30 +236,19 @@ export class ExtrasAgentConfigStore {
     });
     if (!parsed.success) return undefined;
     const upgradedProfiles = parsed.data.profiles.map((profile) => {
+      const builtin = this.catalog(agentId).defaults.find(
+        (candidate) => candidate.id === profile.id
+      );
+      const previous = previousProfileFingerprints[agentId];
       if (
-        agentId === "long-book-analysis" &&
-        profile.systemPrompt === previousLongBookPrompts[profile.id]
+        builtin &&
+        previous?.[profile.id]?.includes(
+          promptFingerprint(profile.systemPrompt)
+        )
       ) {
-        const builtin = EXTRAS_AGENT_PROFILE_CATALOGS[
-          "long-book-analysis"
-        ].defaults.find((candidate) => candidate.id === profile.id);
-        return builtin
-          ? { ...profile, systemPrompt: builtin.systemPrompt }
-          : profile;
+        return { ...profile, systemPrompt: builtin.systemPrompt };
       }
-      if (agentId !== "short-book-analysis") return profile;
-      const isPreviousBuiltin =
-        (profile.id === "character" &&
-          profile.systemPrompt === previousShortCharacterPrompt) ||
-        (profile.id === "style" &&
-          profile.systemPrompt === previousShortStylePrompt);
-      if (!isPreviousBuiltin) return profile;
-      const builtin = EXTRAS_AGENT_PROFILE_CATALOGS[
-        "short-book-analysis"
-      ].defaults.find((candidate) => candidate.id === profile.id);
-      return builtin
-        ? { ...profile, systemPrompt: builtin.systemPrompt }
-        : profile;
+      return profile;
     });
     return this.withDefaults(agentId, upgradedProfiles);
   }
@@ -303,7 +262,6 @@ export class ExtrasAgentConfigStore {
               version?: unknown;
               profiles?: unknown;
               updatedAt?: unknown;
-              promptRevisions?: unknown;
             })
           : {};
       const profiles =
@@ -314,11 +272,7 @@ export class ExtrasAgentConfigStore {
         const updatedAt = validTimestamp(candidate.updatedAt);
         return {
           version: 1,
-          profiles: this.applyPromptUpdates(
-            agentId,
-            profiles,
-            candidate.promptRevisions
-          ),
+          profiles,
           ...(updatedAt ? { updatedAt } : {})
         };
       }
@@ -332,10 +286,7 @@ export class ExtrasAgentConfigStore {
           ? undefined
           : this.parseProfiles(agentId, legacy.profiles(legacyRaw));
       if (profiles) {
-        return {
-          version: 1,
-          profiles: this.applyPromptUpdates(agentId, profiles, undefined)
-        };
+        return { version: 1, profiles };
       }
     }
     return { version: 1, profiles: this.withDefaults(agentId, []) };

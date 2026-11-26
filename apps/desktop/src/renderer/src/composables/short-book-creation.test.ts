@@ -7,6 +7,10 @@ function setup() {
     id: "created",
     bookType: "short"
   }));
+  const createShortBook = vi.fn(async () => ({
+    id: "created-direct",
+    bookType: "short"
+  }));
   const refresh = vi.fn(async () => true);
   const select = vi.fn(async () => true);
   const pending = ref(false);
@@ -19,7 +23,7 @@ function setup() {
   };
   const create = createShortBookCreator({
     catalog: {
-      api: () => ({ createBookFromTemplate }),
+      api: () => ({ createBookFromTemplate, createShortBook }),
       refreshWorkspaceDirectory: async () => {}
     } as unknown as ShortBookLifecycleCoordinatorOptions["catalog"],
     state: {
@@ -51,6 +55,7 @@ function setup() {
   return {
     create,
     createBookFromTemplate,
+    createShortBook,
     refresh,
     select,
     pending,
@@ -100,5 +105,27 @@ describe("template creation lifecycle", () => {
     expect(h.notifications.error).toHaveBeenCalledWith("模板已删除");
     expect(h.open.value).toBe(true);
     expect(h.pending.value).toBe(false);
+  });
+  it("forwards web-novel pacingMode and tropes in a single atomic createShortBook call", async () => {
+    const h = setup();
+    await h.create({
+      workspaceType: "short",
+      genre: "真假千金",
+      title: "豪门真千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "重生"]
+    });
+    expect(h.createShortBook).toHaveBeenCalledExactlyOnceWith({
+      genre: "真假千金",
+      title: "豪门真千金",
+      pacingMode: "viral_short",
+      tropes: ["真假千金", "重生"],
+      linkedMaterialIds: undefined,
+      linkedSkillIds: undefined,
+      linkedMaterialIdsByKind: undefined,
+      linkedSkillIdsByKind: undefined
+    });
+    expect(h.select).toHaveBeenCalledWith("created-direct");
+    expect(h.open.value).toBe(false);
   });
 });

@@ -3,17 +3,25 @@ import {
   CommandEnvelopeSchema,
   CreateLongBookInputSchema,
   LONG_AGENTS_MD_MAX_CHARACTERS,
+  LONG_BOOK_LINE_FILE_ID,
+  LONG_WORKSPACE_INDEX_FILE_ID,
+  LONG_WORKSPACE_INDEX_PATH,
+  LongBookSchema,
+  LongProjectManifestSchema,
   LongReadDocumentInputSchema,
   LongReadDocumentResultSchema,
   LongRenameBookInputSchema,
   LongSearchInputSchema,
   LongUpdateBindingsInputSchema,
+  LongUpdatePositioningInputSchema,
   LongWorkspaceRuntimeContextSchema,
   LongWorkspaceCommandEnvelopeSchema,
   LongReadAgentsMdInputSchema,
   LongReadAgentsMdResultSchema,
   LongWriteAgentsMdInputSchema,
-  createEnvelope
+  createEnvelope,
+  createLongBookMetadata,
+  createLongBookSummary
 } from "./index";
 
 const runtimeNavigation = {
@@ -736,5 +744,250 @@ describe("long workspace API contracts", () => {
     expect(CommandEnvelopeSchema.parse(writeAgentsMd).type).toBe(
       "long.writeAgentsMd"
     );
+  });
+
+  it("propagates long-book web-novel positioning across manifests, books, metadata, and summaries while omitting unset legacy fields", () => {
+    const now = "2026-07-26T10:00:00.000Z";
+    const linkedMaterialIdsByKind = {
+      character: [],
+      gimmick: [],
+      plot: [],
+      draft: [],
+      other: []
+    };
+    const linkedSkillIdsByKind = {
+      general: [],
+      plot: [],
+      style: [],
+      other: []
+    };
+    const baseBook = {
+      schemaVersion: 1 as const,
+      id: "longbook_api",
+      title: "时间尽头",
+      bookType: "long" as const,
+      genre: "玄幻",
+      status: "editing" as const,
+      linkedMaterialIdsByKind,
+      linkedSkillIdsByKind,
+      createdAt: now,
+      updatedAt: now,
+      workspaceIndex: {
+        schemaVersion: 1 as const,
+        bookId: "longbook_api",
+        updatedAt: now,
+        bookLine: {
+          id: LONG_BOOK_LINE_FILE_ID,
+          path: "long/plot/book-line.md",
+          updatedAt: now
+        },
+        worldbuilding: [],
+        characters: [],
+        characterFiles: [],
+        plot: {
+          volumes: [],
+          arcs: [],
+          chapterCards: [],
+          storyEvents: [],
+          eventConnections: [],
+          narrativePlacements: [],
+          foreshadowing: []
+        },
+        chapters: [],
+        ledger: {
+          committedThroughChapterId: null,
+          commits: []
+        }
+      }
+    };
+
+    const positionedManifest = LongProjectManifestSchema.parse({
+      schemaVersion: 1,
+      kind: "writer.long-book",
+      id: "longbook_api",
+      title: "时间尽头",
+      bookType: "long",
+      genre: "玄幻",
+      pacingMode: "qidian",
+      tropes: ["系统流", "苟道长生"],
+      status: "editing",
+      linkedMaterialIdsByKind,
+      linkedSkillIdsByKind,
+      createdAt: now,
+      updatedAt: now,
+      workspaceIndexFile: {
+        id: LONG_WORKSPACE_INDEX_FILE_ID,
+        path: LONG_WORKSPACE_INDEX_PATH,
+        updatedAt: now
+      }
+    });
+    expect(positionedManifest.pacingMode).toBe("qidian");
+    expect(positionedManifest.tropes).toEqual(["系统流", "苟道长生"]);
+
+    const positionedBook = LongBookSchema.parse({
+      ...baseBook,
+      pacingMode: "qidian",
+      tropes: ["系统流", "苟道长生"]
+    });
+    expect(positionedBook.pacingMode).toBe("qidian");
+    expect(positionedBook.tropes).toEqual(["系统流", "苟道长生"]);
+
+    const metadata = createLongBookMetadata(positionedBook);
+    expect(metadata.pacingMode).toBe("qidian");
+    expect(metadata.tropes).toEqual(["系统流", "苟道长生"]);
+
+    const summary = createLongBookSummary(positionedBook);
+    expect(summary.pacingMode).toBe("qidian");
+    expect(summary.tropes).toEqual(["系统流", "苟道长生"]);
+
+    const legacyManifest = LongProjectManifestSchema.parse({
+      schemaVersion: 1,
+      kind: "writer.long-book",
+      id: "longbook_api",
+      title: "时间尽头",
+      bookType: "long",
+      genre: "玄幻",
+      status: "editing",
+      linkedMaterialIdsByKind,
+      linkedSkillIdsByKind,
+      createdAt: now,
+      updatedAt: now,
+      workspaceIndexFile: {
+        id: LONG_WORKSPACE_INDEX_FILE_ID,
+        path: LONG_WORKSPACE_INDEX_PATH,
+        updatedAt: now
+      }
+    });
+    expect("pacingMode" in legacyManifest).toBe(false);
+    expect("tropes" in legacyManifest).toBe(false);
+
+    const legacyBook = LongBookSchema.parse(baseBook);
+    const legacyMetadata = createLongBookMetadata(legacyBook);
+    const legacySummary = createLongBookSummary(legacyBook);
+    expect("pacingMode" in legacyMetadata).toBe(false);
+    expect("tropes" in legacyMetadata).toBe(false);
+    expect("pacingMode" in legacySummary).toBe(false);
+    expect("tropes" in legacySummary).toBe(false);
+
+    const emptyTropesBook = LongBookSchema.parse({
+      ...baseBook,
+      tropes: []
+    });
+    expect("tropes" in createLongBookMetadata(emptyTropesBook)).toBe(false);
+    expect("tropes" in createLongBookSummary(emptyTropesBook)).toBe(false);
+  });
+
+  it("validates long.updatePositioning payloads and command envelopes", () => {
+    const validPayload = {
+      bookId: "longbook_api",
+      genre: "都市脑洞" as const,
+      pacingMode: "fanqie" as const,
+      tropes: ["系统流"]
+    };
+    expect(LongUpdatePositioningInputSchema.parse(validPayload)).toEqual(
+      validPayload
+    );
+
+    const validEnvelope = createEnvelope(
+      "long.updatePositioning",
+      validPayload,
+      { id: "cmd_long_update_positioning" }
+    );
+    expect(
+      LongWorkspaceCommandEnvelopeSchema.parse(validEnvelope)
+    ).toMatchObject({
+      type: "long.updatePositioning",
+      payload: validPayload
+    });
+    expect(CommandEnvelopeSchema.parse(validEnvelope)).toMatchObject({
+      type: "long.updatePositioning",
+      payload: validPayload
+    });
+
+    const clearPayload = {
+      bookId: "longbook_api",
+      genre: "历史脑洞" as const,
+      pacingMode: null,
+      tropes: []
+    };
+    expect(LongUpdatePositioningInputSchema.parse(clearPayload)).toEqual(
+      clearPayload
+    );
+    const clearEnvelope = createEnvelope(
+      "long.updatePositioning",
+      clearPayload,
+      { id: "cmd_long_clear_positioning" }
+    );
+    expect(
+      LongWorkspaceCommandEnvelopeSchema.parse(clearEnvelope)
+    ).toMatchObject({
+      type: "long.updatePositioning",
+      payload: clearPayload
+    });
+    expect(CommandEnvelopeSchema.parse(clearEnvelope)).toMatchObject({
+      type: "long.updatePositioning",
+      payload: clearPayload
+    });
+
+    const genreOnlyPayload = {
+      bookId: "longbook_api",
+      genre: "历史脑洞" as const
+    };
+    expect(LongUpdatePositioningInputSchema.parse(genreOnlyPayload)).toEqual(
+      genreOnlyPayload
+    );
+    const genreOnlyEnvelope = createEnvelope(
+      "long.updatePositioning",
+      genreOnlyPayload,
+      { id: "cmd_long_genre_only_positioning" }
+    );
+    expect(
+      LongWorkspaceCommandEnvelopeSchema.parse(genreOnlyEnvelope).payload
+    ).toEqual(genreOnlyPayload);
+    expect(CommandEnvelopeSchema.parse(genreOnlyEnvelope).payload).toEqual(
+      genreOnlyPayload
+    );
+
+    expect(
+      LongUpdatePositioningInputSchema.safeParse({
+        bookId: "longbook_api",
+        genre: "都市脑洞",
+        tropes: ["流1", "流2", "流3", "流4", "流5", "流6", "流7"]
+      }).success
+    ).toBe(false);
+    expect(
+      LongUpdatePositioningInputSchema.safeParse({
+        bookId: "longbook_api",
+        genre: "都市脑洞",
+        tropes: ["流".repeat(33)]
+      }).success
+    ).toBe(false);
+    expect(
+      LongUpdatePositioningInputSchema.safeParse({
+        bookId: "longbook_api",
+        genre: "都市脑洞",
+        tropes: ["   "]
+      }).success
+    ).toBe(false);
+    expect(
+      LongUpdatePositioningInputSchema.safeParse({
+        bookId: "longbook_api",
+        genre: "都市脑洞",
+        pacingMode: "viral_short"
+      }).success
+    ).toBe(false);
+    expect(
+      CommandEnvelopeSchema.safeParse(
+        createEnvelope(
+          "long.updatePositioning",
+          {
+            bookId: "longbook_api",
+            genre: "都市脑洞",
+            pacingMode: "viral_short"
+          },
+          { id: "cmd_long_update_positioning_invalid" }
+        )
+      ).success
+    ).toBe(false);
   });
 });

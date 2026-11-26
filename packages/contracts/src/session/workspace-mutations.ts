@@ -6,11 +6,36 @@ import {
   SHORT_WORKSPACE_FILE_MAX_CHARACTERS
 } from "../expert-draft";
 import { ShortWorkspaceStageIdSchema } from "../workspace";
+import {
+  WRITING_CONTEXT_MAX_CHARACTERS,
+  writingContextCharacterCount
+} from "../writing-context";
 import { AgentRuntimeRefSchema } from "./agent-event-identity";
+
+const AgentsMdMutationTextSchema = z
+  .string()
+  .max(WRITING_CONTEXT_MAX_CHARACTERS * 2)
+  .refine(
+    (text) =>
+      writingContextCharacterCount(text) <= WRITING_CONTEXT_MAX_CHARACTERS,
+    "Writing context exceeds the maximum character count."
+  );
+
+export const AgentsMdMutationTargetSchema = z.object({
+  kind: z.literal("agents-md"),
+  workspaceType: z.enum(["short", "script"]),
+  beforeText: AgentsMdMutationTextSchema,
+  afterText: AgentsMdMutationTextSchema,
+  expectedRevision: z.string().trim().min(1).max(160).optional()
+});
+export type AgentsMdMutationTarget = z.infer<
+  typeof AgentsMdMutationTargetSchema
+>;
 
 export const WorkspaceEditorMutationTargetSchema = z.discriminatedUnion(
   "kind",
   [
+    AgentsMdMutationTargetSchema,
     z.object({
       kind: z.literal("expert-draft-file"),
       documentId: z.string().trim().min(1).max(4_096),
@@ -119,7 +144,7 @@ export const WorkspaceEditorMutationPayloadSchema = z
     runId: z.string().min(1),
     toolCallId: z.string().min(1),
     workspaceId: z.string().min(1).max(240),
-    stageId: ShortWorkspaceStageIdSchema,
+    stageId: z.union([ShortWorkspaceStageIdSchema, z.literal("agents_md")]),
     text: z.string().max(SHORT_WORKSPACE_FILE_MAX_CHARACTERS),
     mutationTarget: WorkspaceEditorMutationTargetSchema.optional(),
     baseRevision: z.string().regex(/^v1:\d+:[0-9a-f]{8}$/),
@@ -127,6 +152,26 @@ export const WorkspaceEditorMutationPayloadSchema = z
     runtime: AgentRuntimeRefSchema
   })
   .superRefine((value, context) => {
+    if (
+      value.stageId === "agents_md" &&
+      value.mutationTarget?.kind !== "agents-md"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["mutationTarget"],
+        message: "AGENTS.md stage mutations must target agents-md."
+      });
+    }
+    if (
+      value.mutationTarget?.kind === "agents-md" &&
+      value.stageId !== "agents_md"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["stageId"],
+        message: "AGENTS.md mutations must use the agents_md stage."
+      });
+    }
     if (
       value.mutationTarget !== undefined &&
       value.mutationTarget.kind.startsWith("expert-draft") &&

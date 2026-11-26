@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import previousLongPrompts from "./__fixtures__/previous-long-agent-prompts.json";
 import {
   BUILTIN_AGENT_PROMPT_KEYS,
   BUILTIN_AGENT_SYSTEM_PROMPTS,
@@ -44,10 +45,10 @@ describe("built-in agent prompts follow the app language", () => {
     ).toBe(false);
   });
 
-  it("recognizes the pre-guard and pre-checkpoint long prompts in both languages", () => {
+  it("upgrades earlier long prompts in either language and keeps user edits", () => {
     const current = BUILTIN_AGENT_SYSTEM_PROMPTS.long;
     const beforeGuards = [
-      current["zh-CN"]
+      previousLongPrompts["zh-CN"]
         .replace(
           "写章节前读本章章卡和上一章结尾；章卡写作上下文够用就直接写，缺什么只读那一个对象",
           "写章节前读取章卡、出场人物和最近检查点的接续包；检查点之后若有已写未提交的章节，再读取这些章节的正文结尾"
@@ -56,7 +57,7 @@ describe("built-in agent prompts follow the app language", () => {
           "细化章卡时，把本章要用的上下文写进章卡的写作上下文小节，只写本章用得上的。",
           ""
         ),
-      current["en-US"]
+      previousLongPrompts["en-US"]
         .replace(
           "before drafting, read this chapter's card and the previous chapter's ending. If the card's writing context is enough, start writing; otherwise read only the missing object.",
           "before writing a chapter, read its chapter card, the characters who appear and the latest checkpoint's handoff. If written, uncommitted chapters follow that checkpoint, also read their manuscript endings."
@@ -76,12 +77,20 @@ describe("built-in agent prompts follow the app language", () => {
         "before writing a chapter, read its chapter card, the characters who appear, the previous chapter's handoff and the relevant continuity."
       )
     ];
-    for (const text of [...beforeGuards, ...beforeCheckpoint]) {
+    for (const text of [
+      ...Object.values(previousLongPrompts),
+      ...beforeGuards,
+      ...beforeCheckpoint
+    ]) {
       expect(text).not.toBe(current["zh-CN"]);
       expect(text).not.toBe(current["en-US"]);
       expect(isBuiltinAgentSystemPrompt("long", text)).toBe(true);
       expect(localizeAgentSystemPrompt("long", text, "en-US")).toBe(
         current["en-US"]
+      );
+      const customized = `${text}\nKeep the author's ending.`;
+      expect(localizeAgentSystemPrompt("long", customized, "en-US")).toBe(
+        customized
       );
     }
   });

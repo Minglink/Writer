@@ -127,6 +127,7 @@ const emit = defineEmits<{
       runId: string;
       proposalId: string;
       decision: "accept" | "reject";
+      editedText?: string;
     }
   ];
   locateEditProposal: [payload: { runId: string; proposalId: string }];

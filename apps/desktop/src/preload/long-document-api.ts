@@ -6,6 +6,7 @@ import {
   LongDeleteLedgerCommitInputSchema,
   LongDeleteLedgerCommitResultSchema,
   LongOpenBookInputSchema,
+  LongOpenBookResultSchema,
   LongPreviewOperationsInputSchema,
   LongPreviewOperationsResultSchema,
   LongReadAgentsMdInputSchema,
@@ -18,6 +19,7 @@ import {
   LongRestoreOperationsResultSchema,
   LongSearchInputSchema,
   LongSearchResultSchema,
+  LongUpdatePositioningInputSchema,
   LongWorkspaceIndexResultSchema,
   LongWriteAgentsMdInputSchema,
   LongWriteAgentsMdResultSchema,
@@ -37,6 +39,7 @@ import {
   type LongDeleteLedgerCommitInput,
   type LongDeleteLedgerCommitResult,
   type LongOpenBookInput,
+  type LongOpenBookResult,
   type LongPreviewOperationsInput,
   type LongPreviewOperationsResult,
   type LongReadAgentsMdInput,
@@ -47,6 +50,7 @@ import {
   type LongReadDocumentResult,
   type LongSearchInput,
   type LongSearchResult,
+  type LongUpdatePositioningInput,
   type LongWorkspaceIndexResult,
   type LongWriteAgentsMdInput,
   type LongWriteAgentsMdResult,
@@ -260,6 +264,22 @@ export async function deleteLongLedgerCommit(
   return LongDeleteLedgerCommitResultSchema.parse(
     await invokeCommand<LongDeleteLedgerCommitResult>(
       createEnvelope("long.deleteLedgerCommit", input, {
+        id,
+        correlationId: id,
+        context: { resourceId: input.bookId }
+      })
+    )
+  );
+}
+
+export async function updateLongBookPositioning(
+  rawInput: LongUpdatePositioningInput
+): Promise<LongOpenBookResult> {
+  const input = LongUpdatePositioningInputSchema.parse(rawInput);
+  const id = browserId("cmd_long_update_positioning");
+  return LongOpenBookResultSchema.parse(
+    await invokeCommand<LongOpenBookResult>(
+      createEnvelope("long.updatePositioning", input, {
         id,
         correlationId: id,
         context: { resourceId: input.bookId }

@@ -1,15 +1,21 @@
 import type { AgentTool, AgentToolResult } from "@earendil-works/pi-agent-core";
 import {
+  DEFAULT_SCRIPT_WORKSPACE_AGENT_PROFILES,
   DEFAULT_SHORT_WORKSPACE_AGENT_PROFILES,
   SHORT_WORKSPACE_TEXT_STAGE_IDS,
   createDefaultCreativePlotStages,
   createShortWorkspaceContentRevision,
+  type ScriptWorkspaceSnapshot,
   type ShortWorkspaceSnapshot
 } from "@writer/contracts";
 import { type ShortWorkspaceToolDetails } from "./short-agent-tools";
 
 export function shortProfile() {
   return DEFAULT_SHORT_WORKSPACE_AGENT_PROFILES[0]!;
+}
+
+export function scriptProfile() {
+  return DEFAULT_SCRIPT_WORKSPACE_AGENT_PROFILES[0]!;
 }
 
 export function expertSection(
@@ -37,14 +43,18 @@ export function expertSection(
   };
 }
 
+export interface ShortWorkspaceFixtureOptions {
+  characterList?: boolean;
+  truncatedCharacter?: boolean;
+  plotContent?: string;
+  truncatedPlot?: boolean;
+  agentsMd?: string;
+  agentsMdTruncated?: boolean;
+}
+
 export function shortWorkspace(
   activeStageId: ShortWorkspaceSnapshot["activeStageId"] = "plot_design",
-  options: {
-    characterList?: boolean;
-    truncatedCharacter?: boolean;
-    plotContent?: string;
-    truncatedPlot?: boolean;
-  } = {}
+  options: ShortWorkspaceFixtureOptions = {}
 ): ShortWorkspaceSnapshot {
   const plotContent = options.plotContent ?? "旧剧情的唯一片段。";
   return {
@@ -53,6 +63,8 @@ export function shortWorkspace(
     categories: ["悬疑"],
     activeStageId,
     ...(activeStageId === "draft" ? { activeSectionId: "section-1" } : {}),
+    ...(options.agentsMd !== undefined ? { agentsMd: options.agentsMd } : {}),
+    ...(options.agentsMdTruncated ? { agentsMdTruncated: true } : {}),
     characterStructure: options.characterList
       ? {
           format: "list",
@@ -109,6 +121,19 @@ export function shortWorkspace(
           : {})
       };
     })
+  };
+}
+
+export function scriptWorkspace(
+  activeStageId: ScriptWorkspaceSnapshot["activeStageId"] = "plot_design",
+  options: ShortWorkspaceFixtureOptions = {}
+): ScriptWorkspaceSnapshot {
+  const base = shortWorkspace(activeStageId, options);
+  return {
+    ...base,
+    id: "script-tool-test",
+    title: "暗港夜航",
+    activeAgentId: "script"
   };
 }
 

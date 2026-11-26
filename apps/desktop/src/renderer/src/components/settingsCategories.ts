@@ -1,6 +1,7 @@
 import { createScopedTranslator } from "../i18n";
 
 const webSearchT = createScopedTranslator("components.webSearchSettings");
+const imageModelT = createScopedTranslator("components.imageModelSettings");
 const externalControlT = createScopedTranslator("extras.externalControl");
 const t = createScopedTranslator("components.settingsPage");
 
@@ -113,6 +114,13 @@ export const settingsSections: SettingsSection[] = [
           return t("customModelSettings");
         },
         icon: "model"
+      },
+      {
+        id: "image-models",
+        get label() {
+          return imageModelT("title");
+        },
+        icon: "image"
       }
     ]
   },

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { createScopedTranslator } from "../i18n";
-import { computed, defineAsyncComponent, onMounted, ref } from "vue";
+import { getErrorDetail } from "../i18n/errors";
+import {
+  computed,
+  defineAsyncComponent,
+  onErrorCaptured,
+  onMounted,
+  ref,
+  watch
+} from "vue";
 import {
   type AppLanguage,
   type ContextCompactionSettings,
@@ -45,6 +53,9 @@ const ExternalControlSettingsPanel = defineAsyncComponent(
 );
 const ArchivedConversationsPanel = defineAsyncComponent(
   () => import("./ArchivedConversationsPanel.vue")
+);
+const ImageModelSettingsPanel = defineAsyncComponent(
+  () => import("./ImageModelSettingsPanel.vue")
 );
 
 const t = createScopedTranslator("components.settingsPage");
@@ -134,6 +145,17 @@ const emit = defineEmits<{
 }>();
 const activeCategory = ref(props.initialCategory ?? "general");
 const searchQuery = ref("");
+const panelError = ref<string | null>(null);
+const panelKey = ref(0);
+
+onErrorCaptured((error) => {
+  panelError.value = getErrorDetail(error) ?? "";
+  return false;
+});
+
+watch(activeCategory, () => {
+  panelError.value = null;
+});
 
 onMounted(() => {
   if (activeCategory.value === "custom-models") emit("loadModels");
@@ -165,17 +187,32 @@ const activeLabel = computed(() => {
 });
 
 async function selectCategory(id: string): Promise<void> {
+  if (panelError.value !== null) {
+    panelError.value = null;
+    panelKey.value += 1;
+  }
   if (id === "custom-models") {
     emit("loadModels");
   }
   activeCategory.value = id;
+}
+
+function retryPanel(): void {
+  panelError.value = null;
+  panelKey.value += 1;
+  if (activeCategory.value === "custom-models") emit("loadModels");
+}
+
+function handleBack(): void {
+  panelError.value = null;
+  emit("back");
 }
 </script>
 
 <template>
   <div class="settings-page">
     <aside class="settings-sidebar">
-      <button class="settings-back" type="button" @click="emit('back')">
+      <button class="settings-back" type="button" @click="handleBack">
         <AppIcon name="chevron" :size="14" />
         <span>{{ t("backToApp") }}</span>
       </button>
@@ -228,160 +265,198 @@ async function selectCategory(id: string): Promise<void> {
       <div class="settings-content-inner">
         <h1 class="settings-title">{{ activeLabel }}</h1>
 
-        <StorageSettingsPanel
-          v-if="activeCategory === 'directory'"
-          :workspace-directory-path="workspaceDirectoryPath"
-          :workspace-directory-loading="workspaceDirectoryLoading"
-          :runtime-available="runtimeAvailable"
-          @choose-workspace-directory="emit('chooseWorkspaceDirectory')"
-          @reset-workspace-directory="emit('resetWorkspaceDirectory')"
-        />
-
-        <ShortAgentSettingsPanel
-          v-else-if="activeCategory === 'short-agents'"
-          :settings="workspaceAgentSettings"
-          :creative-plot-stages="creativePlotStages"
-          :long-settings="longAgentSettings"
-          :loading="workspaceAgentLoading"
-          :saving="workspaceAgentSaving"
-          :long-loading="longAgentLoading"
-          :long-saving="longAgentSaving"
-          :long-error-message="longAgentError"
-          :runtime-available="runtimeAvailable"
-          @save="emit('saveWorkspaceAgents', $event)"
-          @retry-long="emit('retryLongAgents')"
-          @save-long="emit('saveLongAgents', $event)"
-        />
-
-        <LibraryAgentSettingsPanel
-          v-else-if="activeCategory === 'skill-library-agent'"
-          domain="skill"
-          :settings="libraryAgentSettings"
-          :loading="libraryAgentLoading"
-          :saving="libraryAgentSaving"
-          :runtime-available="runtimeAvailable"
-          @save="emit('saveLibraryAgents', $event)"
-          @reset="emit('resetLibraryAgent', $event)"
-        />
-
-        <LibraryAgentSettingsPanel
-          v-else-if="activeCategory === 'material-library-agent'"
-          domain="material"
-          :settings="libraryAgentSettings"
-          :loading="libraryAgentLoading"
-          :saving="libraryAgentSaving"
-          :runtime-available="runtimeAvailable"
-          @save="emit('saveLibraryAgents', $event)"
-          @reset="emit('resetLibraryAgent', $event)"
-        />
-
-        <MoreFeaturesSettingsPanel
-          v-else-if="activeCategory === 'more-features'"
-          :settings="moreFeaturesSettings"
-          @update="emit('updateMoreFeatures', $event)"
-        />
-
-        <ModelUsagePanel
-          v-else-if="activeCategory === 'usage'"
-          :dashboard="modelUsageDashboard"
-          :loading="modelUsageLoading"
-          :model-alert-messages="[]"
-          @query="emit('loadModelUsage', $event)"
-        />
-
-        <ModelSettingsFeature
-          v-else-if="activeCategory === 'custom-models'"
-          model-scope="custom"
-          embedded
-          active
-          :model-settings="modelSettings"
-          :model-loading="modelLoading"
-          :model-saving="modelSaving"
-          :model-error="modelError"
-          :model-test-message="modelTestMessage"
-          :testing-model-id="testingModelId"
-          :model-alert-messages="[]"
-          @save-models="emit('saveModels', $event)"
-          @test-model="emit('testModel', $event)"
-        />
-
-        <template v-else-if="activeCategory === 'general'">
-          <GeneralSettingsPanel
-            :permission-mode="permissionMode"
-            :auto-save-enabled="autoSaveEnabled"
-            :version-history-enabled="versionHistoryEnabled"
-            :language="language"
-            :show-in-menu-bar="showInMenuBar"
-            :task-notification="taskNotification"
-            :use-network-proxy="useNetworkProxy"
-            :workspace-pane-layout="workspacePaneLayout"
-            @update-permission-mode="emit('updatePermissionMode', $event)"
-            @update-auto-save="emit('updateAutoSave', $event)"
-            @update-version-history-enabled="
-              emit('updateVersionHistoryEnabled', $event)
-            "
-            @update-language="emit('updateLanguage', $event)"
-            @update-show-in-menu-bar="emit('updateShowInMenuBar', $event)"
-            @update-task-notification="emit('updateTaskNotification', $event)"
-            @update-use-network-proxy="emit('updateUseNetworkProxy', $event)"
-            @update-workspace-pane-layout="
-              emit('updateWorkspacePaneLayout', $event)
-            "
-          />
-        </template>
-
-        <BodyTextSettingsPanel
-          v-else-if="activeCategory === 'body-text'"
-          :default-text-view-mode="defaultTextViewMode"
-          :body-text-formats="bodyTextFormats"
-          @update-default-text-view-mode="
-            emit('updateDefaultTextViewMode', $event)
-          "
-          @update-body-text-format="emit('updateBodyTextFormat', $event)"
-        />
-
-        <ConfigurationSettingsPanel
-          v-else-if="activeCategory === 'configuration'"
-          :show-context-usage="showContextUsage"
-          :text-attachment-max-characters="textAttachmentMaxCharacters"
-          :context-compaction="contextCompaction"
-          :model-settings="modelSettings"
-          @update-show-context-usage="emit('updateShowContextUsage', $event)"
-          @update-text-attachment-max-characters="
-            emit('updateTextAttachmentMaxCharacters', $event)
-          "
-          @update-context-compaction="emit('updateContextCompaction', $event)"
-        />
-
-        <AppearanceSettingsPanel v-else-if="activeCategory === 'appearance'" />
-
-        <ArchivedConversationsPanel
-          v-else-if="activeCategory === 'archived-conversations'"
-        />
-
-        <WebSearchSettingsPanel v-else-if="activeCategory === 'web-search'" />
-        <ExternalControlSettingsPanel
-          v-else-if="activeCategory === 'external-control'"
-          :external-control-enabled="externalControlEnabled"
-          @update-external-control-enabled="
-            emit('updateExternalControlEnabled', $event)
-          "
-        />
-
-        <section v-else class="settings-group">
+        <section v-if="panelError !== null" class="settings-group" role="alert">
           <div class="settings-card">
-            <p class="settings-placeholder">
-              {{
-                t("settingsAreNotConfiguredMessage", {
-                  arg0: activeLabel ?? ""
-                })
-              }}
-            </p>
+            <div class="settings-item settings-panel-error">
+              <div class="settings-item-text">
+                <strong>{{ t("panelLoadFailed") }}</strong>
+                <small v-if="panelError">{{ panelError }}</small>
+              </div>
+              <button
+                type="button"
+                class="dialog-secondary-button"
+                @click="retryPanel"
+              >
+                {{ t("retry") }}
+              </button>
+            </div>
           </div>
         </section>
+
+        <div v-else :key="panelKey">
+          <StorageSettingsPanel
+            v-if="activeCategory === 'directory'"
+            :workspace-directory-path="workspaceDirectoryPath"
+            :workspace-directory-loading="workspaceDirectoryLoading"
+            :runtime-available="runtimeAvailable"
+            @choose-workspace-directory="emit('chooseWorkspaceDirectory')"
+            @reset-workspace-directory="emit('resetWorkspaceDirectory')"
+          />
+
+          <ShortAgentSettingsPanel
+            v-else-if="activeCategory === 'short-agents'"
+            :settings="workspaceAgentSettings"
+            :creative-plot-stages="creativePlotStages"
+            :long-settings="longAgentSettings"
+            :loading="workspaceAgentLoading"
+            :saving="workspaceAgentSaving"
+            :long-loading="longAgentLoading"
+            :long-saving="longAgentSaving"
+            :long-error-message="longAgentError"
+            :runtime-available="runtimeAvailable"
+            @save="emit('saveWorkspaceAgents', $event)"
+            @retry-long="emit('retryLongAgents')"
+            @save-long="emit('saveLongAgents', $event)"
+          />
+
+          <LibraryAgentSettingsPanel
+            v-else-if="activeCategory === 'skill-library-agent'"
+            domain="skill"
+            :settings="libraryAgentSettings"
+            :loading="libraryAgentLoading"
+            :saving="libraryAgentSaving"
+            :runtime-available="runtimeAvailable"
+            @save="emit('saveLibraryAgents', $event)"
+            @reset="emit('resetLibraryAgent', $event)"
+          />
+
+          <LibraryAgentSettingsPanel
+            v-else-if="activeCategory === 'material-library-agent'"
+            domain="material"
+            :settings="libraryAgentSettings"
+            :loading="libraryAgentLoading"
+            :saving="libraryAgentSaving"
+            :runtime-available="runtimeAvailable"
+            @save="emit('saveLibraryAgents', $event)"
+            @reset="emit('resetLibraryAgent', $event)"
+          />
+
+          <MoreFeaturesSettingsPanel
+            v-else-if="activeCategory === 'more-features'"
+            :settings="moreFeaturesSettings"
+            @update="emit('updateMoreFeatures', $event)"
+          />
+
+          <ModelUsagePanel
+            v-else-if="activeCategory === 'usage'"
+            :dashboard="modelUsageDashboard"
+            :loading="modelUsageLoading"
+            :model-alert-messages="[]"
+            @query="emit('loadModelUsage', $event)"
+          />
+
+          <ImageModelSettingsPanel
+            v-else-if="activeCategory === 'image-models'"
+            :runtime-available="runtimeAvailable"
+          />
+
+          <ModelSettingsFeature
+            v-else-if="activeCategory === 'custom-models'"
+            model-scope="custom"
+            embedded
+            active
+            :model-settings="modelSettings"
+            :model-loading="modelLoading"
+            :model-saving="modelSaving"
+            :model-error="modelError"
+            :model-test-message="modelTestMessage"
+            :testing-model-id="testingModelId"
+            :model-alert-messages="[]"
+            @save-models="emit('saveModels', $event)"
+            @test-model="emit('testModel', $event)"
+          />
+
+          <template v-else-if="activeCategory === 'general'">
+            <GeneralSettingsPanel
+              :permission-mode="permissionMode"
+              :auto-save-enabled="autoSaveEnabled"
+              :version-history-enabled="versionHistoryEnabled"
+              :language="language"
+              :show-in-menu-bar="showInMenuBar"
+              :task-notification="taskNotification"
+              :use-network-proxy="useNetworkProxy"
+              :workspace-pane-layout="workspacePaneLayout"
+              @update-permission-mode="emit('updatePermissionMode', $event)"
+              @update-auto-save="emit('updateAutoSave', $event)"
+              @update-version-history-enabled="
+                emit('updateVersionHistoryEnabled', $event)
+              "
+              @update-language="emit('updateLanguage', $event)"
+              @update-show-in-menu-bar="emit('updateShowInMenuBar', $event)"
+              @update-task-notification="emit('updateTaskNotification', $event)"
+              @update-use-network-proxy="emit('updateUseNetworkProxy', $event)"
+              @update-workspace-pane-layout="
+                emit('updateWorkspacePaneLayout', $event)
+              "
+            />
+          </template>
+
+          <BodyTextSettingsPanel
+            v-else-if="activeCategory === 'body-text'"
+            :default-text-view-mode="defaultTextViewMode"
+            :body-text-formats="bodyTextFormats"
+            @update-default-text-view-mode="
+              emit('updateDefaultTextViewMode', $event)
+            "
+            @update-body-text-format="emit('updateBodyTextFormat', $event)"
+          />
+
+          <ConfigurationSettingsPanel
+            v-else-if="activeCategory === 'configuration'"
+            :show-context-usage="showContextUsage"
+            :text-attachment-max-characters="textAttachmentMaxCharacters"
+            :context-compaction="contextCompaction"
+            :model-settings="modelSettings"
+            @update-show-context-usage="emit('updateShowContextUsage', $event)"
+            @update-text-attachment-max-characters="
+              emit('updateTextAttachmentMaxCharacters', $event)
+            "
+            @update-context-compaction="emit('updateContextCompaction', $event)"
+          />
+
+          <AppearanceSettingsPanel
+            v-else-if="activeCategory === 'appearance'"
+          />
+
+          <ArchivedConversationsPanel
+            v-else-if="activeCategory === 'archived-conversations'"
+          />
+
+          <WebSearchSettingsPanel v-else-if="activeCategory === 'web-search'" />
+          <ExternalControlSettingsPanel
+            v-else-if="activeCategory === 'external-control'"
+            :external-control-enabled="externalControlEnabled"
+            @update-external-control-enabled="
+              emit('updateExternalControlEnabled', $event)
+            "
+          />
+
+          <section v-else class="settings-group">
+            <div class="settings-card">
+              <p class="settings-placeholder">
+                {{
+                  t("settingsAreNotConfiguredMessage", {
+                    arg0: activeLabel ?? ""
+                  })
+                }}
+              </p>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <style scoped src="./settings-page.css"></style>
+<style scoped>
+.settings-panel-error {
+  cursor: default;
+}
+.settings-panel-error small {
+  overflow-wrap: anywhere;
+}
+.settings-panel-error button {
+  flex-shrink: 0;
+}
+</style>

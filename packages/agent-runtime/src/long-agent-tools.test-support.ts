@@ -8,6 +8,7 @@ import {
   LONG_CHARACTER_OVERVIEW_PATH,
   LongWorkspaceIndexSnapshotSchema,
   createLongWorkspaceNavigationSnapshot,
+  createShortWorkspaceContentRevision,
   longChapterBodyFileId,
   longChapterCardFileId,
   longChapterCharacterContinuityFilePath,
@@ -270,10 +271,25 @@ function fixtureStoryPlotIndex(): LongWorkspaceIndexSnapshot {
   });
 }
 
-function storyPlotExecutor(index: LongWorkspaceIndexSnapshot) {
+function storyPlotExecutor(
+  index: LongWorkspaceIndexSnapshot,
+  agentsMdContent = ""
+) {
   return vi.fn<LongCommandExecutor>(async (command) => {
     if (command.type === "long.getWorkspaceIndex") {
       return indexResult(index);
+    }
+    if (command.type === "long.readAgentsMd") {
+      return {
+        status: "accepted" as const,
+        requestId: command.id,
+        payload: {
+          bookId: index.bookId,
+          content: agentsMdContent,
+          truncated: false,
+          revision: createShortWorkspaceContentRevision(agentsMdContent)
+        }
+      };
     }
     if (command.type === "long.readDocument") {
       const storyPlot = index.plot.storyPlots[0]!;
@@ -432,12 +448,30 @@ function collectIndexFiles(
 
 function documentExecutor(
   index: LongWorkspaceIndexSnapshot,
-  contents: Record<string, string> = {}
+  contents: Record<string, string> = {},
+  options?: { agentsMd?: string; agentsMdTruncated?: boolean }
 ): ReturnType<typeof vi.fn<LongCommandExecutor>> {
   const files = collectIndexFiles(index);
   return vi.fn<LongCommandExecutor>(async (command) => {
     if (command.type === "long.getWorkspaceIndex") {
       return indexResult(index);
+    }
+    if (command.type === "long.readAgentsMd") {
+      const agentsMdContent =
+        options?.agentsMd ??
+        contents.file_agents_md ??
+        contents.agents_md ??
+        "";
+      return {
+        status: "accepted" as const,
+        requestId: command.id,
+        payload: {
+          bookId: index.bookId,
+          content: agentsMdContent,
+          truncated: options?.agentsMdTruncated ?? false,
+          revision: createShortWorkspaceContentRevision(agentsMdContent)
+        }
+      };
     }
     if (command.type === "long.readDocument") {
       const file = files.get(command.payload.fileId);

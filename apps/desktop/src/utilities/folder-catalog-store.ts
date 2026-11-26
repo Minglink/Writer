@@ -264,10 +264,14 @@ import {
   type WriteWritingContextInput,
   type WriteWritingContextResult,
   type V2BookProjectManifest,
-  type V3BookProjectManifest
+  type V3BookProjectManifest,
+  DEFAULT_SHORT_WRITING_CONTEXT,
+  buildShortWritingContextForWebNovel,
+  normalizeWebNovelTropes
 } from "@writer/contracts";
 import {
   initializeWritingContextFile,
+  readCurrentWritingContextRaw,
   readOrCreateWritingContext,
   writeWritingContextFile
 } from "./folder-catalog-store/writing-context";
@@ -894,7 +898,20 @@ export class FolderCatalogStore {
             this.writingCounts.files.clear();
           this.writingCounts.files.set(path, { stamp, metrics });
           return metrics;
-        }
+        },
+        () =>
+          readOrCreateWritingContext(
+            projectDirectory,
+            manifest.bookType,
+            manifest.bookType === "short" && manifest.schemaVersion === 4
+              ? {
+                  genre: manifest.genre,
+                  pacingMode: manifest.pacingMode,
+                  tropes: manifest.tropes
+                }
+              : undefined,
+            { repairMissing: false }
+          )
       );
     });
   }
@@ -988,12 +1005,20 @@ export class FolderCatalogStore {
       );
       const result = await readOrCreateWritingContext(
         projectDirectory,
-        manifest.bookType
+        manifest.bookType,
+        manifest.bookType === "short"
+          ? {
+              genre: manifest.genre,
+              pacingMode: manifest.pacingMode,
+              tropes: manifest.tropes
+            }
+          : undefined
       );
       return ReadWritingContextResultSchema.parse({
         bookId: input.bookId,
         workspaceType: manifest.bookType,
-        ...result
+        ...result,
+        revision: createShortWorkspaceContentRevision(result.content)
       });
     });
   }
@@ -1012,10 +1037,32 @@ export class FolderCatalogStore {
         projectDirectory,
         input.bookId
       );
+      if (input.expectedRevision !== undefined) {
+        const currentContent = await readCurrentWritingContextRaw(
+          projectDirectory,
+          manifest.bookType,
+          manifest.bookType === "short"
+            ? {
+                genre: manifest.genre,
+                pacingMode: manifest.pacingMode,
+                tropes: manifest.tropes
+              }
+            : undefined
+        );
+        const actualRevision =
+          createShortWorkspaceContentRevision(currentContent);
+        if (actualRevision !== input.expectedRevision) {
+          throw new FolderCatalogConflictError(
+            input.expectedRevision,
+            actualRevision
+          );
+        }
+      }
       await writeWritingContextFile(projectDirectory, input.content);
       return WriteWritingContextResultSchema.parse({
         bookId: input.bookId,
-        workspaceType: manifest.bookType
+        workspaceType: manifest.bookType,
+        revision: createShortWorkspaceContentRevision(input.content)
       });
     });
   }
@@ -1138,10 +1185,23 @@ export class FolderCatalogStore {
     const parent =
       (wrapped ? rawInput.parentDirectory : parentDirectory)?.trim() ||
       this.defaultProjectParents.book;
+    const normalizedTropes = normalizeWebNovelTropes(input.tropes);
+    const initialWritingContext =
+      input.pacingMode !== undefined || Boolean(normalizedTropes?.length)
+        ? buildShortWritingContextForWebNovel(
+            DEFAULT_SHORT_WRITING_CONTEXT,
+            input.genre,
+            {
+              pacingMode: input.pacingMode,
+              tropes: normalizedTropes
+            }
+          )
+        : undefined;
     return await this.createBookProject(
       parent,
       (now) => createNewShortBook(input, now),
-      input.defaultPlotStageIds
+      input.defaultPlotStageIds,
+      initialWritingContext
     );
   }
 
@@ -1220,7 +1280,8 @@ export class FolderCatalogStore {
   private async createBookProject<Resource extends ShortBook | ScriptBook>(
     parentDirectory: string,
     createBook: (now: string) => Resource,
-    defaultPlotStageIds?: readonly string[]
+    defaultPlotStageIds?: readonly string[],
+    initialWritingContext?: string
   ): Promise<OpenFolderCatalogProjectResult<Resource>> {
     return await this.mutate(async () => {
       const now = this.now();
@@ -1239,7 +1300,9 @@ export class FolderCatalogStore {
       const projectDirectory = await this.writeNewResourceProject(
         "book",
         parentDirectory,
-        book
+        book,
+        undefined,
+        initialWritingContext
       );
       try {
         await this.registerProject(registry, {
@@ -1759,8 +1822,7 @@ export class FolderCatalogStore {
         return (await this.readProject(opened.projectDirectory, "book"))
           .resource as Book;
       }
-      const next = {
-        ...manifest,
+      const sharedPatch = {
         revision: manifest.revision + 1,
         title: input.title ?? manifest.title,
         genre: input.genre ?? manifest.genre,
@@ -1785,7 +1847,36 @@ export class FolderCatalogStore {
                 other: [...(input.linkedSkillIdsByKind.other ?? [])]
               },
         updatedAt: now
-      } satisfies FolderCurrentBookProjectManifest;
+      };
+      let next: FolderCurrentBookProjectManifest;
+      if (manifest.bookType === "short") {
+        const {
+          pacingMode: _oldPacing,
+          tropes: _oldTropes,
+          ...manifestRest
+        } = manifest;
+        const nextPacingMode =
+          input.pacingMode === undefined
+            ? manifest.pacingMode
+            : (input.pacingMode ?? undefined);
+        const nextTropes =
+          input.tropes === undefined
+            ? normalizeWebNovelTropes(manifest.tropes)
+            : normalizeWebNovelTropes(input.tropes);
+        next = {
+          ...manifestRest,
+          ...sharedPatch,
+          ...(nextPacingMode !== undefined
+            ? { pacingMode: nextPacingMode }
+            : {}),
+          ...(nextTropes ? { tropes: nextTropes } : {})
+        };
+      } else {
+        next = {
+          ...manifest,
+          ...sharedPatch
+        };
+      }
       const validated = FolderCurrentBookProjectManifestSchema.parse(next);
       const snapshot = await this.aggregateSnapshot(registry);
       // Unchanged bindings may refer to deleted or temporarily unavailable
@@ -4510,7 +4601,14 @@ export class FolderCatalogStore {
         primaryResource = duplicateBookResource(source, title, now);
         const sourceWritingContext = await readOrCreateWritingContext(
           registration.projectDirectory,
-          source.bookType
+          source.bookType,
+          source.bookType === "short"
+            ? {
+                genre: source.genre,
+                pacingMode: source.pacingMode,
+                tropes: source.tropes
+              }
+            : undefined
         );
         plans.push({
           domain: "book",
@@ -5310,7 +5408,8 @@ export class FolderCatalogStore {
     domain: FolderCatalogProjectDomain,
     parentDirectory: string,
     resource: FolderCatalogResource,
-    sourceBookDirectory?: string
+    sourceBookDirectory?: string,
+    initialWritingContext?: string
   ): Promise<string> {
     await mkdir(parentDirectory, { recursive: true, mode: 0o700 });
     const secureParent = await secureDirectory(
@@ -5337,7 +5436,8 @@ export class FolderCatalogStore {
       if (domain === "book") {
         await initializeWritingContextFile(
           stagingDirectory,
-          (resource as Book).bookType
+          (resource as Book).bookType,
+          initialWritingContext
         );
         if (sourceBookDirectory) {
           await copyBookImages(sourceBookDirectory, stagingDirectory);
@@ -7203,12 +7303,20 @@ async function writeResourceContents(
           updatedAt: section.updatedAt
         });
       }
+      const tropes =
+        book.bookType === "short"
+          ? normalizeWebNovelTropes(book.tropes)
+          : undefined;
       return FolderCurrentBookProjectManifestSchema.parse({
         ...common,
         schemaVersion: 4,
         kind: kindForDomain(domain),
         bookType: book.bookType,
         genre: book.genre,
+        ...(book.bookType === "short" && book.pacingMode !== undefined
+          ? { pacingMode: book.pacingMode }
+          : {}),
+        ...(book.bookType === "short" && tropes ? { tropes } : {}),
         status: book.status,
         linkedMaterialIdsByKind: book.linkedMaterialIdsByKind,
         linkedSkillIdsByKind: book.linkedSkillIdsByKind,
@@ -7406,11 +7514,21 @@ function indexBookFromManifest(
       updatedAt: manifest.updatedAt
     });
   }
+  const tropes =
+    manifest.schemaVersion === 4 && manifest.bookType === "short"
+      ? normalizeWebNovelTropes(manifest.tropes)
+      : undefined;
   const bookInput = {
     id: manifest.id,
     title: manifest.title,
     bookType: manifest.bookType,
     genre: manifest.genre,
+    ...(manifest.schemaVersion === 4 &&
+    manifest.bookType === "short" &&
+    manifest.pacingMode !== undefined
+      ? { pacingMode: manifest.pacingMode }
+      : {}),
+    ...(tropes ? { tropes } : {}),
     status: manifest.status,
     linkedMaterialIdsByKind: manifest.linkedMaterialIdsByKind,
     linkedSkillIdsByKind: manifest.linkedSkillIdsByKind,
@@ -7701,11 +7819,19 @@ async function hydrateResource(
         maxProjectContentBytes
       );
       const draftOffset = manifest.documents.length;
+      const tropes =
+        manifest.bookType === "short"
+          ? normalizeWebNovelTropes(manifest.tropes)
+          : undefined;
       return BookSchema.parse({
         id: manifest.id,
         title: manifest.title,
         bookType: manifest.bookType,
         genre: manifest.genre,
+        ...(manifest.bookType === "short" && manifest.pacingMode !== undefined
+          ? { pacingMode: manifest.pacingMode }
+          : {}),
+        ...(manifest.bookType === "short" && tropes ? { tropes } : {}),
         status: manifest.status,
         linkedMaterialIdsByKind: manifest.linkedMaterialIdsByKind,
         linkedSkillIdsByKind: manifest.linkedSkillIdsByKind,

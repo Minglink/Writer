@@ -16,6 +16,7 @@ import {
   createDefaultBookCharacterStructure,
   createDefaultBookPlotStages,
   createScriptCatalogDraftDirectory,
+  normalizeWebNovelTropes,
   ScriptBookSchema,
   ShortBookSchema,
   type CreateAcademicBookInput,
@@ -77,11 +78,14 @@ export function createNewShortBook(
   input: CreateShortBookInput,
   now: string
 ): ShortBook {
+  const tropes = normalizeWebNovelTropes(input.tropes);
   return ShortBookSchema.parse({
     id: createCatalogId("book"),
     title: input.title,
     bookType: "short",
     genre: input.genre,
+    ...(input.pacingMode !== undefined ? { pacingMode: input.pacingMode } : {}),
+    ...(tropes ? { tropes } : {}),
     status: "editing",
     linkedMaterialIdsByKind: linkedMaterialIdsFromInput(
       input.linkedMaterialIdsByKind

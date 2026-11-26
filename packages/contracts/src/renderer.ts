@@ -160,7 +160,10 @@ export type * from "./extras-agent";
 // Use the defining modules: the extras-agent barrel also evaluates its tasks.
 export { ExtrasAgentSettingsInputSchema } from "./extras-agent/profiles";
 export { assertExtrasAgentBudget } from "./extras-agent/budget";
-export { loadDefaultStyleComparisonMethod } from "./load-style-comparison-method";
+export {
+  loadDefaultStyleComparisonMethod,
+  loadStyleComparisonMethods
+} from "./load-style-comparison-method";
 export type * from "./long-ledger";
 export type * from "./long-manuscript-export";
 export type * from "./long-workspace";
@@ -433,7 +436,23 @@ export {
   LONG_WORLDBUILDING_FOCUS_MAX_CHARACTERS,
   LONG_WORLDBUILDING_OVERVIEW_FOCUS_MAX_CHARACTERS
 } from "./long-workspace-limits";
-export { LONG_BOOK_GENRES, LongBookGenreSchema } from "./long-book-genres";
+export {
+  LONG_BOOK_GENRES,
+  LONG_BOOK_GENRE_CHANNELS,
+  SHORT_BOOK_GENRE_CHANNELS,
+  LongBookGenreSchema,
+  type BookGenreChannel
+} from "./long-book-genres";
+export {
+  LONG_WEB_NOVEL_PACING_MODES,
+  SHORT_WEB_NOVEL_PACING_MODES,
+  WEB_NOVEL_CHANNEL_TROPES,
+  resolveLongBookFrameworkPreset,
+  type LongBookFrameworkPreset,
+  type LongWebNovelPacingMode,
+  type ShortWebNovelPacingMode,
+  type WebNovelTropeOption
+} from "./long-book-frameworks";
 export { LongWorkspaceRuntimeContextSchema } from "./long-workspace-runtime/context";
 export {
   LongWorkspaceImpactConfirmationSchema,
@@ -453,6 +472,7 @@ export {
   DEFAULT_LONG_AGENT_PROFILES,
   DEFAULT_LONG_CHARACTER_TYPES,
   LONG_AGENTS_MD_MAX_CHARACTERS,
+  LONG_AGENTS_MD_PATH,
   LONG_AGENT_IDS,
   LONG_BOOK_LINE_FILE_ID,
   LONG_CHARACTER_OVERVIEW_FILE_ID,
@@ -464,6 +484,7 @@ export {
   createLongWorkspaceNavigationSnapshot,
   EMPTY_LONG_LINKED_RESOURCE_STAGE_SCOPES,
   getDefaultLongAgentProfile,
+  longAgentsMdCharacterCount,
   longChapterBodyFileId,
   longChapterCardFileId,
   longChapterCharacterStateFileId,
@@ -534,7 +555,7 @@ export {
   LongMutationContentChangeSchema,
   LongMutationReviewSchema,
   LongWorldbuildingFileChangeSchema
-} from "./session/long-proposals";
+} from "./session/long-proposal-changes";
 export { LongMutationProposalEventEnvelopeSchema } from "./session/envelopes";
 export {
   SUBAGENT_DRAW_QUESTION_ID,
@@ -585,8 +606,9 @@ export {
 } from "./workspace";
 export {
   WRITING_CONTEXT_MAX_CHARACTERS,
+  WRITING_CONTEXT_PATH,
   writingContextCharacterCount
-} from "./writing-context";
+} from "./writing-context-limits";
 
 export type * from "./builtin-subagents";
 export type * from "./library-management";

@@ -5,6 +5,7 @@ import { defineStore } from "pinia";
 import { STYLE_COMPARISON_METHOD_LIMIT } from "@writer/contracts/renderer";
 import {
   DEFAULT_STYLE_COMPARISON_METHOD,
+  INITIAL_STYLE_COMPARISON_METHOD,
   PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD
 } from "./method";
 import { uiMessage } from "../../ui-feedback";
@@ -27,11 +28,9 @@ function api() {
   return current;
 }
 
-function takeLegacyMethod(): string | null {
+function readLegacyMethod(): string | null {
   try {
-    const saved = localStorage.getItem(LEGACY_METHOD_KEY);
-    localStorage.removeItem(LEGACY_METHOD_KEY);
-    return saved;
+    return localStorage.getItem(LEGACY_METHOD_KEY);
   } catch {
     return null;
   }
@@ -47,11 +46,13 @@ export const useStyleComparisonStore = defineStore("style-comparison", () => {
   let autoSave: ReturnType<typeof setTimeout> | undefined;
   let ready = false;
 
-  async function saveMethod(): Promise<void> {
+  async function saveMethod(): Promise<boolean> {
     try {
       if (method.dirty.value) await method.save();
+      return true;
     } catch (error) {
       uiMessage.error(formatError(error, t("saveComparisonMethodFailed")));
+      return false;
     }
   }
 
@@ -63,18 +64,30 @@ export const useStyleComparisonStore = defineStore("style-comparison", () => {
       uiMessage.error(formatError(error, t("loadComparisonMethodFailed")));
       return;
     }
-    const legacy = takeLegacyMethod();
+    const legacy = readLegacyMethod();
+    const normalized = legacy?.replace(/\r\n/g, "\n").trim();
     // A customized localStorage method is imported once, unless the saved
     // profile was already customized.
     if (
       legacy !== null &&
       legacy.length <= STYLE_COMPARISON_METHOD_LIMIT &&
-      legacy.trim() !== PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD &&
-      legacy.trim() !== DEFAULT_STYLE_COMPARISON_METHOD &&
+      normalized !== INITIAL_STYLE_COMPARISON_METHOD &&
+      normalized !== PREVIOUS_DEFAULT_STYLE_COMPARISON_METHOD &&
+      normalized !== DEFAULT_STYLE_COMPARISON_METHOD &&
       method.profile.value?.systemPrompt === DEFAULT_STYLE_COMPARISON_METHOD
     ) {
       method.systemPrompt.value = legacy;
-      await saveMethod();
+      if (!(await saveMethod())) {
+        ready = true;
+        return;
+      }
+    }
+    if (legacy !== null && readLegacyMethod() === legacy) {
+      try {
+        localStorage.removeItem(LEGACY_METHOD_KEY);
+      } catch {
+        // Read-only browser storage may still contain the migrated value.
+      }
     }
     ready = true;
   }

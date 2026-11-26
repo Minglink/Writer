@@ -29,6 +29,7 @@ import {
   writeLongChapter,
   commitLongChapter,
   deleteLongLedgerCommit,
+  updateLongBookPositioning,
   searchLongDocuments
 } from "./long-document-api";
 import { resolveLongConflicts } from "./long-recovery-api";
@@ -39,6 +40,7 @@ export const long: WriterApi["long"] = {
   duplicateBook: duplicateLongBook,
   rename: renameLongBook,
   updateBindings: updateLongBookBindings,
+  updatePositioning: updateLongBookPositioning,
   chooseLegacySyncSource,
   applyLegacySync,
   importPortable: importPortableLongBook,

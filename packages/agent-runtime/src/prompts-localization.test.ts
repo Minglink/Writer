@@ -134,6 +134,9 @@ describe("system prompt language", () => {
     });
     expect(prompt).toContain(profile.systemPrompt);
     expect(prompt).toContain(buildLongWorkspaceRules("en-US"));
+    expect(prompt).toContain("try lifting out a doubtful chapter");
+    expect(prompt).toContain("information available to them then");
+    expect(prompt).toContain("identify affected later cards");
     expect(prompt).toContain("[Write approval: user review]");
     expect(
       runtimeLines(prompt, [

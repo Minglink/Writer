@@ -146,8 +146,22 @@ function submit() {
     });
     return;
   }
+  if (selectedConfig.workspaceType === "script") {
+    emit("submit", {
+      workspaceType: "script",
+      genre: selectedConfig.genre,
+      templateId: selected.value.id,
+      title: title.value.trim(),
+      ...(selectedConfig.linkedAgentTeamIds
+        ? {
+            linkedAgentTeamIds: selectedConfig.linkedAgentTeamIds
+          }
+        : {})
+    });
+    return;
+  }
   emit("submit", {
-    workspaceType: selectedConfig.workspaceType,
+    workspaceType: "short",
     genre: selectedConfig.genre,
     templateId: selected.value.id,
     title: title.value.trim(),

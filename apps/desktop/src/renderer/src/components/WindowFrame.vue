@@ -41,7 +41,10 @@ function activateMenu(index: number, open = true) {
 }
 async function command(action: WindowFrameAction) {
   try {
-    if (api) state.value = await api.command(action);
+    if (api) {
+      const next = await api.command(action);
+      if (next) state.value = next;
+    }
   } catch {
     uiMessage.error(t("windowActionFailedTryAgain"));
   }
@@ -69,7 +72,7 @@ let unsubscribe: (() => void) | undefined;
 onMounted(() => {
   if (api) {
     unsubscribe = api.subscribe((value) => {
-      state.value = value;
+      if (value) state.value = value;
     });
     void command("state");
   }

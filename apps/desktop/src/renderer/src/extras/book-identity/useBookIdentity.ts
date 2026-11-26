@@ -27,12 +27,23 @@ export function useBookIdentity(
       chatAssistantProjectKey(target) === chatAssistantProjectKey(book.value)
     );
   }
-  function accept(target: ChatAssistantProjectRef, result: BookIdentityRecord) {
+  function accept(
+    target: ChatAssistantProjectRef,
+    result: BookIdentityRecord | null | undefined
+  ) {
     if (
+      result &&
       belongs(target) &&
-      (!record.value || result.revision > record.value.revision)
+      (!record.value || (result.revision ?? 0) > record.value.revision)
     )
-      record.value = result;
+      record.value =
+        Array.isArray(result.rounds) && result.adopted
+          ? result
+          : {
+              ...result,
+              adopted: result.adopted ?? {},
+              rounds: Array.isArray(result.rounds) ? result.rounds : []
+            };
   }
   async function load() {
     const target = book.value ? { ...book.value } : null;
@@ -109,24 +120,28 @@ export function useBookIdentity(
       ? null
       : record.value
   );
-  const counts = computed(() => ({
-    title:
-      visibleRecord.value?.rounds
+  const counts = computed(() => {
+    const rounds = visibleRecord.value?.rounds ?? [];
+    return {
+      title: rounds
         .filter((r) => r.field === "title")
-        .reduce((sum, r) => sum + r.candidates.length, 0) ?? 0,
-    synopsis:
-      visibleRecord.value?.rounds
+        .reduce((sum, r) => sum + (r.candidates?.length ?? 0), 0),
+      synopsis: rounds
         .filter((r) => r.field === "synopsis")
-        .reduce((sum, r) => sum + r.candidates.length, 0) ?? 0,
-    cover:
-      visibleRecord.value?.rounds
+        .reduce((sum, r) => sum + (r.candidates?.length ?? 0), 0),
+      cover: rounds
         .filter((r) => r.field === "cover")
         .reduce(
           (sum, r) =>
-            sum + r.candidates.reduce((n, c) => n + c.images.length, 0),
+            sum +
+            (r.candidates ?? []).reduce(
+              (n, c) => n + (c.images?.length ?? 0),
+              0
+            ),
           0
-        ) ?? 0
-  }));
+        )
+    };
+  });
   function adopt(
     round: BookIdentityRound,
     candidate: BookIdentityCandidate,
@@ -180,7 +195,7 @@ export function useBookIdentity(
     );
   }
   function protectedRound(round: BookIdentityRound) {
-    return round.candidates.some((c) =>
+    return (round.candidates ?? []).some((c) =>
       Object.values(record.value?.adopted ?? {}).some(
         (a) => a?.candidateId === c.id
       )

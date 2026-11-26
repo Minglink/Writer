@@ -73,14 +73,17 @@ function dismissButtonAttrs(item: UiMessageItem) {
 .toast-host {
   position: fixed;
   z-index: 10000;
-  top: 18px;
-  left: 50%;
-  display: grid;
-  justify-items: center;
-  width: calc(100vw - 32px);
+  top: auto;
+  right: 24px;
+  bottom: 24px;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: calc(100vw - 48px);
   gap: 9px;
   pointer-events: none;
-  transform: translateX(-50%);
+  transform: none;
 }
 
 .toast-message {
@@ -89,7 +92,7 @@ function dismissButtonAttrs(item: UiMessageItem) {
   align-items: center;
   gap: 10px;
   width: fit-content;
-  max-width: min(520px, 100%);
+  max-width: min(520px, calc(100vw - 48px));
   max-height: calc(100dvh - 100px);
   overflow-y: auto;
   min-height: 42px;
@@ -163,7 +166,7 @@ function dismissButtonAttrs(item: UiMessageItem) {
 .toast-list-enter-from,
 .toast-list-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(8px);
 }
 
 @media (prefers-reduced-motion: reduce) {

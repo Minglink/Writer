@@ -21,7 +21,8 @@ describe("short-book style built-in", () => {
     expect(style.systemPrompt).toContain("完整正文");
     expect(style.systemPrompt).toContain("【必须贯彻】");
     expect(style.systemPrompt).toContain("write_analysis_result");
-    expect(style.systemPrompt).toContain("求婚后在餐厅");
+    expect(style.systemPrompt).toContain("自拟的短场景");
+    expect(style.systemPrompt).toContain("自己作品的视点人物和场景目标");
   });
 
   it("upgrades only the untouched former default prompt", async () => {

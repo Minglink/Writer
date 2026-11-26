@@ -125,3 +125,4 @@ export * from "./document-versions";
 export * from "./book-images";
 
 export * from "./mystery";
+export * from "./long-book-frameworks";

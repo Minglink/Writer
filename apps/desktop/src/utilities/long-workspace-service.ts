@@ -2,7 +2,9 @@ import { createHash } from "node:crypto";
 import { dirname } from "node:path";
 import {
   createLongBookMetadata,
+  createShortWorkspaceContentRevision,
   listLongWorkspaceFiles,
+  normalizeWebNovelTropes,
   LongApplyOperationsInputSchema,
   LongApplyOperationsResultSchema,
   LongRestoreOperationsInputSchema,
@@ -34,6 +36,7 @@ import {
   LongSearchInputSchema,
   LongSearchResultSchema,
   LongUpdateBindingsInputSchema,
+  LongUpdatePositioningInputSchema,
   LongWorkspaceIndexResultSchema,
   LongWriteChapterInputSchema,
   LongWriteChapterResultSchema,
@@ -76,6 +79,7 @@ import {
   type LongSearchInput,
   type LongSearchResult,
   type LongUpdateBindingsInput,
+  type LongUpdatePositioningInput,
   type LongWorkspaceFileReference,
   type LongWorkspaceIndexResult,
   type LongIndexedFile,
@@ -118,6 +122,7 @@ export interface LongWorkspaceServiceDiagnostic {
   bookId: string;
   operation:
     | "update-bindings"
+    | "update-positioning"
     | "rename-book"
     | "write-document"
     | "write-chapter"
@@ -378,6 +383,27 @@ export class LongWorkspaceService {
     return LongOpenBookResultSchema.parse(updated);
   }
 
+  async updatePositioning(
+    rawInput: LongUpdatePositioningInput
+  ): Promise<LongOpenBookResult> {
+    const parsed = LongUpdatePositioningInputSchema.parse(rawInput);
+    const opened = await this.openProject({ bookId: parsed.bookId });
+    const updated = await this.store.updatePositioning(
+      opened.projectDirectory,
+      {
+        genre: parsed.genre,
+        pacingMode: parsed.pacingMode,
+        tropes: parsed.tropes
+      }
+    );
+    await this.updateCatalogSummaryBestEffort(
+      parsed.bookId,
+      updated.summary,
+      "update-positioning"
+    );
+    return LongOpenBookResultSchema.parse(updated);
+  }
+
   async getWorkspaceIndex(
     input: LongOpenBookInput
   ): Promise<LongWorkspaceIndexResult> {
@@ -413,15 +439,20 @@ export class LongWorkspaceService {
   }
 
   async readAgentsMd(
-    input: LongReadAgentsMdInput
+    input: LongReadAgentsMdInput,
+    options?: { repairMissing?: boolean }
   ): Promise<LongReadAgentsMdResult> {
     const parsed = LongReadAgentsMdInputSchema.parse(input);
     const opened = await this.openProject(parsed);
-    const read = await this.store.readAgentsMd(opened.projectDirectory);
+    const read = await this.store.readAgentsMd(
+      opened.projectDirectory,
+      options
+    );
     return LongReadAgentsMdResultSchema.parse({
       bookId: parsed.bookId,
       content: read.content,
-      truncated: read.truncated
+      truncated: read.truncated,
+      revision: createShortWorkspaceContentRevision(read.content)
     });
   }
 
@@ -430,9 +461,14 @@ export class LongWorkspaceService {
   ): Promise<LongWriteAgentsMdResult> {
     const parsed = LongWriteAgentsMdInputSchema.parse(input);
     const opened = await this.openProject(parsed);
-    await this.store.writeAgentsMd(opened.projectDirectory, parsed.content);
+    await this.store.writeAgentsMd(
+      opened.projectDirectory,
+      parsed.content,
+      parsed.expectedRevision
+    );
     return LongWriteAgentsMdResultSchema.parse({
-      bookId: parsed.bookId
+      bookId: parsed.bookId,
+      revision: createShortWorkspaceContentRevision(parsed.content)
     });
   }
 
@@ -753,9 +789,12 @@ function parseOpenResult(opened: OpenLongProject): LongOpenBookResult {
 function normalizeCreateInput(
   input: CreateLongBookInput
 ): StoreCreateLongBookInput {
+  const tropes = normalizeWebNovelTropes(input.tropes);
   return {
     title: input.title,
     genre: input.genre,
+    ...(input.pacingMode !== undefined ? { pacingMode: input.pacingMode } : {}),
+    ...(tropes ? { tropes } : {}),
     linkedMaterialIdsByKind: {
       character: [...(input.linkedMaterialIdsByKind?.character ?? [])],
       gimmick: [...(input.linkedMaterialIdsByKind?.gimmick ?? [])],

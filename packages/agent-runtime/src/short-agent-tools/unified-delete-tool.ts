@@ -136,12 +136,16 @@ export function buildShortUnifiedDeleteTool(
         : `删除${input.workspaceType === "script" ? "剧本" : "短篇"}对象`,
     description:
       input.promptLocale === "en-US"
-        ? `Delete an object: character deletes a card and its file (card layout only); draft_section deletes a whole ${draftUnitLabel(input)} with both body and State files. Keep at least one ${draftUnitLabel(input)}. To clear overview or plot text use edit with content="". Plot structure cannot be deleted here. Accept or reject a pending creation before deleting it.`
-        : `删除一个已有对象，只支持两类：kind=character 删除指定人物条目及其文件（仅人物条目样式）；kind=draft_section 删除整个${draftUnitLabel(input)}，正文与状态两个文件会一并删除，不能只删其中一份；正文至少保留一个${draftUnitLabel(input)}。清空人物总稿或剧情阶段的内容不是删除，请用 edit 传 content=""；剧情结构本身不能删除。本轮待创建对象必须先完成或撤销创建提案。`,
+        ? `Delete an object: character deletes a card and its file (card layout only); draft_section deletes a whole ${draftUnitLabel(input)} with both body and State files. Keep at least one ${draftUnitLabel(input)}. To clear work context (AGENTS.md), overview or plot text use edit with content="". Plot structure cannot be deleted here. Accept or reject a pending creation before deleting it.`
+        : `删除一个已有对象，只支持两类：kind=character 删除指定人物条目及其文件（仅人物条目样式）；kind=draft_section 删除整个${draftUnitLabel(input)}，正文与状态两个文件会一并删除，不能只删其中一份；正文至少保留一个${draftUnitLabel(input)}。清空作品上下文（AGENTS.md）、人物总稿或剧情阶段的内容不是删除，请用 edit 传 content=""；剧情结构本身不能删除。本轮待创建对象必须先完成或撤销创建提案。`,
     parameters: Type.Object(
       {
-        kind: literalUnion(["character", "draft_section"] as const),
-        id: stableWritingIdParameter,
+        kind: literalUnion([
+          "character",
+          "draft_section",
+          "agents_md"
+        ] as const),
+        id: Type.Optional(stableWritingIdParameter),
         summary: Type.Optional(writingSummaryParameter)
       },
       { additionalProperties: false }
@@ -153,17 +157,24 @@ export function buildShortUnifiedDeleteTool(
       const requestedKind: string = params.kind;
       if (
         requestedKind === "character_overview" ||
-        requestedKind === "plot_stage"
+        requestedKind === "plot_stage" ||
+        requestedKind === "agents_md"
       ) {
+        const targetLabel =
+          requestedKind === "plot_stage"
+            ? "剧情阶段"
+            : requestedKind === "agents_md"
+              ? "作品上下文（AGENTS.md）"
+              : "人物总稿";
         return textResult(
           input.promptLocale === "en-US"
             ? `Not changed: delete only removes character cards and ${draftUnitLabel(callInput)}s. To clear text, first read the full target, then edit with content="" and overwrite_mode=replace_all.`
-            : `未修改：delete 只删除人物条目和${draftUnitLabel(callInput)}。清空${requestedKind === "plot_stage" ? "剧情阶段" : "人物总稿"}的内容请用 edit：先 read 完整读取，再传 content="" 和 overwrite_mode=replace_all。`
+            : `未修改：delete 只删除人物条目和${draftUnitLabel(callInput)}。清空${targetLabel}的内容请用 edit：先 read 完整读取，再传 content="" 和 overwrite_mode=replace_all。`
         );
       }
       const target = resolveShortUnifiedTarget(callInput, state, {
         kind: params.kind,
-        id: String(params.id)
+        id: String(params.id ?? "")
       });
       assertWritingDocumentAvailable(input, state, target.documentId);
       if (

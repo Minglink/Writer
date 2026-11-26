@@ -85,7 +85,8 @@ export const WritingFileSchema = z.object({
   content: z.string().max(SHORT_WORKSPACE_FILE_MAX_CHARACTERS),
   revision: z.string().regex(/^v1:\d+:[0-9a-f]{8}$/),
   length: z.number().int().nonnegative(),
-  characters: z.number().int().nonnegative()
+  characters: z.number().int().nonnegative(),
+  truncated: z.boolean().optional()
 });
 export type WritingFile = z.infer<typeof WritingFileSchema>;
 

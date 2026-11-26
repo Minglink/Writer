@@ -53,6 +53,9 @@ export type LongEntityKind = (typeof LONG_ENTITY_KINDS)[number];
 /** Fixed singletons are matched before prefix parsing. */
 export const LONG_BOOK_LINE_ID = "book_line" as const;
 export const LONG_CHARACTER_OVERVIEW_ID = "character_overview" as const;
+export const LONG_AGENTS_MD_ID = "agents_md" as const;
+export const LONG_AGENTS_MD_FILE_ID = "file_agents_md" as const;
+export const LONG_AGENTS_MD_TITLE = "长篇上下文（AGENTS.md）" as const;
 
 const ID_PREFIX_TO_KIND: Readonly<Record<string, LongEntityKind>> = {
   world: "worldbuilding_category",

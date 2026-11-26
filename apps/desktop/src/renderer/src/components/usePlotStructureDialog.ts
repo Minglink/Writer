@@ -46,6 +46,8 @@ export type PlotStructureDialogEmit = {
   ): void;
 };
 
+export type PlotStructureTab = "character" | "plot" | "positioning" | "context";
+
 interface WritingContextPanelHandle {
   flushIfNeeded(): Promise<boolean>;
 }
@@ -60,7 +62,7 @@ export function usePlotStructureDialog(
   const editingStageId = ref<string | null>(null);
   const deletingStageId = ref<string | null>(null);
   const localPending = ref(false);
-  const activeStructureTab = ref<"character" | "plot" | "context">("character");
+  const activeStructureTab = ref<PlotStructureTab>("character");
   const requestedCharacterFormat = ref<BookCharacterFormat | null>(null);
   const form = reactive({ title: "", description: "" });
 
@@ -131,9 +133,7 @@ export function usePlotStructureDialog(
     emit("close");
   }
 
-  async function setActiveStructureTab(
-    tab: "character" | "plot" | "context"
-  ): Promise<void> {
+  async function setActiveStructureTab(tab: PlotStructureTab): Promise<void> {
     if (tab === activeStructureTab.value || locked.value) return;
     if (!(await flushWritingContext())) return;
     activeStructureTab.value = tab;

@@ -2,12 +2,14 @@ import type { LongRestorePoint } from "@writer/contracts";
 import {
   LONG_AGENTS_MD_MAX_CHARACTERS,
   type LongBook,
+  type LongBookGenre,
   type LongBookSummary,
   type LongCommitChapterInput,
   type LongDeleteLedgerCommitInput,
   type LongProjectManifest,
   type LongTextFilesBatchCommitInput,
   type LongTextFilesCommitChapterInput,
+  type LongWebNovelPacingMode,
   type LongWorkspaceFileReference,
   type LongWorkspaceIndexSnapshot,
   type LongWorkspaceOperationBatch,
@@ -71,7 +73,9 @@ export interface LongProjectStoreOptions {
 export interface CreateLongBookInput {
   id?: string;
   title: string;
-  genre: string;
+  genre: LongBookGenre;
+  pacingMode?: LongWebNovelPacingMode | undefined;
+  tropes?: readonly string[] | undefined;
   linkedMaterialIdsByKind?: LongProjectManifest["linkedMaterialIdsByKind"];
   linkedSkillIdsByKind?: LongProjectManifest["linkedSkillIdsByKind"];
 }
@@ -128,6 +132,12 @@ export interface RenameLongBookInput {
   title: string;
 }
 
+export interface UpdateLongBookPositioningInput {
+  genre: LongBookGenre;
+  pacingMode?: LongWebNovelPacingMode | null | undefined;
+  tropes?: readonly string[] | undefined;
+}
+
 export interface ReadLongDocumentInput {
   bookId?: string;
   fileId: string;
@@ -177,8 +187,8 @@ export interface SearchLongProjectResult {
 
 /** The file changed after the caller read it; nothing was written. */
 export class LongDocumentConflictError extends Error {
-  constructor() {
-    super("长篇文档已被修改，请重新读取后再写入。");
+  constructor(message = "长篇文档已被修改，请重新读取后再写入。") {
+    super(message);
     this.name = "LongDocumentConflictError";
   }
 }

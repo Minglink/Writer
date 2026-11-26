@@ -1,4 +1,5 @@
 import {
+  WRITING_CONTEXT_PATH,
   createShortWorkspaceContentRevision,
   type ShortWorkspaceStageId
 } from "@writer/contracts";
@@ -19,7 +20,7 @@ export interface ShortUnifiedTarget {
   kind: ShortUnifiedTargetKind;
   id: string;
   title: string;
-  stageId: ShortWorkspaceStageId;
+  stageId: ShortWorkspaceStageId | "agents_md";
   documentId: string;
   content: string;
   revision: string;
@@ -215,17 +216,62 @@ function resolveDraftTarget(
   };
 }
 
+export function agentsMdTitle(input: BuildWritingWorkspaceToolsInput): string {
+  if (input.promptLocale === "en-US") {
+    return input.workspaceType === "script"
+      ? "Screenplay context (AGENTS.md)"
+      : "Short-fiction context (AGENTS.md)";
+  }
+  return input.workspaceType === "script"
+    ? "剧本上下文（AGENTS.md）"
+    : "短篇上下文（AGENTS.md）";
+}
+
+function resolveAgentsMdTarget(
+  input: BuildWritingWorkspaceToolsInput,
+  sharedState: ShortWorkspaceToolSharedState,
+  id: string,
+  document: ShortUnifiedDocument | undefined
+): ShortUnifiedTarget {
+  assertSingleFileDocument(input, "agents_md", document);
+  if (
+    id !== "agents_md" &&
+    id !== WRITING_CONTEXT_PATH &&
+    matchStableId(["agents_md"], id) === undefined
+  ) {
+    throw new Error(
+      input.promptLocale === "en-US"
+        ? "The work context id must be agents_md (or omitted)."
+        : "作品上下文（AGENTS.md）的稳定 id 固定为 agents_md（也可省略）。"
+    );
+  }
+  return {
+    kind: "agents_md",
+    id: "agents_md",
+    title: agentsMdTitle(input),
+    stageId: "agents_md",
+    documentId: WRITING_CONTEXT_PATH,
+    content: sharedState.agentsMd.content,
+    revision: sharedState.agentsMd.revision,
+    truncated: sharedState.agentsMd.truncated === true
+  };
+}
+
 export function resolveWritingEditKind(
   input: BuildWritingWorkspaceToolsInput,
   sharedState: ShortWorkspaceToolSharedState,
   request: {
     kind?: ShortUnifiedTargetKind;
-    id: string;
+    id?: string;
     document?: ShortUnifiedDocument;
     meta?: { title?: string };
   }
 ): ShortUnifiedTargetKind {
   if (request.kind !== undefined) return request.kind;
+  const id = (request.id ?? "").trim();
+  if (id === "agents_md" || id === WRITING_CONTEXT_PATH) {
+    return "agents_md";
+  }
   if (
     request.document === "body" ||
     request.document === "state" ||
@@ -233,7 +279,6 @@ export function resolveWritingEditKind(
   ) {
     return "draft_section";
   }
-  const id = request.id.trim();
   if (
     request.meta?.title !== undefined &&
     sharedState.expertSections.has(id) &&
@@ -264,6 +309,9 @@ export function resolveShortUnifiedTarget(
     throw new Error(
       input.promptLocale === "en-US" ? "id cannot be empty." : "id 不能为空。"
     );
+  if (request.kind === "agents_md") {
+    return resolveAgentsMdTarget(input, sharedState, id, request.document);
+  }
   if (request.kind === "character_overview") {
     return resolveCharacterOverviewTarget(
       input,
@@ -301,9 +349,14 @@ export function updateShortUnifiedTarget(
   content: string
 ): string {
   const revision = createShortWorkspaceContentRevision(content);
+  if (target.kind === "agents_md") {
+    sharedState.agentsMd = { content, revision };
+    return revision;
+  }
   if (target.kind === "character_overview" || target.kind === "plot_stage") {
-    sharedState.stageBodies.set(target.stageId, content);
-    sharedState.stageRevisions.set(target.stageId, revision);
+    const stageId = target.stageId as ShortWorkspaceStageId;
+    sharedState.stageBodies.set(stageId, content);
+    sharedState.stageRevisions.set(stageId, revision);
     return revision;
   }
   if (target.kind === "character") {

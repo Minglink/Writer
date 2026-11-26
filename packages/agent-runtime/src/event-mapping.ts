@@ -297,7 +297,29 @@ export function toRuntimeEvents(
         }
       });
     } else if (isShortWorkspaceToolDetails(details)) {
-      if (
+      if (details.kind === "workspace-agents-md-mutation") {
+        events.push({
+          type: "workspace.editor_mutation",
+          runId: input.runId,
+          sessionId: input.sessionId,
+          payload: {
+            toolCallId: event.toolCallId,
+            workspaceId: details.workspaceId,
+            stageId: "agents_md",
+            text: details.text,
+            mutationTarget: {
+              kind: "agents-md",
+              workspaceType: details.workspaceType,
+              beforeText: details.beforeText,
+              afterText: details.text,
+              expectedRevision: details.baseRevision
+            },
+            baseRevision: details.baseRevision,
+            summary: details.summary,
+            runtime
+          }
+        });
+      } else if (
         details.kind === "workspace-editor-mutation" ||
         details.kind === "workspace-character-file-mutation" ||
         details.kind === "workspace-character-structure-mutation" ||

@@ -1,7 +1,9 @@
 import {
   DEFAULT_LONG_AGENTS_MD,
   LONG_AGENTS_MD_MAX_CHARACTERS,
-  LONG_AGENTS_MD_PATH
+  LONG_AGENTS_MD_PATH,
+  buildLongAgentsMdForGenre,
+  type BuildLongWebNovelAgentsMdOptions
 } from "@writer/contracts";
 import { isNodeError, readSecureTextFile } from "./io";
 import { MAX_AGENTS_MD_BYTES, type SecureTextFile } from "./types";
@@ -40,10 +42,15 @@ export async function tryReadAgentsMdFile(
 }
 
 export async function readAgentsMdContentOrDefault(
-  projectDirectory: string
+  projectDirectory: string,
+  genre?: string,
+  options?: BuildLongWebNovelAgentsMdOptions
 ): Promise<string> {
   const existing = await tryReadAgentsMdFile(projectDirectory);
-  return existing
-    ? sliceAgentsMdContent(existing.content).content
+  if (existing) {
+    return sliceAgentsMdContent(existing.content).content;
+  }
+  return genre
+    ? buildLongAgentsMdForGenre(DEFAULT_LONG_AGENTS_MD, genre, options)
     : DEFAULT_LONG_AGENTS_MD;
 }

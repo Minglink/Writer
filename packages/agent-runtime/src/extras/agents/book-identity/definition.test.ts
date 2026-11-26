@@ -153,6 +153,29 @@ describe("book identity agents", () => {
     for (const tool of tools)
       assertProviderToolParameterSchema(tool.name, tool.parameters);
   });
+  it.each([
+    "book-title-design",
+    "book-synopsis-design",
+    "book-cover-design"
+  ] as const)(
+    "passes adopted and recent packaging to %s with distinct roles",
+    (agentId) => {
+      const resolved = task(agentId);
+      if (resolved.agentId !== agentId) throw new Error("wrong task");
+      resolved.input.designContext.adopted.title = {
+        title: "窗前的第二盏灯",
+        adoptedAt: "2026-01-01T00:00:00.000Z",
+        candidateId: "title_chosen"
+      };
+      resolved.input.designContext.recentTitles = ["雨后的第三扇窗"];
+      const agent = resolveExtrasAgent(resolved);
+      if (agent.interaction !== "task")
+        throw new Error("expected a design task");
+      expect(agent.systemPrompt).toContain("近期或参考候选仅供比较");
+      expect(agent.userMessage).toContain('"title":"窗前的第二盏灯"');
+      expect(agent.userMessage).toContain('"recentTitles":["雨后的第三扇窗"]');
+    }
+  );
   it("reserves room for lettering when the selected image service limits prompt characters", () => {
     const resolved = task("book-cover-design");
     if (resolved.agentId !== "book-cover-design") throw new Error("wrong task");

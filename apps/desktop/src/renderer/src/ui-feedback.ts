@@ -41,15 +41,33 @@ function show(
 ): number {
   const normalized = String(content).trim();
   if (!normalized) return -1;
+  const { action } = options;
+  const duration = Math.max(0, options.duration ?? DEFAULT_DURATION_MS);
+  if (!action) {
+    const existing = items.value.find(
+      (item) =>
+        item.kind === kind && item.content === normalized && !item.action
+    );
+    if (existing) {
+      const timer = timers.get(existing.id);
+      if (timer !== undefined) clearTimeout(timer);
+      timers.delete(existing.id);
+      if (duration > 0) {
+        timers.set(
+          existing.id,
+          setTimeout(() => remove(existing.id), duration)
+        );
+      }
+      return existing.id;
+    }
+  }
   const id = ++messageId;
   const overflow = Math.max(0, items.value.length + 1 - MAX_VISIBLE_MESSAGES);
   items.value.slice(0, overflow).forEach((item) => remove(item.id));
-  const { action } = options;
   items.value = [
     ...items.value,
     { id, kind, content: normalized, ...(action && { action }) }
   ];
-  const duration = Math.max(0, options.duration ?? DEFAULT_DURATION_MS);
   if (duration > 0) {
     timers.set(
       id,

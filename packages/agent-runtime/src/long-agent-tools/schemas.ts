@@ -27,7 +27,7 @@ export const entityIdParameter = Type.String({
   maxLength: 160,
   pattern: `^${STABLE_ID_SUFFIX_PATTERN}$`,
   description:
-    "稳定业务 id，前缀决定对象类型；固定单例为 book_line 与 character_overview。"
+    "稳定业务 id，前缀决定对象类型；固定单例为 book_line、character_overview 与 agents_md。"
 });
 
 export const chapterContextIdParameter = Type.String({

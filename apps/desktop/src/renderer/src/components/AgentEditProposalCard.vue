@@ -91,7 +91,10 @@ const changePresentation = computed(() =>
   )
 );
 const canLocate = computed(
-  () => props.proposal.status === "accepted" && !props.remoteDevice
+  () =>
+    props.proposal.status === "accepted" &&
+    !props.remoteDevice &&
+    !props.proposal.agentsMdTarget
 );
 const showFooter = computed(() => {
   const discardStatus = proposalDiscardState(props.proposal)?.status;
@@ -176,7 +179,7 @@ function discard(): void {
             {{ proposalStatusLabel(props) }}
           </span>
           <button
-            v-if="proposal.status === 'accepted' && !remoteDevice"
+            v-if="canLocate"
             class="approval-target-button"
             type="button"
             :title="t('goToTargetFile')"
@@ -394,5 +397,18 @@ function discard(): void {
 
 .edit-proposal-card.is-card-variant .long-change-diff-heading {
   padding: 0 14px;
+}
+
+.edit-proposal-actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.edit-review-button {
+  white-space: nowrap;
 }
 </style>

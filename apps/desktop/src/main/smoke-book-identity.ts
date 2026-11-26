@@ -1,7 +1,7 @@
 import type { BrowserWindow } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import {
   BookIdentityResolveCoverAssetResultSchema,
   CommandEnvelopeSchema,
@@ -81,7 +81,8 @@ export async function runBookIdentitySmoke(
   if (
     record.bookId !== result.book.projectId ||
     record.revision !== result.revision ||
-    !asset.path.endsWith("/book-identity/cover.png")
+    basename(directory) !== "book-identity" ||
+    basename(asset.path) !== "cover.png"
   )
     throw new Error(
       "Identity files were not persisted in the registered project."

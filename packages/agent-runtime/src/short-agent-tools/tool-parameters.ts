@@ -11,7 +11,8 @@ export const WRITING_TARGET_KINDS = [
   "character_overview",
   "character",
   "plot_stage",
-  "draft_section"
+  "draft_section",
+  "agents_md"
 ] as const;
 
 export const WRITING_READ_KINDS = [
@@ -36,21 +37,21 @@ export function writingParameters(
     maxLength: 512,
     description:
       input.promptLocale === "en-US"
-        ? "Stable business id, not a name or title. Use workspace for the object directory, character_design for the character overview, and draft for the manuscript directory. Other ids must come from the directory, create results or read."
-        : "稳定业务 id，不接受人名或标题。作品对象目录固定为 workspace，人物概览固定为 character_design，正文目录固定为 draft；其余 id 必须来自运行时索引、create 返回值或上一次 read。"
+        ? "Stable business id, not a name or title. Omit or pass agents_md for kind=agents_md; use workspace for the object directory, character_design for the character overview, and draft for the manuscript directory. Other ids must come from the directory, create results or read."
+        : "稳定业务 id，不接受人名或标题。kind=agents_md 时可省略或传 agents_md；作品对象目录固定为 workspace，人物概览固定为 character_design，正文目录固定为 draft；其余 id 必须来自运行时索引、create 返回值或上一次 read。"
   });
 
   const writingEditKindParameter = literalUnion(WRITING_TARGET_KINDS, {
     description:
       input.promptLocale === "en-US"
-        ? "Target kind. Always provide it explicitly; use draft_section to edit or rename a section or episode."
-        : "显式提供对象类型。修改小节或剧集的正文、状态或标题时使用 draft_section。"
+        ? "Target kind. Always provide it explicitly; use agents_md for work context (AGENTS.md), and use draft_section to edit or rename a section or episode."
+        : "显式提供对象类型。修改作品上下文（AGENTS.md）使用 agents_md；修改小节或剧集的正文、状态或标题时使用 draft_section。"
   });
   const writingReadKindParameter = literalUnion(WRITING_READ_KINDS, {
     description:
       input.promptLocale === "en-US"
-        ? "Match kind to the id in the directory: character_overview with character_design; character with a card id; plot_stage with a stage id copied exactly from the directory (such as plot_design or plot-stage-8f6f2d36) regardless of its title; draft_section with a section id; draft with draft; workspace with workspace."
-        : "目标对象类型，必须与目录中该 id 的类型一致，不按标题或正文内容猜测。character_overview 仅配 id=character_design；character 配人物条目 id；plot_stage 配目录中的剧情结构 id（如 plot_design、plot-stage-8f6f2d36，下划线与连字符按目录原样复制），即使阶段标题涉及人物也仍用 plot_stage；draft_section 配正文小节 id；draft 仅配 id=draft；workspace 仅配 id=workspace。"
+        ? "Match kind to the id in the directory: agents_md (id optional or agents_md) for work context (AGENTS.md); character_overview with character_design; character with a card id; plot_stage with a stage id copied exactly from the directory (such as plot_design or plot-stage-8f6f2d36) regardless of its title; draft_section with a section id; draft with draft; workspace with workspace."
+        : "目标对象类型，必须与目录中该 id 的类型一致，不按标题或正文内容猜测。agents_md 读取作品上下文（AGENTS.md，id 可省略或传 agents_md）；character_overview 仅配 id=character_design；character 配人物条目 id；plot_stage 配目录中的剧情结构 id（如 plot_design、plot-stage-8f6f2d36，下划线与连字符按目录原样复制），即使阶段标题涉及人物也仍用 plot_stage；draft_section 配正文小节 id；draft 仅配 id=draft；workspace 仅配 id=workspace。"
   });
   const writingCreateKindParameter = literalUnion(WRITING_CREATE_KINDS, {
     description:

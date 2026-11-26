@@ -1,7 +1,8 @@
-import type {
-  LinkedMaterialIdsByKind,
-  LinkedSkillIdsByKind,
-  ShortBookGenre
+import {
+  ShortBookGenreSchema,
+  type LinkedMaterialIdsByKind,
+  type LinkedSkillIdsByKind,
+  type ShortBookGenre
 } from "@writer/contracts";
 import { openLegacyZipArchive } from "./legacy-zip";
 
@@ -67,8 +68,9 @@ function normalizeGenre(book: Record<string, unknown>): ShortBookGenre {
       )
     : [];
   const raw = asString(book.genre).trim() || categories[0]?.trim() || "";
-  if (raw === "世情" || raw === "追妻" || raw === "科幻" || raw === "悬疑") {
-    return raw;
+  const parsed = ShortBookGenreSchema.safeParse(raw);
+  if (parsed.success) {
+    return parsed.data;
   }
   if (raw === "现实情感" || raw === "情感") {
     return "追妻";

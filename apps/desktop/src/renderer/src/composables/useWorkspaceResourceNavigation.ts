@@ -21,18 +21,18 @@ export function useWorkspaceResourceNavigation(
   options: WorkspaceResourceCoordinatorOptions
 ) {
   const resources = useWorkspaceResourceCoordinator(options);
+  const { longNavigation, mysteryNavigation, notifications, state, tree } =
+    options;
   let navigation: Promise<ComposerContextNavigation | null> | undefined;
   provide(OPEN_WORKSPACE_RESOURCE, async (id) => {
-    const node = options.tree.lookup.value.nodeById.get(id);
+    const node = tree.lookup.value.nodeById.get(id);
     if (!node || node.unavailable || node.missing) return false;
     await resources.selectResource(node);
-    return options.state.selectedResourceId.value === id;
+    return state.selectedResourceId.value === id;
   });
   provide(COMPOSER_CONTEXT_NAVIGATION, {
     available: computed(() =>
-      options.tree.lookup.value.nodeById.has(
-        options.state.selectedResourceId.value
-      )
+      tree.lookup.value.nodeById.has(state.selectedResourceId.value)
     ),
     load() {
       navigation ??= import("./composerContextNavigation")
@@ -41,7 +41,7 @@ export function useWorkspaceResourceNavigation(
         )
         .catch(() => {
           navigation = undefined;
-          options.notifications.error(
+          notifications.error(
             t(
               "workspace.workspaceResourceNavigation.couldNotLoadTheSelectionListTryAgain"
             )
@@ -51,64 +51,26 @@ export function useWorkspaceResourceNavigation(
       return navigation;
     }
   });
-  async function openIdentityBook(
-    book: ChatAssistantProjectRef
-  ): Promise<void> {
-    const bookNode = resources.findResourceNodeWhere((node) =>
-      book.projectType === "long"
-        ? node.longBookId === book.projectId &&
-          node.catalogNodeType === "long-book"
-        : node.id === book.projectId && node.catalogNodeType === "book"
-    );
-    function openingNode(
-      node: ResourceTreeNode | undefined
-    ): ResourceTreeNode | undefined {
-      if (!node || node.unavailable || node.missing) return undefined;
-      if (
-        book.projectType === "long"
-          ? node.longWorkspaceSelection?.key === "root:worldbuilding"
-          : resources.documentForResourceId(node.id)
-      ) {
-        return node;
-      }
-      for (const child of node.children ?? []) {
-        const target = openingNode(child);
-        if (target) return target;
-      }
-      return undefined;
-    }
-    const node = openingNode(bookNode);
-    if (!node) {
-      options.notifications.warning(
-        t("components.workspaceShell.theTargetEntryNoLongerExists")
-      );
-      return;
-    }
-    await resources.selectResource(node);
-  }
 
-  /** Opens the first readable document; returns false when there is none. */
-  async function openExternalTarget(
-    target: ExternalWindowTarget
-  ): Promise<boolean> {
+  function findOpening(
+    kind: ExternalWindowTarget["kind"] | ChatAssistantProjectRef["projectType"],
+    id: string
+  ) {
     const root = resources.findResourceNodeWhere((node) =>
-      target.kind === "long"
-        ? node.longBookId === target.id && node.catalogNodeType === "long-book"
-        : target.kind === "mystery"
-          ? node.mysteryBookId === target.id &&
-            node.catalogNodeType === "mystery-book"
-          : target.kind === "library"
-            ? node.libraryId === target.id && node.catalogNodeType === "library"
-            : node.id === target.id && node.catalogNodeType === "book"
+      kind === "long"
+        ? node.longBookId === id && node.catalogNodeType === "long-book"
+        : kind === "mystery"
+          ? node.mysteryBookId === id && node.catalogNodeType === "mystery-book"
+          : kind === "library"
+            ? node.libraryId === id && node.catalogNodeType === "library"
+            : node.id === id && node.catalogNodeType === "book"
     );
-    function opening(
-      node: ResourceTreeNode | undefined
-    ): ResourceTreeNode | undefined {
+    const opening = (node?: ResourceTreeNode): ResourceTreeNode | undefined => {
       if (!node || node.unavailable || node.missing) return undefined;
       if (
-        target.kind === "mystery"
+        kind === "mystery"
           ? node.catalogNodeType === "mystery-book"
-          : target.kind === "long"
+          : kind === "long"
             ? node.longWorkspaceSelection?.key === "root:worldbuilding"
             : resources.documentForResourceId(node.id)
       ) {
@@ -119,11 +81,57 @@ export function useWorkspaceResourceNavigation(
         if (found) return found;
       }
       return undefined;
+    };
+    return { root, node: opening(root) };
+  }
+
+  async function openIdentityBook(
+    book: ChatAssistantProjectRef
+  ): Promise<void> {
+    const { node } = findOpening(book.projectType, book.projectId);
+    if (!node) {
+      notifications.warning(
+        t("components.workspaceShell.theTargetEntryNoLongerExists")
+      );
+      return;
     }
-    const node = opening(root);
-    if (!node) return false;
     await resources.selectResource(node);
-    return true;
+  }
+
+  /** Opens the first readable document; returns false when there is none. */
+  async function openExternalTarget(
+    target: ExternalWindowTarget,
+    navOptions?: { preserveSelection?: boolean }
+  ): Promise<boolean> {
+    const { root, node } = findOpening(target.kind, target.id);
+    if (!node) return false;
+    const selected = state.selectedResourceId.value;
+    const inSubtree = (n?: ResourceTreeNode): boolean =>
+      Boolean(n && (n.id === selected || n.children?.some(inSubtree)));
+    if (
+      navOptions?.preserveSelection &&
+      selected &&
+      (target.kind === "long"
+        ? longNavigation.activeBookId.value === target.id &&
+          Boolean(longNavigation.workspaceIndex.value) &&
+          selected.startsWith(`long-book:${target.id}`)
+        : target.kind === "mystery"
+          ? mysteryNavigation?.activeBookId.value === target.id &&
+            selected.startsWith(`mystery-book:${target.id}`)
+          : !longNavigation.activeBookId.value &&
+            !mysteryNavigation?.activeBookId.value &&
+            inSubtree(root) &&
+            selected !== root?.id)
+    ) {
+      options.showConversation();
+      return true;
+    }
+    await resources.selectResource(node);
+    return (
+      state.selectedResourceId.value === node.id &&
+      (target.kind !== "long" ||
+        longNavigation.activeBookId.value === target.id)
+    );
   }
 
   async function selectEditorEntrySearchResult(
@@ -134,7 +142,7 @@ export function useWorkspaceResourceNavigation(
       (document) => document.id === documentId
     );
     if (!target) {
-      options.notifications.warning(
+      notifications.warning(
         t("components.workspaceShell.theTargetEntryNoLongerExists")
       );
       return;
@@ -145,7 +153,7 @@ export function useWorkspaceResourceNavigation(
       documentId: target.id
     });
     if (!navigated)
-      options.notifications.warning(
+      notifications.warning(
         t("components.workspaceShell.theTargetEntryCannotBeOpenedRightNow")
       );
   }
@@ -154,7 +162,7 @@ export function useWorkspaceResourceNavigation(
     fileId: string,
     navigate: (target: ApprovalNavigationTarget) => Promise<boolean>
   ): Promise<void> {
-    const bookId = options.longNavigation.activeBookId.value;
+    const bookId = longNavigation.activeBookId.value;
     if (!bookId) return;
     const navigated = await navigate({
       kind: "long",
@@ -162,7 +170,7 @@ export function useWorkspaceResourceNavigation(
       candidates: [{ kind: "file", fileId }]
     });
     if (!navigated)
-      options.notifications.warning(
+      notifications.warning(
         t("components.workspaceShell.theTargetNovelEntryCannotBeOpenedRightNow")
       );
   }
@@ -171,8 +179,8 @@ export function useWorkspaceResourceNavigation(
     ...resources,
     defaultCreationResourceId: () =>
       resources.fallbackCreationResourceId(
-        options.tree.sections.value,
-        options.state.selectedResourceId.value
+        tree.sections.value,
+        state.selectedResourceId.value
       ),
     openIdentityBook,
     openExternalTarget,

@@ -1,10 +1,13 @@
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import {
   LongGetWorkspaceIndexCommandEnvelopeSchema,
+  LongReadAgentsMdCommandEnvelopeSchema,
+  LongReadAgentsMdResultSchema,
   LongReadDocumentCommandEnvelopeSchema,
   LongReadDocumentResultSchema,
   LongWorkspaceIndexResultSchema,
   createEnvelope,
+  createShortWorkspaceContentRevision,
   type LongWorkspaceFileReference,
   type LongWorkspaceIndexSnapshot,
   type LongWorkspaceOperation,
@@ -70,10 +73,12 @@ export function createLongToolContext(input: BuildLongWorkspaceToolsInput) {
   const fullyReadDocuments = new Map<string, FullyReadDocumentEntry>();
   /** Index-backed entities have no file, so their read credential is the body text. */
   const fullyReadRecords = new Map<string, string>();
+  let fullyReadAgentsMd: { content: string } | undefined;
   // Reads summarized away no longer authorize edits of existing text.
   input.onContextCompacted?.((removedToolCallIds) => {
     fullyReadDocuments.clear();
     fullyReadRecords.clear();
+    fullyReadAgentsMd = undefined;
     if (removedToolCallIds === undefined) {
       retainedReads.clear();
       return;
@@ -315,6 +320,54 @@ export function createLongToolContext(input: BuildLongWorkspaceToolsInput) {
     }
   };
 
+  const readAgentsMd = async (
+    signal?: AbortSignal
+  ): Promise<{ content: string; truncated: boolean; revision: string }> => {
+    throwIfAborted(signal);
+    const overlayContent = proposalOverlay.agentsMd();
+    if (overlayContent !== undefined) {
+      return {
+        content: overlayContent,
+        truncated: false,
+        revision: createShortWorkspaceContentRevision(overlayContent)
+      };
+    }
+    if (input.executor) {
+      const command = LongReadAgentsMdCommandEnvelopeSchema.parse(
+        createEnvelope(
+          "long.readAgentsMd",
+          { bookId: workspace.bookId },
+          {
+            id: `long-query-${input.runId}-agents-md-${++querySequence}`,
+            context: {
+              sessionId: input.sessionId,
+              runId: input.runId,
+              resourceId: workspace.bookId
+            }
+          }
+        )
+      );
+      const parsed = LongReadAgentsMdResultSchema.parse(
+        await execute(command, signal)
+      );
+      if (parsed.bookId !== workspace.bookId) {
+        throw new Error("Core returned AGENTS.md for another book.");
+      }
+      return {
+        content: parsed.content,
+        truncated: parsed.truncated,
+        revision:
+          parsed.revision ?? createShortWorkspaceContentRevision(parsed.content)
+      };
+    }
+    const content = workspace.agentsMd ?? "";
+    return {
+      content,
+      truncated: false,
+      revision: createShortWorkspaceContentRevision(content)
+    };
+  };
+
   return {
     input,
     workspace,
@@ -322,12 +375,20 @@ export function createLongToolContext(input: BuildLongWorkspaceToolsInput) {
     readableRoots,
     writableRoots,
     capabilities,
+    proposalOverlay,
     fullyReadDocuments,
     fullyReadRecords,
+    get fullyReadAgentsMd() {
+      return fullyReadAgentsMd;
+    },
+    set fullyReadAgentsMd(value: { content: string } | undefined) {
+      fullyReadAgentsMd = value;
+    },
     retainedReads,
     execute,
     loadIndex,
     reloadIndex,
+    readAgentsMd,
     readWholeDocument,
     readDocumentRange,
     loadActiveChapterMutationContext,

@@ -621,6 +621,18 @@ export function createSyntheticLongCommandExecutor(
       };
     }
 
+    if (command.type === "long.readAgentsMd") {
+      return {
+        requestId: command.id,
+        status: "accepted",
+        payload: {
+          bookId: book.bookId,
+          content: "",
+          truncated: false
+        }
+      };
+    }
+
     const query = command.payload.query.trim();
     const hits = [...book.files.values()]
       .filter((entry) => query && entry.content.includes(query))

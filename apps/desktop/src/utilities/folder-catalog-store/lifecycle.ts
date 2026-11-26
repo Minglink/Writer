@@ -9,6 +9,9 @@ import {
   CreateLibraryInputSchema,
   CreateScriptBookInputSchema,
   CreateShortBookInputSchema,
+  DEFAULT_SHORT_WRITING_CONTEXT,
+  buildShortWritingContextForWebNovel,
+  normalizeWebNovelTropes,
   createScriptCatalogDraftDirectory,
   DuplicateCatalogProjectInputSchema,
   MaterialLibraryGroupSchema,
@@ -216,6 +219,18 @@ export async function createShortBook(
   const parent =
     (wrapped ? rawInput.parentDirectory : parentDirectory)?.trim() ||
     store.defaultProjectParents.book;
+  const normalizedTropes = normalizeWebNovelTropes(input.tropes);
+  const initialWritingContext =
+    input.pacingMode !== undefined || Boolean(normalizedTropes?.length)
+      ? buildShortWritingContextForWebNovel(
+          DEFAULT_SHORT_WRITING_CONTEXT,
+          input.genre,
+          {
+            pacingMode: input.pacingMode,
+            tropes: normalizedTropes
+          }
+        )
+      : undefined;
   return await createBookProject(
     store,
     parent,
@@ -225,6 +240,10 @@ export async function createShortBook(
         title: input.title,
         bookType: "short",
         genre: input.genre,
+        ...(input.pacingMode !== undefined
+          ? { pacingMode: input.pacingMode }
+          : {}),
+        ...(normalizedTropes ? { tropes: normalizedTropes } : {}),
         status: "editing",
         linkedMaterialIdsByKind: linkedMaterialIdsFromInput(
           input.linkedMaterialIdsByKind
@@ -245,7 +264,8 @@ export async function createShortBook(
         createdAt: now,
         updatedAt: now
       }),
-    input.defaultPlotStageIds
+    input.defaultPlotStageIds,
+    initialWritingContext
   );
 }
 
@@ -292,7 +312,8 @@ export async function createBookProject<Resource extends Book>(
   store: FolderCatalogStoreContext,
   parentDirectory: string,
   createBook: (now: string) => Resource,
-  defaultPlotStageIds?: readonly string[]
+  defaultPlotStageIds?: readonly string[],
+  initialWritingContext?: string
 ): Promise<OpenFolderCatalogProjectResult<Resource>> {
   return await mutate(store, async () => {
     const now = store.now();
@@ -308,7 +329,8 @@ export async function createBookProject<Resource extends Book>(
       store,
       "book",
       parentDirectory,
-      book
+      book,
+      initialWritingContext
     );
     try {
       await registerProject(store, registry, {
@@ -689,54 +711,81 @@ export async function updateBook(
       assertBaseRevision(input.baseProjectRevision, manifest.revision);
     }
     const now = store.now();
-    const next =
-      manifest.bookType === "academic"
-        ? ({
-            ...manifest,
-            revision: manifest.revision + 1,
-            title: input.title ?? manifest.title,
-            subtype: input.subtype ?? manifest.subtype,
-            citationStyle: input.citationStyle ?? manifest.citationStyle,
-            status: input.status ?? manifest.status,
-            linkedMaterialIds:
-              input.linkedMaterialIds === undefined
-                ? manifest.linkedMaterialIds
-                : [...new Set(input.linkedMaterialIds)],
-            linkedSkillIds:
-              input.linkedSkillIds === undefined
-                ? manifest.linkedSkillIds
-                : [...new Set(input.linkedSkillIds)],
-            updatedAt: now
-          } satisfies FolderCurrentBookProjectManifest)
-        : ({
-            ...manifest,
-            revision: manifest.revision + 1,
-            title: input.title ?? manifest.title,
-            genre: input.genre ?? manifest.genre,
-            status: input.status ?? manifest.status,
-            linkedMaterialIdsByKind:
-              input.linkedMaterialIdsByKind === undefined
-                ? manifest.linkedMaterialIdsByKind
-                : {
-                    character: [
-                      ...(input.linkedMaterialIdsByKind.character ?? [])
-                    ],
-                    gimmick: [...(input.linkedMaterialIdsByKind.gimmick ?? [])],
-                    plot: [...(input.linkedMaterialIdsByKind.plot ?? [])],
-                    draft: [...(input.linkedMaterialIdsByKind.draft ?? [])],
-                    other: [...(input.linkedMaterialIdsByKind.other ?? [])]
-                  },
-            linkedSkillIdsByKind:
-              input.linkedSkillIdsByKind === undefined
-                ? manifest.linkedSkillIdsByKind
-                : {
-                    general: [...(input.linkedSkillIdsByKind.general ?? [])],
-                    plot: [...(input.linkedSkillIdsByKind.plot ?? [])],
-                    style: [...(input.linkedSkillIdsByKind.style ?? [])],
-                    other: [...(input.linkedSkillIdsByKind.other ?? [])]
-                  },
-            updatedAt: now
-          } satisfies FolderCurrentBookProjectManifest);
+    let next: FolderCurrentBookProjectManifest;
+    if (manifest.bookType === "academic") {
+      next = {
+        ...manifest,
+        revision: manifest.revision + 1,
+        title: input.title ?? manifest.title,
+        subtype: input.subtype ?? manifest.subtype,
+        citationStyle: input.citationStyle ?? manifest.citationStyle,
+        status: input.status ?? manifest.status,
+        linkedMaterialIds:
+          input.linkedMaterialIds === undefined
+            ? manifest.linkedMaterialIds
+            : [...new Set(input.linkedMaterialIds)],
+        linkedSkillIds:
+          input.linkedSkillIds === undefined
+            ? manifest.linkedSkillIds
+            : [...new Set(input.linkedSkillIds)],
+        updatedAt: now
+      };
+    } else {
+      const sharedPatch = {
+        revision: manifest.revision + 1,
+        title: input.title ?? manifest.title,
+        genre: input.genre ?? manifest.genre,
+        status: input.status ?? manifest.status,
+        linkedMaterialIdsByKind:
+          input.linkedMaterialIdsByKind === undefined
+            ? manifest.linkedMaterialIdsByKind
+            : {
+                character: [...(input.linkedMaterialIdsByKind.character ?? [])],
+                gimmick: [...(input.linkedMaterialIdsByKind.gimmick ?? [])],
+                plot: [...(input.linkedMaterialIdsByKind.plot ?? [])],
+                draft: [...(input.linkedMaterialIdsByKind.draft ?? [])],
+                other: [...(input.linkedMaterialIdsByKind.other ?? [])]
+              },
+        linkedSkillIdsByKind:
+          input.linkedSkillIdsByKind === undefined
+            ? manifest.linkedSkillIdsByKind
+            : {
+                general: [...(input.linkedSkillIdsByKind.general ?? [])],
+                plot: [...(input.linkedSkillIdsByKind.plot ?? [])],
+                style: [...(input.linkedSkillIdsByKind.style ?? [])],
+                other: [...(input.linkedSkillIdsByKind.other ?? [])]
+              },
+        updatedAt: now
+      };
+      if (manifest.bookType === "short") {
+        const {
+          pacingMode: _oldPacing,
+          tropes: _oldTropes,
+          ...manifestRest
+        } = manifest;
+        const nextPacingMode =
+          input.pacingMode === undefined
+            ? manifest.pacingMode
+            : (input.pacingMode ?? undefined);
+        const nextTropes =
+          input.tropes === undefined
+            ? normalizeWebNovelTropes(manifest.tropes)
+            : normalizeWebNovelTropes(input.tropes);
+        next = {
+          ...manifestRest,
+          ...sharedPatch,
+          ...(nextPacingMode !== undefined
+            ? { pacingMode: nextPacingMode }
+            : {}),
+          ...(nextTropes ? { tropes: nextTropes } : {})
+        };
+      } else {
+        next = {
+          ...manifest,
+          ...sharedPatch
+        };
+      }
+    }
     const validated = FolderCurrentBookProjectManifestSchema.parse(next);
     const snapshot = await aggregateSnapshot(store, registry);
     assertBookLibraryReferences(validated, snapshot);
@@ -911,7 +960,14 @@ export async function duplicateProject(
       primaryResource = duplicateBookResource(source, title, now);
       const sourceWritingContext = await readOrCreateWritingContext(
         registration.projectDirectory,
-        source.bookType
+        source.bookType,
+        source.bookType === "short"
+          ? {
+              genre: source.genre,
+              pacingMode: source.pacingMode,
+              tropes: source.tropes
+            }
+          : undefined
       );
       plans.push({
         domain: "book",

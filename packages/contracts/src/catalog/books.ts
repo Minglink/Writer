@@ -40,6 +40,8 @@ export const CurrentShortBookSchema = z.object({
   title: CatalogTitleSchema,
   bookType: z.literal("short"),
   genre: ShortBookGenreSchema,
+  pacingMode: z.enum(["viral_short", "refined_short"]).optional(),
+  tropes: z.array(z.string().trim().min(1).max(32)).max(6).optional(),
   status: z.enum(["editing", "completed"]),
   linkedMaterialIdsByKind: LinkedMaterialIdsByKindSchema,
   linkedSkillIdsByKind: LinkedSkillIdsByKindSchema,
