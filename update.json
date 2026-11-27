@@ -2,16 +2,15 @@
   "mandatory": false,
   "enabled": true,
   "minimumSupportedVersion": "0.1.0",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "feedUrl": "https://github.com/Minglink/Writer/releases/latest/download",
-  "publishedAt": "2026-11-27T03:23:00+08:00",
+  "publishedAt": "2026-11-27T20:08:00+08:00",
   "channel": "stable",
   "releaseNotes": [
-    "新增 0-Token 确定性正文门禁与局部改稿数字守恒锁，保护长短篇正文中的时刻、时长、百分比与资财量词锚点，拦截跨段悬空引号与元话语泄密。",
-    "打通 1,200 字倒金字塔 Handoff 防截断预警与中英文双语章卡视角防火墙，升级 6 角色长篇专业编剧室及跨题材流形调音与技法库。",
-    "修复双侧栏折叠死锁、编辑器弹层重叠越界、只读页签空态与底栏矛盾、编剧室漏译与自动抽卡摘要及开书/定位弹窗体验，并新增全流程图文教程。"
+    "修复模型/网关返回双层转义或 { arguments: \"...\" } 包裹参数时 spawn_subagent 校验失败并冒出幽灵 subagent 失败卡片的问题。",
+    "修复多题互动框（ask_user_question）在末题点击「跳过」或提前关闭时把前序题目的自定义意见和已选项全部覆盖为「跳过」的问题。"
   ],
-  "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.4",
-  "title": "Writer 0.1.4",
+  "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.5",
+  "title": "Writer 0.1.5",
   "schemaVersion": 1
 }
