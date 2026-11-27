@@ -153,17 +153,53 @@ function withoutLegacyWriteScope(tasks: unknown): unknown {
   });
 }
 
+function unwrapDoubleEncodedObject(
+  value: unknown,
+  depth = 0
+): Record<string, unknown> | undefined {
+  if (depth > 6) return undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    try {
+      return unwrapDoubleEncodedObject(JSON.parse(trimmed), depth + 1);
+    } catch {
+      return undefined;
+    }
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (keys.length === 1 && keys[0] === "arguments") {
+    const inner = unwrapDoubleEncodedObject(record.arguments, depth + 1);
+    if (inner) return inner;
+  }
+  return record;
+}
+
 /** Older conversations called the tool with one flat task or `write_scope`. */
 function normalizeSpawnArguments(args: unknown): unknown {
-  if (typeof args !== "object" || args === null) return args;
-  if ("tasks" in args) {
+  const unwrapped = unwrapDoubleEncodedObject(args);
+  if (!unwrapped) return args;
+  if ("tasks" in unwrapped) {
+    let rawTasks = unwrapped.tasks;
+    if (typeof rawTasks === "string") {
+      try {
+        const parsedTasks: unknown = JSON.parse(rawTasks);
+        if (Array.isArray(parsedTasks)) rawTasks = parsedTasks;
+      } catch {
+        // Leave malformed string for schema validation to report.
+      }
+    }
     return {
-      ...args,
-      tasks: withoutLegacyWriteScope((args as { tasks: unknown }).tasks)
+      ...unwrapped,
+      tasks: withoutLegacyWriteScope(rawTasks)
     };
   }
-  const legacy = args as Record<string, unknown>;
-  if (legacy.subagent_id === undefined) return args;
+  const legacy = unwrapped;
+  if (legacy.subagent_id === undefined) return unwrapped;
   return {
     tasks: [
       {

@@ -786,18 +786,35 @@ function toHarnessContent(blocks: readonly AnyBlock[]): ContentBlock[] {
   return content;
 }
 
-function parseArguments(argumentsText: string): Record<string, unknown> {
-  try {
-    const parsed: unknown = argumentsText.length
-      ? JSON.parse(argumentsText)
-      : {};
-    if (parsed && typeof parsed === "object") {
-      return parsed as Record<string, unknown>;
+function unwrapJsonObject(
+  value: unknown,
+  depth = 0
+): Record<string, unknown> | undefined {
+  if (depth > 6) return undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    try {
+      return unwrapJsonObject(JSON.parse(trimmed), depth + 1);
+    } catch {
+      return undefined;
     }
-  } catch {
-    return {};
   }
-  return {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (keys.length === 1 && keys[0] === "arguments") {
+    const unwrapped = unwrapJsonObject(record.arguments, depth + 1);
+    if (unwrapped) return unwrapped;
+  }
+  return record;
+}
+
+export function parseArguments(argumentsText: string): Record<string, unknown> {
+  if (!argumentsText.length) return {};
+  return unwrapJsonObject(argumentsText) ?? {};
 }
 
 /**

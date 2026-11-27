@@ -31,6 +31,7 @@ const emit = defineEmits<{
 const selectedByQuestion = ref<Record<string, string[]>>({});
 const textByQuestion = ref<Record<string, string>>({});
 const customAnswerByQuestion = ref<Record<string, boolean>>({});
+const skippedByQuestion = ref<Record<string, boolean>>({});
 const activeQuestionIndex = ref(0);
 const customAnswerInputs = new Map<string, HTMLTextAreaElement>();
 const detailTooltip = ref<HTMLElement | null>(null);
@@ -145,6 +146,9 @@ function resetAnswers(): void {
   customAnswerByQuestion.value = Object.fromEntries(
     props.request.questions.map((question) => [question.id, false])
   );
+  skippedByQuestion.value = Object.fromEntries(
+    props.request.questions.map((question) => [question.id, false])
+  );
 }
 
 watch(() => props.request.requestId, resetAnswers, { immediate: true });
@@ -155,8 +159,14 @@ function selected(questionId: string, optionId: string): boolean {
 
 function answers(): AgentUserInputAnswer[] {
   return props.request.questions.map((question) => {
+    if (skippedByQuestion.value[question.id]) {
+      return { id: question.id, text: t("skip") };
+    }
     const selectedOptionIds = selectedByQuestion.value[question.id] ?? [];
     const text = textByQuestion.value[question.id]?.trim() ?? "";
+    if (selectedOptionIds.length === 0 && !text) {
+      return { id: question.id, text: t("skip") };
+    }
     return {
       id: question.id,
       ...(selectedOptionIds.length ? { selectedOptionIds } : {}),
@@ -171,6 +181,7 @@ function chooseOption(
 ): void {
   if (props.submitting) return;
   hideOptionDetail();
+  skippedByQuestion.value[question.id] = false;
   const current = selectedByQuestion.value[question.id] ?? [];
   selectedByQuestion.value[question.id] = question.multi_select
     ? current.includes(optionId)
@@ -204,18 +215,41 @@ function advanceOrSubmit(): void {
 
 function submit(): void {
   if (!canSubmit.value || props.submitting) return;
+  if (currentQuestion.value) {
+    skippedByQuestion.value[currentQuestion.value.id] = false;
+  }
   advanceOrSubmit();
 }
 
-function skip(): void {
+function skipCurrentQuestion(): void {
   if (props.submitting) return;
-  emit(
-    "submit",
-    props.request.questions.map((question) => ({
-      id: question.id,
-      text: t("skip")
-    }))
-  );
+  hideOptionDetail();
+  const question = currentQuestion.value;
+  if (question) {
+    selectedByQuestion.value[question.id] = [];
+    textByQuestion.value[question.id] = "";
+    customAnswerByQuestion.value[question.id] = false;
+    skippedByQuestion.value[question.id] = true;
+  }
+  advanceOrSubmit();
+}
+
+function skipRemaining(): void {
+  if (props.submitting) return;
+  hideOptionDetail();
+  for (
+    let idx = activeQuestionIndex.value;
+    idx < props.request.questions.length;
+    idx += 1
+  ) {
+    const question = props.request.questions[idx];
+    if (!question) continue;
+    selectedByQuestion.value[question.id] = [];
+    textByQuestion.value[question.id] = "";
+    customAnswerByQuestion.value[question.id] = false;
+    skippedByQuestion.value[question.id] = true;
+  }
+  emit("submit", answers());
 }
 
 async function showCustomAnswer(
@@ -266,7 +300,7 @@ function recommended(label: string): boolean {
         type="button"
         :aria-label="t('skipQuestion')"
         :disabled="submitting"
-        @click="skip"
+        @click="skipRemaining"
       >
         <AppIcon name="close" :size="18" />
       </button>
@@ -394,7 +428,7 @@ function recommended(label: string): boolean {
           class="agent-user-input-skip"
           type="button"
           :disabled="submitting"
-          @click="skip"
+          @click="skipCurrentQuestion"
         >
           {{ t("skip") }}
         </button>

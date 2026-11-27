@@ -7,7 +7,7 @@ import {
   type Model
 } from "@earendil-works/pi-ai";
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { createHarnessStreamFn } from "./transport";
+import { createHarnessStreamFn, parseArguments } from "./transport";
 
 const model = {
   api: "openai-completions" as Api,
@@ -134,5 +134,22 @@ describe("harness stream seam", () => {
     }[];
     const user = messages.find((message) => message.role === "user");
     expect(user?.content).toContainEqual(image);
+  });
+
+  it("unwraps nested and double-encoded arguments payloads from gateways", () => {
+    const inner = JSON.stringify({
+      tasks: [{ key: "t1", subagent_id: "long_subagent_1", task: "抽卡脑洞" }]
+    });
+    const doubleWrapped = JSON.stringify({
+      arguments: JSON.stringify(inner)
+    });
+    expect(parseArguments(doubleWrapped)).toEqual({
+      tasks: [{ key: "t1", subagent_id: "long_subagent_1", task: "抽卡脑洞" }]
+    });
+
+    const singleWrapped = JSON.stringify({ arguments: inner });
+    expect(parseArguments(singleWrapped)).toEqual({
+      tasks: [{ key: "t1", subagent_id: "long_subagent_1", task: "抽卡脑洞" }]
+    });
   });
 });
