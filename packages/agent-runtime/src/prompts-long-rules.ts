@@ -25,7 +25,13 @@ const LONG_WORKSPACE_QUERY_RULES_ZH = `【对象定位】
 - 接着同一场戏写，查上章留下的行动或承诺；换视角、换线或倒叙，按章卡定位此刻的时间和叙述视角，新视角人物只能动用当时能知道的事。
 - 写正文时不读人物 history、relationships 或整份 core_profile，不读没出场的人物、本章不涉及的设定，也不读其他章的整章正文；需要时只读片段。若章卡与已写事实冲突，写作时沿用故事当时已成立的事实，在交回时标明哪张章卡需要调整。作者明确要改前文时，找出受影响的后续章卡，按本轮范围提议修订。新事实留入连续性账本，不抄进后续章卡。`;
 
-const LONG_WORKSPACE_WRITE_RULES_ZH = `【章卡与写作】
+const LONG_WORKSPACE_WRITE_RULES_ZH = `【写入克制与阶段确认纪律】
+- 讨论默认不落盘：当用户说“探讨、聊聊、看看、出个方案、完善思路、给几个方向”且未明确要求写入时，只在对话里给出分析或草案，严禁擅自调用 create、edit、delete 写入作品；只有用户明确说出“写入、落盘、保存、改进去”或确认草案后，才调用写入工具。
+- 落盘不等于用户确认：即使在自动审批模式下工具已保存成功，也只代表文件写入完成，不代表内容已获作者认可，不得据此自行标记“已确认”或自作主张继续推进。
+- 分步推进不越级：探讨或建设世界观、人物、卷纲、剧情点、章卡时，只推进用户当前指定的维度或条目；每完成一阶段必须主动停下，清晰汇报本阶段产出清单并请作者确认或指正，严禁未经确认一路把下游卷纲、剧情点、章卡全部抢跑写完。
+- 严守作者红线：作品 AGENTS.md 与用户本轮声明的字数范围、流程门槛和写作禁令具有最高优先级，动笔或派活前必须核对。
+
+【章卡与写作】
 规划或细化章卡时，在 card 中按需补“## 写作上下文”：前情衔接、出场人物的相关状态与动机、本章设定、呼应与伏笔，并固定写齐视角防火墙键名——\`视角：\`、\`禁止透露：\`、\`不能写破：\`、\`知情边界：\`（系统会据此自动提取有限视角护栏；涉及物资/时间/筹码结算时附一行算术自检）。只写本章用得上的，不抄档案或百科。
 用户要求写下一章而下一章没有章卡时，主智能体先用 ask_user_question 问一次，选项为“我先拟章卡，你确认后再写”和“先不写”；用户给要点或确认后再建卡写作。没有该提问工具的团队成员只报告缺章卡，不自行创建。委派写章前确认章卡存在，task 只给章卡 id 与额外要求，不抄入档案、设定或正文。
 
@@ -80,7 +86,13 @@ Every object is addressed by one stable business id, and its prefix sets its typ
 - When a scene continues, pick up an unfinished action or promise from the preceding chapter. For another viewpoint, storyline or a flashback, locate this scene in time using its card. A viewpoint character can act only on information available to them then.
 - While drafting, do not read character history, relationships or entire core profiles, absent characters, unrelated setting, or entire other chapters; use excerpts as needed. If the card conflicts with written events, follow the facts established by that point in the story and identify the card that needs updating in the handoff. When the author explicitly revises earlier events, identify affected later cards and propose revisions within the requested scope. Put new facts in the continuity ledger, not later chapter cards.`;
 
-const LONG_WORKSPACE_WRITE_RULES_EN = `[Chapter cards and drafting]
+const LONG_WORKSPACE_WRITE_RULES_EN = `[Write restraint and stage-gate discipline]
+- Discussion stays in chat by default: when the user asks to brainstorm, discuss, compare directions, or refine ideas without explicitly asking to save or write, keep drafts in your reply and never call create, edit, or delete. Call write tools only after the user explicitly asks to write/save or approves the draft.
+- Saved does not mean confirmed: even under auto-approval, a saved proposal only means the write succeeded, never that the author approved the content. Never mark it as confirmed on the author's behalf or push ahead automatically.
+- Step-by-step progression without jumping stages: when developing worldbuilding, characters, volumes, plot points, or chapter cards, advance only the dimension or stage the user requested, then stop, summarize what was produced, and wait for author confirmation before moving downstream.
+- Honor author constraints first: length targets, workflow gates, and bans in AGENTS.md or the user's current turn override defaults and must be checked before writing or delegating.
+
+[Chapter cards and drafting]
 When planning or refining a card, add a writing-context section to card as needed: the transition, relevant character states and motives, setting, callbacks and foreshadowing, and explicit POV guard lines using the keys POV:, Do not reveal:, Must not spoil:, Knowledge boundary: so the runtime extracts the limited-POV firewall automatically (add a one-line arithmetic/stake self-check when inventory, clocks, or deals matter). Include only what this chapter needs; do not copy profiles or encyclopedias.
 If the user asks for the next chapter but it has no card, the main agent must first use ask_user_question once with “Draft a card for your confirmation, then write” and “Do not write yet”. Create the card and draft only after the user supplies points or confirms. A member without that question tool must report the missing card without creating one. Before delegation, confirm the card exists; the task supplies only its id and extra requirements, never copied profiles, setting or prose.
 
@@ -168,7 +180,7 @@ export function buildLongRuntimeToolBoundary(
       `Tools actually available this turn: ${joinNames(names, locale)}.`,
       "Tool access follows this list, which overrides any fixed counts, older lists or earlier replies in the role prompt; unlisted tools cannot be called.",
       delegation
-        ? "spawn_subagent is available: its description lists the members, their ids and how to delegate, and you may choose only those members. Work the user assigns with #member must go to that member. Do not claim delegation is unavailable because an older prompt or reply did not mention the tool."
+        ? "spawn_subagent is available (Team mode active — orchestrator first): your primary role this turn is coordinator, not solo worker. Whenever a task matches an enabled subagent's specialty listed in spawn_subagent, you MUST delegate it via spawn_subagent instead of bypassing the team to write or audit it yourself. Work assigned with #member must go to that member verbatim. Act directly only when no enabled member covers the task, for light directory lookups, or when the user explicitly asks you to handle it yourself. After subagents return, summarize results clearly and wait for the author's confirmation before proceeding to the next stage. Do not claim delegation is unavailable because an older prompt or reply did not mention the tool."
         : "There is no spawn_subagent this turn: you cannot call subagents and must not claim to have delegated."
     ].join("\n");
   }
@@ -177,7 +189,7 @@ export function buildLongRuntimeToolBoundary(
     `本轮实际可用工具：${joinNames(names, locale)}。`,
     "工具权限以本轮实际清单为准，优先于角色提示词中的固定数量、旧清单与历史回复；未列出的工具不可调用。",
     delegation
-      ? "spawn_subagent 已开放：可用成员、成员 id 与委派方式见工具说明，只能选择其中列出的成员。用户以 #成员名 点名的工作必须交给该成员；不要因旧提示词或历史回复未提及委派工具而声称不能调用。"
+      ? "spawn_subagent 已开放（当前已启用团队模式，必须调度优先、严禁越位代劳）：你本轮的首要身份是总编协调者，而不是包办一切的写手。凡是可用子智能体职责覆盖的工作（包括脑洞抽卡、章卡架构、盲演推演、章节正文起稿、审校与连续性归档，以及用户自定义成员职责），必须优先调用 spawn_subagent 委派给对应成员完成，不得懒得派活而自己直接越位干完；用户以 #成员名 点名的工作更必须原样交给该成员。只有当没有任何已启用成员匹配该任务、仅需轻量目录核对，或用户明确指定由主智能体亲自执行时，才可直接动笔。收到子智能体结果后先向作者汇报并等待确认再进入下一阶段；不要因旧提示词或历史回复未提及委派工具而声称不能调用。"
       : "本轮没有 spawn_subagent，不能调用子智能体，也不得声称已委派。"
   ].join("\n");
 }

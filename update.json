@@ -4,11 +4,12 @@
   "minimumSupportedVersion": "0.1.0",
   "version": "0.1.5",
   "feedUrl": "https://github.com/Minglink/Writer/releases/latest/download",
-  "publishedAt": "2026-11-27T20:08:00+08:00",
+  "publishedAt": "2026-11-27T20:18:00+08:00",
   "channel": "stable",
   "releaseNotes": [
-    "修复模型/网关返回双层转义或 { arguments: \"...\" } 包裹参数时 spawn_subagent 校验失败并冒出幽灵 subagent 失败卡片的问题。",
-    "修复多题互动框（ask_user_question）在末题点击「跳过」或提前关闭时把前序题目的自定义意见和已选项全部覆盖为「跳过」的问题。"
+    "强化团队模式调度优先与防越位纪律：主智能体以总编协调者身份优先通过 spawn_subagent 派活给对应专项成员，严禁懒得派活自己包办。",
+    "新增写入克制与阶段确认红线：探讨思路默认不落盘，明确区分“自动落盘成功≠用户确认”，分阶段汇报停下等作者拍板。",
+    "修复 spawn_subagent 双层转义参数导致的幽灵失败卡片，以及多题互动框末题跳过覆盖前序自定义意见与已选项的问题。"
   ],
   "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.5",
   "title": "Writer 0.1.5",
