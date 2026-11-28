@@ -3,6 +3,7 @@ import { withConfigurationLock } from "./configuration-lock";
 import {
   ModelConfigInputSchema,
   ModelSettingsInputSchema,
+  isTextGenerationModel,
   isWriterSiteOfficialModel,
   type AgentProviderRuntimeConfig,
   type SyncedModelChange,
@@ -16,11 +17,16 @@ import {
   WriterFreeModelCatalogStore,
   type WriterFreeModelCatalog
 } from "./writer-free-model-config";
+import type {
+  SubscriptionCatalogReader,
+  SubscriptionModelCatalog
+} from "./subscriptions/types";
 import {
   ModelConfigPersistence,
   type ModelConfigState
 } from "./model-config-persistence";
 import {
+  EMPTY_SUBSCRIPTION_MODEL_CATALOG,
   synchronizeState,
   toPublicSettings,
   withWriterFreeApiKeys,
@@ -49,10 +55,12 @@ interface FreeModelCatalogReader {
 export interface ModelConfigStoreOptions {
   appVersion?: string;
   freeModelCatalog?: FreeModelCatalogReader;
+  subscriptionCatalog?: SubscriptionCatalogReader;
 }
 
 interface CatalogRefreshOptions {
   refreshFree?: boolean;
+  autoSelectSubscriptionDefault?: boolean;
 }
 
 /** A saved model's decrypted key; for Main-internal reuse, never for IPC. */
@@ -70,6 +78,7 @@ export class ModelConfigStore {
   private readonly persistence: ModelConfigPersistence;
   private readonly settingsPath: string;
   private readonly freeModelCatalog: FreeModelCatalogReader;
+  private readonly subscriptionCatalog: SubscriptionCatalogReader | undefined;
   private writeChain: Promise<void> = Promise.resolve();
 
   constructor(userDataPath: string, options: ModelConfigStoreOptions = {}) {
@@ -81,15 +90,58 @@ export class ModelConfigStore {
         userDataPath,
         options.appVersion ? { appVersion: options.appVersion } : {}
       );
+    this.subscriptionCatalog = options.subscriptionCatalog;
   }
 
   async initialize(): Promise<void> {
     await this.freeModelCatalog.initialize();
+    await this.subscriptionCatalog?.initialize?.();
     await this.update();
   }
 
   async list(): Promise<ModelSettings> {
     return publicSettings(await this.update());
+  }
+
+  async syncSubscriptions(
+    options: { autoSelectDefault?: boolean } = {}
+  ): Promise<ModelSettings> {
+    return publicSettings(
+      await this.update({
+        autoSelectSubscriptionDefault: options.autoSelectDefault === true
+      })
+    );
+  }
+
+  async setDefaultModel(modelId: string): Promise<ModelSettings> {
+    const trimmed = modelId.trim();
+    if (!trimmed) {
+      throw new Error("默认模型 ID 不能为空。");
+    }
+    return publicSettings(
+      await this.update({}, (state) => {
+        const [syncedSettings, syncedSecrets] = synchronizeState(
+          state.settings,
+          state.secrets,
+          state.freeCatalog,
+          state.subscriptionCatalog
+        );
+        const target = syncedSettings.models.find(
+          (model) => model.id === trimmed
+        );
+        if (!target || !isTextGenerationModel(target)) {
+          throw new Error("指定的默认模型不存在或不可用于对话。");
+        }
+        return {
+          settings: { ...syncedSettings, defaultModelId: trimmed },
+          secrets: syncedSecrets
+        };
+      })
+    );
+  }
+
+  async getDefaultModelId(): Promise<string> {
+    return (await this.list()).defaultModelId;
   }
 
   async refreshFreeModels(): Promise<ModelSettings> {
@@ -157,14 +209,22 @@ export class ModelConfigStore {
   async resolve(
     modelId?: string
   ): Promise<AgentProviderRuntimeConfig | undefined> {
-    return resolveSavedModel(await this.update(), modelId);
+    return resolveSavedModel(
+      await this.update(),
+      modelId,
+      this.subscriptionCatalog
+    );
   }
 
   async resolveDraft(
     rawModel: ModelConfigInput
   ): Promise<AgentProviderRuntimeConfig> {
     const model = ModelConfigInputSchema.parse(rawModel);
-    return resolveDraftModel(model, await this.update());
+    return resolveDraftModel(
+      model,
+      await this.update(),
+      this.subscriptionCatalog
+    );
   }
 
   async resolveDraftApiKey(input: {
@@ -230,11 +290,16 @@ export class ModelConfigStore {
         options.refreshFree && this.freeModelCatalog.refreshCatalog
           ? await this.freeModelCatalog.refreshCatalog()
           : await this.freeModelCatalog.getCatalog();
+      const subscriptionCatalog: SubscriptionModelCatalog = this
+        .subscriptionCatalog
+        ? await this.subscriptionCatalog.getCatalog()
+        : EMPTY_SUBSCRIPTION_MODEL_CATALOG;
       return withConfigurationLock(this.settingsPath, async () => {
         const stored = await this.persistence.read();
         const prepared: ModelConfigSnapshot = {
           ...stored,
           freeCatalog,
+          subscriptionCatalog,
           secrets: withWriterFreeApiKeys(freeCatalog, stored.secrets)
         };
         const requested = mutate(prepared);
@@ -242,11 +307,16 @@ export class ModelConfigStore {
         const [settings, secrets] = synchronizeState(
           requested.settings,
           requested.secrets,
-          freeCatalog
+          freeCatalog,
+          subscriptionCatalog,
+          {
+            autoSelectSubscriptionDefault:
+              options.autoSelectSubscriptionDefault === true
+          }
         );
         // Every mutation and catalog refresh uses the same atomic commit.
         await this.persistence.write({ settings, secrets });
-        return { settings, secrets, freeCatalog };
+        return { settings, secrets, freeCatalog, subscriptionCatalog };
       });
     });
     // Failed operations must not poison later saves, and may not publish state.

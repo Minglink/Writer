@@ -8,6 +8,9 @@ export default {
   materialLibrarySettings: "Material library",
   modelsAndUsage: "Models and usage",
   usage: "Usage",
+  subscriptionModels: "Subscription models",
+  subscriptionModelsKeywords:
+    "Subscription model account Gemini Antigravity Codex Copilot OAuth quota",
   freeModels: "Free models",
   customModelSettings: "Custom models",
   officialSiteModels: "Official site models",

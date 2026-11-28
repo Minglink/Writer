@@ -10,7 +10,8 @@ import { PiAgentRuntimeAdapter } from "@writer/agent-runtime";
 import { nowIso } from "@writer/shared";
 import {
   createAgentRunInput,
-  createCoreCommandExecutor
+  createCoreCommandExecutor,
+  createSubscriptionCredentialBridge
 } from "./agent-run-input";
 import { handleAgentRunControl } from "./agent-run-control";
 import { AgentRunRegistry } from "./agent-run-registry";
@@ -39,7 +40,17 @@ bootUtility("agent", {
   async commandHandler(command, emitEvent, context): Promise<CommandResult> {
     if (command.type === "agent.model_test") {
       const result = ModelConnectionTestResultSchema.parse(
-        await runtime.testConnection(command.payload.runtimeConfig)
+        await runtime.testConnection(
+          command.payload.runtimeConfig,
+          context && command.payload.runtimeConfig.subscriptionAuth
+            ? {
+                subscriptionCredentialBridge:
+                  createSubscriptionCredentialBridge(context, {
+                    runId: command.id
+                  })
+              }
+            : undefined
+        )
       );
       return {
         status: "accepted",
@@ -122,6 +133,15 @@ bootUtility("agent", {
               : {}),
             ...(readsLongProject(command.payload) && context
               ? { longCommandExecutor: createCoreCommandExecutor(context) }
+              : {}),
+            ...(context
+              ? {
+                  subscriptionCredentialBridge:
+                    createSubscriptionCredentialBridge(context, {
+                      runId,
+                      sessionId: command.payload.sessionId
+                    })
+                }
               : {})
           })
         : runtime.start(

@@ -219,6 +219,8 @@ export {
   MATERIAL_ON_DEMAND_MARKER
 } from "./material-context-policy";
 export {
+  SUBSCRIPTION_MODEL_ID_PREFIX,
+  isSubscriptionModel,
   isWriterSiteOfficialModel,
   isJevModel,
   isTextGenerationModel,
@@ -743,3 +745,50 @@ export {
   MysteryWorkspaceFocusSchema,
   MysteryWorkspaceRuntimeContextSchema
 } from "./mystery/runtime-context";
+export type * from "./subscriptions/providers";
+export type * from "./subscriptions/schemas";
+export type * from "./subscriptions/api";
+export type {
+  SubscriptionCancelAuthInput,
+  SubscriptionImportLocalInput,
+  SubscriptionImportManualInput,
+  SubscriptionRefreshModelsInput,
+  SubscriptionRefreshQuotaInput,
+  SubscriptionRemoveAccountInput,
+  SubscriptionScanLocalInput,
+  SubscriptionSetAccountEnabledInput,
+  SubscriptionSetDefaultModelInput,
+  SubscriptionSetModelEnabledInput,
+  SubscriptionSetPrimaryAccountInput,
+  SubscriptionStartAuthInput,
+  SubscriptionsAuthProgressEventEnvelope,
+  SubscriptionsStateChangedEventEnvelope
+} from "./subscriptions/commands";
+export {
+  SUBSCRIPTION_ACCOUNT_STATUSES,
+  SUBSCRIPTION_AUTH_METHODS,
+  SUBSCRIPTION_AUTH_PROGRESS_STATUSES,
+  SUBSCRIPTION_INTERACTIVE_AUTH_METHODS,
+  SUBSCRIPTION_MAX_ACCOUNTS_PER_PROVIDER,
+  SUBSCRIPTION_MAX_LOCAL_CANDIDATES,
+  SUBSCRIPTION_MAX_MODELS_PER_PROVIDER,
+  SUBSCRIPTION_MAX_PROVIDERS,
+  SUBSCRIPTION_MAX_QUOTA_BUCKETS,
+  SUBSCRIPTION_PROVIDER_IDS,
+  SubscriptionAccountStatusSchema,
+  SubscriptionAuthMethodSchema,
+  SubscriptionAuthProgressStatusSchema,
+  SubscriptionInteractiveAuthMethodSchema,
+  SubscriptionProviderIdSchema
+} from "./subscriptions/providers";
+export {
+  SubscriptionAccountSummarySchema,
+  SubscriptionAuthProgressPayloadSchema,
+  SubscriptionLocalCandidateSchema,
+  SubscriptionModelItemSchema,
+  SubscriptionProviderOverviewSchema,
+  SubscriptionQuotaBucketSchema,
+  SubscriptionSettingsSnapshotSchema,
+  SubscriptionStateChangedPayloadSchema,
+  SubscriptionStateChangedReasonSchema
+} from "./subscriptions/schemas";

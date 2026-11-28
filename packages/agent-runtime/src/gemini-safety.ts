@@ -15,10 +15,17 @@ function record(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
+const GEMINI_SAFETY_APIS = new Set([
+  "google-generative-ai",
+  "google-cloud-code-assist",
+  "google-antigravity"
+]);
+
 /**
  * Set explicit writing defaults for Gemini's configurable filters. Core
  * prohibited-content protections remain enforced by the service. Pi exposes
- * these SDK parameters through onPayload, under config (not generationConfig).
+ * SDK parameters under config while Cloud Code Assist / Antigravity wire
+ * envelopes place them under request.
  */
 export function applyGeminiWritingSafetySettings(
   config: Pick<
@@ -28,29 +35,40 @@ export function applyGeminiWritingSafetySettings(
   options: SimpleStreamOptions
 ): SimpleStreamOptions {
   if (
-    config.api !== "google-generative-ai" ||
+    !GEMINI_SAFETY_APIS.has(config.api) ||
     ![config.modelId, config.requestModelId ?? ""].some(isGeminiModelId)
   )
     return options;
+
+  const safetySettings = WRITING_SAFETY_CATEGORIES.map((category) => ({
+    category,
+    threshold: "BLOCK_NONE"
+  }));
 
   return {
     ...options,
     onPayload: async (payload, model) => {
       const request = record(payload);
       const requestConfig = record(request?.config);
+      const wireRequest = record(request?.request);
       const adapted =
         request && requestConfig
           ? {
               ...request,
               config: {
                 ...requestConfig,
-                safetySettings: WRITING_SAFETY_CATEGORIES.map((category) => ({
-                  category,
-                  threshold: "BLOCK_NONE"
-                }))
+                safetySettings
               }
             }
-          : payload;
+          : request && wireRequest
+            ? {
+                ...request,
+                request: {
+                  ...wireRequest,
+                  safetySettings
+                }
+              }
+            : payload;
       const replacement = await options.onPayload?.(adapted, model);
       return replacement === undefined ? adapted : replacement;
     }

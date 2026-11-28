@@ -109,6 +109,16 @@ export const settingsSections: SettingsSection[] = [
         icon: "ledger"
       },
       {
+        id: "subscription-models",
+        get label() {
+          return t("subscriptionModels");
+        },
+        get keywords() {
+          return t("subscriptionModelsKeywords");
+        },
+        icon: "sparkles"
+      },
+      {
         id: "custom-models",
         get label() {
           return t("customModelSettings");

@@ -13,7 +13,7 @@
 [![Storage](https://img.shields.io/badge/Local--First-Markdown_%2B_SQLite-6E5A44?style=flat-square)](./AGENTS.md)
 [![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-A94F47?style=flat-square)](./LICENSE)
 
-[简体中文](./README.md) · **English** · [Download v0.1.0](https://github.com/Minglink/Writer/releases/tag/v0.1.0)
+[简体中文](./README.md) · **English** · [Download v0.1.7](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
 
 </div>
 
@@ -65,7 +65,7 @@ Writer enforces strict process isolation across five Electron processes (**Rende
 
 ## Getting Started
 
-Download `Writer-0.1.0-win-x64.exe` (for **Windows 10 / 11 x64**) from [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest), or run from source (`Node.js >= 24`, `pnpm >= 11`):
+Download `Writer-0.1.7-win-x64.exe` (for **Windows 10 / 11 x64**) from [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest), or run from source (`Node.js >= 24`, `pnpm >= 11`):
 
 ```bash
 git clone https://github.com/Minglink/Writer.git

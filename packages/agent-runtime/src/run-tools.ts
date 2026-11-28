@@ -375,7 +375,15 @@ export function buildRunTools(
           config,
           childTemperature,
           childThinking,
-          { portableToolSchemaProfile }
+          {
+            portableToolSchemaProfile,
+            ...(input.subscriptionCredentialBridge
+              ? {
+                  subscriptionCredentialBridge:
+                    input.subscriptionCredentialBridge
+                }
+              : {})
+          }
         );
         return {
           model: childRuntime.model,

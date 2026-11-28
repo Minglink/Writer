@@ -3,6 +3,7 @@ import type {
   WorkspaceRuntimeContext
 } from "@writer/contracts";
 import type { Context, Tool } from "@earendil-works/pi-ai";
+import type { SubscriptionCredentialBridge } from "./subscriptions/types";
 
 const GRAMMAR_REPETITION_THRESHOLD = 2_000;
 const WRITING_WORKSPACE_OMITTED_KEYWORDS = new Set([
@@ -49,6 +50,7 @@ export type PortableToolSchemaProfile = "default" | "writing-workspace";
 export interface ProviderRuntimeCompatibilityOptions {
   portableToolSchemaProfile?: PortableToolSchemaProfile;
   onDeveloperRoleFallback?: () => void;
+  subscriptionCredentialBridge?: SubscriptionCredentialBridge;
 }
 
 type SchemaKeywordFilter = (

@@ -10,6 +10,7 @@ import {
 import type { ContextPolicy } from "../kernel/context";
 import type { AgentRunPlan, AgentRunTarget } from "../kernel/run-plan";
 import type { LongCommandExecutor } from "../long-agent-tools";
+import type { SubscriptionCredentialBridge } from "../subscriptions/types";
 import { buildSpawnSubagentTool } from "../subagent-runtime";
 import type { AgentRunBuildContext } from "../kernel/run-plan";
 import { rawUserMessageContent } from "../prompts-user-message";
@@ -39,6 +40,7 @@ export interface ExtrasAgentRunInput {
   spec: ExtrasAgentRunSpec;
   signal?: AbortSignal;
   longCommandExecutor?: LongCommandExecutor;
+  subscriptionCredentialBridge?: SubscriptionCredentialBridge;
   bookIdentitySubmit?: ExtrasAgentRunServices["bookIdentitySubmit"];
   decompositionQuery?: ExtrasAgentRunServices["decompositionQuery"];
   decompositionSubmit?: ExtrasAgentRunServices["decompositionSubmit"];
@@ -154,7 +156,12 @@ export function planExtrasRun(input: ExtrasAgentRunInput): AgentRunPlan {
     ...(signal ? { signal } : {}),
     ...(spec.runtimeConfig ? { runtimeConfig: spec.runtimeConfig } : {}),
     ...(spec.thinkingLevel ? { thinkingLevel: spec.thinkingLevel } : {}),
-    ...(spec.temperature !== undefined ? { temperature: spec.temperature } : {})
+    ...(spec.temperature !== undefined
+      ? { temperature: spec.temperature }
+      : {}),
+    ...(input.subscriptionCredentialBridge
+      ? { subscriptionCredentialBridge: input.subscriptionCredentialBridge }
+      : {})
   };
   const shared = {
     eventSource: identity,

@@ -23,6 +23,7 @@ import type {
   UserPromptAttachment
 } from "@writer/contracts";
 import type { PortableToolSchemaProfile } from "../portable-tool-schema";
+import type { SubscriptionCredentialBridge } from "../subscriptions/types";
 import type { ContextPolicy } from "./context";
 import type {
   AgentRunEventSource,
@@ -50,6 +51,8 @@ export interface AgentRunTarget {
   contextCompactionSettings?: ContextCompactionRunSettings;
   /** Dedicated summary model, when configured. */
   compactionRuntimeConfig?: AgentProviderRuntimeConfig;
+  /** Controlled Agent -> Main bridge for short-lived subscription token refresh and failover. */
+  subscriptionCredentialBridge?: SubscriptionCredentialBridge;
 }
 
 /** Model-dependent values available while a domain assembles its run. */

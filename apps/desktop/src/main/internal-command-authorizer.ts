@@ -43,6 +43,11 @@ export const AGENT_CORE_QUERY_COMMANDS = [
   "bookIdentity.submitRound"
 ] as const;
 
+export const AGENT_MAIN_SUBSCRIPTION_COMMANDS = [
+  "subscriptions.acquireCredential",
+  "subscriptions.reportAndFailover"
+] as const satisfies readonly CommandEnvelope["type"][];
+
 const LONG_QUERY_COMMAND_TYPES = new Set<string>(
   AGENT_CORE_LONG_QUERY_COMMANDS
 );
@@ -91,13 +96,62 @@ function denied(
  */
 export function authorizeMainInternalCommand(
   context: UtilityInternalCommandAuthorizationContext,
-  activeRuns: ReadonlyMap<string, MainInternalCommandActiveRun>
+  activeRuns: ReadonlyMap<string, MainInternalCommandActiveRun>,
+  activeModelTests?: ReadonlySet<string>
 ): UtilityInternalCommandAuthorizationResult {
   const { source, target, message } = context;
-  if (source !== "agent" || message.worker !== "agent" || target !== "core") {
+  if (source !== "agent" || message.worker !== "agent") {
     return denied(
       "main.invalid_bridge_route",
-      "Only Agent-to-Core internal commands are authorized."
+      "Only Agent internal commands are authorized."
+    );
+  }
+  if (target === "main") {
+    const command = message.command;
+    if (
+      command.type !== "subscriptions.acquireCredential" &&
+      command.type !== "subscriptions.reportAndFailover"
+    ) {
+      return denied(
+        "main.subscription_command_not_allowed",
+        "Only subscription credential commands are authorized on the Main bridge."
+      );
+    }
+    const requestedRunId = command.payload.runId;
+    if (
+      command.context.runId !== undefined &&
+      command.context.runId !== requestedRunId
+    ) {
+      return denied(
+        "main.subscription_run_mismatch",
+        "Subscription bridge runId does not match command context."
+      );
+    }
+    if (
+      activeModelTests?.has(message.parentRequestId) &&
+      requestedRunId === message.parentRequestId
+    ) {
+      return true;
+    }
+    const run = activeRuns.get(requestedRunId);
+    if (
+      !run?.accepted ||
+      !run.promptRequestId ||
+      message.parentRequestId !== run.promptRequestId ||
+      (command.context.sessionId !== undefined &&
+        command.context.sessionId !== run.sessionId)
+    ) {
+      return denied(
+        "main.subscription_bridge_not_authorized",
+        "Subscription credential requests require an accepted active run or model test."
+      );
+    }
+    return true;
+  }
+  if (target !== "core") {
+    return denied(
+      "main.invalid_bridge_route",
+      "Only Agent-to-Core and Agent-to-Main internal commands are authorized."
     );
   }
   if (message.command.type === "catalog.readWritingWorkspace") {

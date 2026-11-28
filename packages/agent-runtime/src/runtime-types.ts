@@ -51,6 +51,7 @@ import type { MysteryCommandExecutor } from "./mystery";
 import type { MaterialCommandExecutor } from "./material-query-runtime";
 import type { ShortWorkspaceToolDetails } from "./short-agent-tools";
 import type { AgentToolExecutionHooks } from "./subagent-runtime";
+import type { SubscriptionCredentialBridge } from "./subscriptions/types";
 
 export interface AgentRunInput {
   runId: string;
@@ -103,6 +104,7 @@ export interface AgentRunInput {
   longCommandExecutor?: LongCommandExecutor;
   mysteryCommandExecutor?: MysteryCommandExecutor;
   materialCommandExecutor?: MaterialCommandExecutor;
+  subscriptionCredentialBridge?: SubscriptionCredentialBridge;
   /** Disables automatic single-chapter evidence prefetch (used by P0 baseline eval arms). */
   disableLongChapterEvidencePrefetch?: boolean;
   signal?: AbortSignal;

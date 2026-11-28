@@ -1,5 +1,6 @@
 import { safeStorage } from "electron";
 import {
+  isSubscriptionModel,
   isWriterSiteOfficialModel,
   isTextGenerationModel,
   ModelSettingsSchema,
@@ -7,6 +8,7 @@ import {
   type ModelSettings
 } from "@writer/contracts";
 import type { WriterFreeModelCatalog } from "./writer-free-model-config";
+import type { SubscriptionModelCatalog } from "./subscriptions/types";
 import {
   synchronizeFreeModelState,
   toDiskModel,
@@ -24,10 +26,19 @@ import type {
   ModelConfigState
 } from "./model-config-persistence";
 
+export const EMPTY_SUBSCRIPTION_MODEL_CATALOG: SubscriptionModelCatalog = {
+  models: []
+};
+
 export interface ModelConfigCatalogs {
   freeCatalog: WriterFreeModelCatalog;
+  subscriptionCatalog: SubscriptionModelCatalog;
 }
 export type ModelConfigSnapshot = ModelConfigState & ModelConfigCatalogs;
+
+export interface SynchronizeStateOptions {
+  autoSelectSubscriptionDefault?: boolean;
+}
 
 export function withWriterFreeApiKeys(
   catalog: WriterFreeModelCatalog,
@@ -61,7 +72,9 @@ export function toPublicSettings(
     defaultModelId: settings.defaultModelId,
     models: settings.models.map((model) => ({
       ...model,
-      hasApiKey: Boolean(secrets.encryptedApiKeys[model.id])
+      hasApiKey: isSubscriptionModel(model)
+        ? true
+        : Boolean(secrets.encryptedApiKeys[model.id])
     })),
     ...projectPublicFreeModelSettings(settings, freeCatalog, (modelId) =>
       Boolean(secrets.encryptedApiKeys[modelId])
@@ -72,43 +85,111 @@ export function toPublicSettings(
 export function synchronizeState(
   settings: DiskModelSettings,
   secrets: DiskModelSecrets,
-  freeCatalog: WriterFreeModelCatalog
+  freeCatalog: WriterFreeModelCatalog,
+  subscriptionCatalog: SubscriptionModelCatalog = EMPTY_SUBSCRIPTION_MODEL_CATALOG,
+  options: SynchronizeStateOptions = {}
 ): [DiskModelSettings, DiskModelSecrets] {
-  const nextSettings = synchronizeSettings(settings, freeCatalog);
+  const nextSettings = synchronizeSettings(
+    settings,
+    freeCatalog,
+    subscriptionCatalog,
+    secrets,
+    options
+  );
+  const cleanedSecrets = removeDeprecatedFreeSecrets(
+    secrets.encryptedApiKeys,
+    nextSettings
+  );
+  for (const id of Object.keys(cleanedSecrets)) {
+    if (isSubscriptionModel(id)) {
+      delete cleanedSecrets[id];
+    }
+  }
   return [
     nextSettings,
     {
       version: 1,
-      encryptedApiKeys: removeDeprecatedFreeSecrets(
-        secrets.encryptedApiKeys,
-        nextSettings
-      )
+      encryptedApiKeys: cleanedSecrets
     }
   ];
 }
 
 function synchronizeSettings(
   settings: DiskModelSettings,
-  freeCatalog: WriterFreeModelCatalog
+  freeCatalog: WriterFreeModelCatalog,
+  subscriptionCatalog: SubscriptionModelCatalog,
+  secrets: DiskModelSecrets,
+  options: SynchronizeStateOptions
 ): DiskModelSettings {
   const freeState = synchronizeFreeModelState(settings, freeCatalog);
   const freeModels = effectiveFreeModels(freeState, freeCatalog);
   const freeReservedIds = reservedFreeModelIds(freeState, freeCatalog);
-  const customModels = settings.models
-    .filter((model) => !model.managedBy && !freeReservedIds.has(model.id))
+  const subscriptionModels = subscriptionCatalog.models
+    .filter(
+      (model) =>
+        model.managedBy === "subscription" &&
+        isSubscriptionModel(model) &&
+        !freeReservedIds.has(model.id)
+    )
     .map(toDiskModel);
-  const models = [...freeModels, ...customModels];
+  const subscriptionReservedIds = new Set(
+    subscriptionModels.map((model) => model.id)
+  );
+  const customModels = settings.models
+    .filter(
+      (model) =>
+        !model.managedBy &&
+        !freeReservedIds.has(model.id) &&
+        !subscriptionReservedIds.has(model.id) &&
+        !isSubscriptionModel(model)
+    )
+    .map(toDiskModel);
+  const models = [...freeModels, ...subscriptionModels, ...customModels].slice(
+    0,
+    100
+  );
   const requestedDefaultModelId = settings.defaultModelId;
-  const defaultModelId = models.some(
+  const requestedModel = models.find(
     (model) =>
       model.id === requestedDefaultModelId && isTextGenerationModel(model)
-  )
-    ? requestedDefaultModelId
-    : (models.find(
+  );
+  const hasConfiguredCustomApi = customModels.some(
+    (model) =>
+      isTextGenerationModel(model) &&
+      (!isWriterSiteOfficialModel(model) || model.enabled !== false) &&
+      Boolean(secrets.encryptedApiKeys[model.id])
+  );
+  const preferredSubscriptionDefault =
+    subscriptionCatalog.preferredDefaultModelId &&
+    models.some(
+      (model) =>
+        model.id === subscriptionCatalog.preferredDefaultModelId &&
+        isTextGenerationModel(model)
+    )
+      ? subscriptionCatalog.preferredDefaultModelId
+      : undefined;
+
+  let defaultModelId: string;
+  if (
+    options.autoSelectSubscriptionDefault &&
+    preferredSubscriptionDefault &&
+    !hasConfiguredCustomApi &&
+    (!requestedModel || !isSubscriptionModel(requestedModel))
+  ) {
+    defaultModelId = preferredSubscriptionDefault;
+  } else if (requestedModel) {
+    defaultModelId = requestedDefaultModelId;
+  } else {
+    defaultModelId =
+      preferredSubscriptionDefault ??
+      models.find(
         (model) =>
           isTextGenerationModel(model) &&
           (!isWriterSiteOfficialModel(model) || model.enabled !== false)
-      )?.id ?? "");
+      )?.id ??
+      "";
+  }
+
   return {
     version: 2,
     defaultModelId,

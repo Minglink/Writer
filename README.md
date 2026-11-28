@@ -15,7 +15,7 @@
 
 `#网文写作Agent` · `#百万字长篇记忆` · `#限知视角防剧透` · `#拆书炼技` · `#Diff可审阅改稿` · `#子智能体团队` · `#本地优先`
 
-**简体中文** · [English](./README.en.md) · [图文使用教程](./docs/USER_GUIDE.md) · [立即下载 v0.1.4](https://github.com/Minglink/Writer/releases/tag/v0.1.4)
+**简体中文** · [English](./README.en.md) · [图文使用教程](./docs/USER_GUIDE.md) · [立即下载 v0.1.7](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
 
 </div>
 
@@ -114,11 +114,11 @@ Writer 没有采用把数据库、密钥和模型请求一股脑塞进前端页�
 
 ### 方式一：下载安装包（开箱即用）
 
-前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新正式版安装包（当前版本 `v0.1.4`）：
+前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新正式版安装包（当前版本 `v0.1.7`）：
 
 | 平台 | 安装包文件 | 说明 |
 | --- | --- | --- |
-| **Windows 10 / 11 (x64)** | `Writer-0.1.4-win-x64.exe` | 下载后双击按向导安装，支持后续客户端内一键检测 GitHub Release 更新并后台升级 |
+| **Windows 10 / 11 (x64)** | `Writer-0.1.7-win-x64.exe` | 下载后双击按向导安装，支持后续客户端内一键检测 GitHub Release 更新并后台升级 |
 
 **首次打开三步开写：**
 1. 选择你的本地作品存放目录（纯本地文件夹，随时可用资源管理器或 Git 查看）。

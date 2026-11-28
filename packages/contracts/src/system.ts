@@ -17,6 +17,13 @@ import {
 } from "./book-identity/commands";
 import { ImageModelCommandSchemas } from "./image-models/commands";
 import { WebSearchCommandSchemas } from "./web-search/commands";
+import {
+  SubscriptionCommandSchemas,
+  SubscriptionsAuthProgressEventEnvelopeSchema,
+  SubscriptionsStateChangedEventEnvelopeSchema,
+  type SubscriptionsAuthProgressEventEnvelope,
+  type SubscriptionsStateChangedEventEnvelope
+} from "./subscriptions/commands";
 import { LibraryPackageCommandSchemas } from "./library-package/commands";
 import {
   LongMaterialCommandSchemas,
@@ -310,6 +317,7 @@ export const CommandEnvelopeSchema = z.discriminatedUnion("type", [
   ...LibraryPackageCommandSchemas,
   ...ImageModelCommandSchemas,
   ...WebSearchCommandSchemas,
+  ...SubscriptionCommandSchemas,
   ...BookTemplateCommandSchemas,
   DeviceSyncWorkspaceCommandEnvelopeSchema,
   CatalogQueryMaterialsCommandEnvelopeSchema,
@@ -539,7 +547,9 @@ export const SystemEventEnvelopeSchema = z.discriminatedUnion("type", [
   WorkspaceEditorMutationEventEnvelopeSchema,
   WorkspaceStageSelectionEventEnvelopeSchema,
   AgentErrorEventEnvelopeSchema,
-  AgentRunDrainedEventEnvelopeSchema
+  AgentRunDrainedEventEnvelopeSchema,
+  SubscriptionsAuthProgressEventEnvelopeSchema,
+  SubscriptionsStateChangedEventEnvelopeSchema
 ]);
 
 export type SystemReadyEventEnvelope = Envelope<
@@ -604,4 +614,6 @@ export type SystemEventEnvelope =
   | WorkspaceEditorMutationEventEnvelope
   | WorkspaceStageSelectionEventEnvelope
   | AgentErrorEventEnvelope
-  | AgentRunDrainedEventEnvelope;
+  | AgentRunDrainedEventEnvelope
+  | SubscriptionsAuthProgressEventEnvelope
+  | SubscriptionsStateChangedEventEnvelope;

@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  SUBSCRIPTION_ACCOUNT_ID_MAX_LENGTH,
+  SubscriptionProviderIdSchema
+} from "./subscriptions/providers";
 
 export const BUILT_IN_REASONING_LEVELS = [
   "minimal",
@@ -71,15 +75,23 @@ export type TemperatureOptions = z.infer<typeof TemperatureOptionsSchema>;
 export const ModelApiSchema = z.enum([
   "openai-completions",
   "openai-responses",
+  "openai-codex-responses",
+  "github-copilot",
   "anthropic-messages",
-  "google-generative-ai"
+  "google-generative-ai",
+  "google-cloud-code-assist",
+  "google-antigravity",
+  "kiro-codewhisperer",
+  "cursor-connect",
+  "windsurf-connect",
+  "codebuddy-chat"
 ]);
 export type ModelApi = z.infer<typeof ModelApiSchema>;
 
 export const ToolSchemaProfileSchema = z.enum(["native", "portable"]);
 export type ToolSchemaProfile = z.infer<typeof ToolSchemaProfileSchema>;
 
-export const ModelManagedBySchema = z.enum(["writer-free"]);
+export const ModelManagedBySchema = z.enum(["writer-free", "subscription"]);
 export type ModelManagedBy = z.infer<typeof ModelManagedBySchema>;
 
 /**
@@ -120,6 +132,24 @@ export function isWriterSiteOfficialModel(
         ? model.id
         : model.configId;
   return id.startsWith(WRITER_SITE_OFFICIAL_MODEL_ID_PREFIX);
+}
+
+export const SUBSCRIPTION_MODEL_ID_PREFIX = "sub:";
+
+export function isSubscriptionModel(
+  model:
+    | string
+    | { id: string; managedBy?: ModelManagedBy | undefined }
+    | { configId: string; managedBy?: ModelManagedBy | undefined }
+): boolean {
+  if (typeof model === "string") {
+    return model.startsWith(SUBSCRIPTION_MODEL_ID_PREFIX);
+  }
+  if (model.managedBy === "subscription") {
+    return true;
+  }
+  const id = "id" in model ? model.id : model.configId;
+  return id.startsWith(SUBSCRIPTION_MODEL_ID_PREFIX);
 }
 
 /** Fallback context window for custom models that are not in the runtime catalog. */
@@ -251,9 +281,21 @@ export const ModelConfigInputSchema = ModelIdentitySchema.and(
 );
 export type ModelConfigInput = z.infer<typeof ModelConfigInputSchema>;
 
+export const SubscriptionRuntimeAuthSchema = z.object({
+  provider: SubscriptionProviderIdSchema,
+  accountId: z.string().min(1).max(SUBSCRIPTION_ACCOUNT_ID_MAX_LENGTH),
+  expiresAt: z.string().datetime().optional(),
+  extraHeaders: z.record(z.string(), z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional()
+});
+export type SubscriptionRuntimeAuth = z.infer<
+  typeof SubscriptionRuntimeAuthSchema
+>;
+
 export const AgentProviderRuntimeConfigSchema = ModelIdentitySchema.and(
   z.object({
-    apiKey: z.string().max(16_000)
+    apiKey: z.string().max(16_000),
+    subscriptionAuth: SubscriptionRuntimeAuthSchema.optional()
   })
 );
 export type AgentProviderRuntimeConfig = z.infer<

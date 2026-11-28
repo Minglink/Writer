@@ -188,6 +188,12 @@ import { ImageService } from "./image/image-service";
 import { handleImageCommands } from "./image/image-commands";
 import { handleWebSearchCommands } from "./web-search/web-search-commands";
 import type { WebSearchService } from "./web-search/web-search-service";
+import {
+  handleSubscriptionCommands,
+  handleSubscriptionInternalCommand,
+  type SubscriptionAccountManager
+} from "./subscriptions";
+import { isForbiddenRendererCommand } from "./ipc/forbidden-commands";
 import { CoverRenderService } from "../extras/book-identity/cover-render-service";
 import { handleBookIdentityCommands } from "../extras/book-identity/commands";
 import {
@@ -228,6 +234,7 @@ import {
 } from "./catalog-command-timeout";
 import {
   AGENT_CORE_QUERY_COMMANDS,
+  AGENT_MAIN_SUBSCRIPTION_COMMANDS,
   authorizeMainInternalCommand,
   type MainInternalCommandActiveRun
 } from "./internal-command-authorizer";
@@ -315,11 +322,13 @@ interface ActiveRun extends MainInternalCommandActiveRun {
 }
 
 const activeRuns = new Map<string, ActiveRun>();
+const activeModelTests = new Set<string>();
 const terminalRuns = new Set<string>();
 const pendingUsageContexts = new Map<string, UsageRunContext>();
 let smokeEventTap: ((event: SystemEventEnvelope) => void) | undefined;
 let mainWindow: BrowserWindow | undefined;
 let modelConfigStore: ModelConfigStore | undefined;
+let subscriptionAccountManager: SubscriptionAccountManager | undefined;
 let modelUsageStore: ModelUsageStore | undefined;
 let softwareTokenUsageReporter: SoftwareTokenUsageReporter | undefined;
 let agentTeamConfigStore: AgentTeamConfigStore | undefined;
@@ -763,11 +772,16 @@ const supervisor: UtilitySupervisor = new UtilitySupervisor({
   onUnexpectedExit: handleUnexpectedExit,
   onWorkerRestarted: handleWorkerRestarted,
   internalCommandAllowlist: {
-    core: AGENT_CORE_QUERY_COMMANDS
+    core: AGENT_CORE_QUERY_COMMANDS,
+    main: AGENT_MAIN_SUBSCRIPTION_COMMANDS
   },
   internalCommandAuthorize: (context) =>
-    authorizeMainInternalCommand(context, activeRuns),
+    authorizeMainInternalCommand(context, activeRuns, activeModelTests),
   internalCommandHandle: async (context) =>
+    (await handleSubscriptionInternalCommand(
+      context,
+      () => subscriptionAccountManager
+    )) ??
     (await handleTeamManagementCommand(
       context,
       activeRuns,
@@ -1330,6 +1344,35 @@ function registerIpc(): void {
           if (result) return result;
         }
       }
+      if (command.type.startsWith("subscriptions.")) {
+        if (isForbiddenRendererCommand(command.type)) {
+          return {
+            status: "rejected",
+            requestId: command.id,
+            error: {
+              code: "ipc.forbidden_internal_command",
+              message: "Renderer cannot invoke internal commands."
+            }
+          };
+        }
+        if (event.senderFrame !== event.sender.mainFrame) {
+          return {
+            status: "rejected",
+            requestId: command.id,
+            error: {
+              code: "subscriptions.untrusted_frame",
+              message: "订阅模型管理仅允许从应用主界面操作。"
+            }
+          };
+        }
+        if (subscriptionAccountManager) {
+          const result = await handleSubscriptionCommands(
+            command,
+            subscriptionAccountManager
+          );
+          if (result) return result;
+        }
+      }
       if (
         command.type.startsWith("storageSettings.") &&
         storageSettingsService
@@ -1417,7 +1460,8 @@ function registerIpc(): void {
         command.type === "catalog.previewLibraryPackageAtPath" ||
         command.type === "catalog.importLibraryPackageAtPath" ||
         command.type === "catalog.installMarketplaceSkillContent" ||
-        command.type === "catalog.installMarketplaceMaterial"
+        command.type === "catalog.installMarketplaceMaterial" ||
+        isForbiddenRendererCommand(command.type)
       ) {
         return {
           status: "rejected",
@@ -2536,7 +2580,8 @@ function registerIpc(): void {
           requireModelUsageStore,
           listRemoteModels,
           remoteFetch: electronRemoteFetch,
-          supervisor
+          supervisor,
+          activeModelTests
         },
         command
       );
@@ -2972,17 +3017,37 @@ if (!hasSingleInstanceLock) {
     );
     const services = await desktopStartup.step("services", () =>
       createDesktopServices({
+        showWindow: showMainWindow,
         userDataPath,
         configurationPath,
         appVersion: app.getVersion(),
         command: (command) => supervisor.requestCommand("core", command, 0),
         busy: () => activeRuns.size > 0,
         installUpdate: () => beginGracefulShutdown({ installUpdate: true }),
-        confirmUpdateInstall: () => confirmUpdateInstall(mainWindow)
+        confirmUpdateInstall: () => confirmUpdateInstall(mainWindow),
+        subscriptionEvents: {
+          emitAuthProgress: (payload) =>
+            broadcastEvent(
+              SystemEventEnvelopeSchema.parse(
+                createEnvelope("subscriptions.authProgress", payload, {
+                  id: createId("evt_sub_auth")
+                })
+              ) as SystemEventEnvelope
+            ),
+          emitStateChanged: (payload) =>
+            broadcastEvent(
+              SystemEventEnvelopeSchema.parse(
+                createEnvelope("subscriptions.stateChanged", payload, {
+                  id: createId("evt_sub_state")
+                })
+              ) as SystemEventEnvelope
+            )
+        }
       })
     );
     ({
       modelConfigStore,
+      subscriptionAccountManager,
       modelUsageStore,
       softwareTokenUsageReporter,
       workspaceAgentConfigStore,

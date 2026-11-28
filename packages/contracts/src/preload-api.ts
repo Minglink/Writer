@@ -442,6 +442,7 @@ export interface WriterApi extends TextContextMenuPreloadApi {
     ): Promise<SessionSteerAcceptedPayload>;
   };
   models: ModelPreloadApi;
+  subscriptions?: import("./subscriptions/api").SubscriptionsPreloadApi;
   modelUsage: {
     query(input?: ModelUsageQueryInput): Promise<ModelUsageDashboard>;
   };

@@ -20,7 +20,7 @@
 
 ## 1. 下载安装与首次配置
 
-1. 前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新的 Windows x64 安装包（例如 `Writer-0.1.4-win-x64.exe`）并双击安装。
+1. 前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新的 Windows x64 安装包（例如 `Writer-0.1.7-win-x64.exe`）并双击安装。
 2. 首次启动时选择一个本地文件夹作为**作品根目录**：
    - 所有作品均以标准 `writer.json` + **UTF-8 Markdown** 文件夹保存在你自己的硬盘中，随时可用资源管理器、Git 或网盘同步备份。
 3. 打开左下角 **设置 → 模型配置**，填写你常用的大模型 API 地址与密钥（支持 OpenAI Completions / Responses、Anthropic Messages、Google Generative AI 等兼容接口），点击「测试连接」通过后即可开写。

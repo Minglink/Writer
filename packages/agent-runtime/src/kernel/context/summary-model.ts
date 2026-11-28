@@ -11,6 +11,7 @@ import {
   buildProviderRuntime,
   toPiThinkingLevel
 } from "../../provider-runtime";
+import type { SubscriptionCredentialBridge } from "../../subscriptions/types";
 import type { SummaryModel } from "./summarize";
 
 /**
@@ -24,7 +25,8 @@ export function resolveSummaryModel(
     thinkingLevel: PiThinkingLevel;
     runtime: AgentRuntimeRef;
   },
-  dedicated: AgentProviderRuntimeConfig | undefined
+  dedicated: AgentProviderRuntimeConfig | undefined,
+  subscriptionCredentialBridge?: SubscriptionCredentialBridge
 ): SummaryModel {
   if (run.runtime.mode === "local-faux") {
     return { ...run, local: true };
@@ -33,7 +35,8 @@ export function resolveSummaryModel(
   const { model, streamFn } = buildProviderRuntime(
     dedicated,
     undefined,
-    dedicated.defaultThinkingLevel
+    dedicated.defaultThinkingLevel,
+    subscriptionCredentialBridge ? { subscriptionCredentialBridge } : {}
   );
   return {
     model,

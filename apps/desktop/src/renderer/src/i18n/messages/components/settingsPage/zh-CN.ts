@@ -8,6 +8,9 @@ export default {
   materialLibrarySettings: "素材库",
   modelsAndUsage: "模型与用量",
   usage: "用量",
+  subscriptionModels: "订阅模型管理",
+  subscriptionModelsKeywords:
+    "订阅 模型 账号 Gemini Antigravity Codex Copilot OAuth 配额",
   freeModels: "免费模型",
   customModelSettings: "自定义模型",
   officialSiteModels: "新官方小站模型",

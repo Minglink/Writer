@@ -8,7 +8,7 @@ import {
   type CommandResult
 } from "@writer/contracts";
 import { createId } from "@writer/shared";
-import { safeStorage } from "electron";
+import { safeStorage, shell } from "electron";
 import { join } from "node:path";
 import { createCloudBackupFeature } from "../extras/cloud-backup/create-service";
 import { createDesktopDeviceSync } from "../extras/device-sync";
@@ -32,6 +32,13 @@ import { LongAgentConfigStore } from "./long-agent-config-store";
 import { MysteryAgentConfigStore } from "./mystery-agent-config-store";
 import { MarketplaceClient } from "./marketplace-client";
 import { ModelConfigStore } from "./model-config-store";
+import {
+  SubscriptionAccountManager,
+  createDefaultSubscriptionRegistry,
+  startOAuthLoopbackServer,
+  type SubscriptionEventSink
+} from "./subscriptions";
+import { electronRemoteFetch } from "./electron-remote-fetch";
 import { ModelUsageStore } from "./model-usage-store";
 import { SoftwareTokenUsageReporter } from "./software-token-usage-reporter";
 import type { StartupLog } from "./startup-log";
@@ -48,16 +55,43 @@ interface DesktopServiceOptions {
   busy: () => boolean;
   installUpdate: () => void;
   confirmUpdateInstall: () => Promise<boolean>;
+  showWindow: () => void;
+  subscriptionEvents?: SubscriptionEventSink;
 }
 
 /** Construction has no network dependency; optional refreshes start separately. */
 export function createDesktopServices(options: DesktopServiceOptions) {
   const { userDataPath, command } = options;
   const configurationPath = options.configurationPath ?? userDataPath;
+  const subscriptionRemoteFetch = (input: string, init?: RequestInit) =>
+    electronRemoteFetch(input, {
+      ...init,
+      credentials: "omit"
+    });
+  const subscriptionAccountManager = new SubscriptionAccountManager(
+    configurationPath,
+    {
+      registry: createDefaultSubscriptionRegistry({
+        fetcher: subscriptionRemoteFetch,
+        startLoopback: (optionsForLogin) =>
+          startOAuthLoopbackServer({
+            ...optionsForLogin,
+            onReturnToWriter: options.showWindow
+          })
+      }),
+      secureStorage: safeStorage,
+      openExternalUrl: (url) => shell.openExternal(url),
+      ...(options.subscriptionEvents
+        ? { events: options.subscriptionEvents }
+        : {})
+    }
+  );
   const modelConfigStore = new ModelConfigStore(configurationPath, {
     appVersion: options.appVersion,
+    subscriptionCatalog: subscriptionAccountManager,
     ...modelSmokeOptions()
   });
+  subscriptionAccountManager.attachModelStoreSync(modelConfigStore);
   const modelUsageStore = new ModelUsageStore(userDataPath);
   const workspaceDirectoryStore = new WorkspaceDirectoryStore(
     configurationPath,
@@ -120,6 +154,7 @@ export function createDesktopServices(options: DesktopServiceOptions) {
     webSearchService,
     coverRenderService: new CoverRenderService(command, imageService),
     modelConfigStore,
+    subscriptionAccountManager,
     modelUsageStore,
     softwareTokenUsageReporter: new SoftwareTokenUsageReporter(
       userDataPath,

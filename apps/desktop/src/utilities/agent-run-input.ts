@@ -1,7 +1,10 @@
-import type {
-  AgentPromptCommandPayload,
-  CommandResult,
-  CommandEnvelope
+import {
+  CommandEnvelopeSchema,
+  SubscriptionAcquiredCredentialSchema,
+  createEnvelope,
+  type AgentPromptCommandPayload,
+  type CommandResult,
+  type CommandEnvelope
 } from "@writer/contracts";
 import type {
   AgentRunInput,
@@ -9,8 +12,10 @@ import type {
   MysteryCommandExecutor,
   LibraryManagementCommandExecutor,
   MaterialCommandExecutor,
+  SubscriptionCredentialBridge,
   TeamManagementCommandExecutor
 } from "@writer/agent-runtime";
+import { createId } from "@writer/shared";
 import type { UtilityCommandHandlerContext } from "./runtime";
 
 function abortedError(): Error {
@@ -64,6 +69,69 @@ export function createCoreCommandExecutor(
         }
       );
     });
+  };
+}
+
+/** Agent -> Main controlled credential bridge for short-lived subscription tokens. */
+export function createSubscriptionCredentialBridge(
+  context: UtilityCommandHandlerContext,
+  scope: { runId: string; sessionId?: string }
+): SubscriptionCredentialBridge {
+  const envelopeContext = {
+    runId: scope.runId,
+    ...(scope.sessionId ? { sessionId: scope.sessionId } : {})
+  };
+  return {
+    async acquireCredential(input) {
+      const id = createId("cmd_sub_acquire");
+      const command = CommandEnvelopeSchema.parse(
+        createEnvelope(
+          "subscriptions.acquireCredential",
+          {
+            runId: scope.runId,
+            provider: input.provider,
+            modelId: input.modelId,
+            ...(input.accountId ? { accountId: input.accountId } : {})
+          },
+          { id, correlationId: id, context: envelopeContext }
+        )
+      );
+      const result = await context.requestInternalCommand("main", command, {
+        timeoutMs: 30_000
+      });
+      if (result.status === "rejected") {
+        throw new Error(result.error.message);
+      }
+      return SubscriptionAcquiredCredentialSchema.parse(result.payload);
+    },
+    async reportAndFailover(input) {
+      const id = createId("cmd_sub_failover");
+      const command = CommandEnvelopeSchema.parse(
+        createEnvelope(
+          "subscriptions.reportAndFailover",
+          {
+            runId: scope.runId,
+            provider: input.provider,
+            modelId: input.modelId,
+            failedAccountId: input.failedAccountId,
+            reason: input.reason,
+            ...(input.retryAfterSec !== undefined
+              ? { retryAfterSec: input.retryAfterSec }
+              : {}),
+            ...(input.resetAt !== undefined ? { resetAt: input.resetAt } : {}),
+            ...(input.message !== undefined ? { message: input.message } : {})
+          },
+          { id, correlationId: id, context: envelopeContext }
+        )
+      );
+      const result = await context.requestInternalCommand("main", command, {
+        timeoutMs: 30_000
+      });
+      if (result.status === "rejected") {
+        throw new Error(result.error.message);
+      }
+      return SubscriptionAcquiredCredentialSchema.parse(result.payload);
+    }
   };
 }
 
@@ -174,6 +242,14 @@ export function createAgentRunInput(
       : {}),
     ...(payload.workspaceContext
       ? { workspaceContext: payload.workspaceContext }
+      : {}),
+    ...(context
+      ? {
+          subscriptionCredentialBridge: createSubscriptionCredentialBridge(
+            context,
+            { runId, sessionId: payload.sessionId }
+          )
+        }
       : {}),
     signal
   };

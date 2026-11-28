@@ -335,7 +335,8 @@ export class AgentRunKernel {
           model,
           summaryModel: resolveSummaryModel(
             { model, streamFn: spawnStreamFn, thinkingLevel, runtime },
-            target.compactionRuntimeConfig
+            target.compactionRuntimeConfig,
+            target.subscriptionCredentialBridge
           ),
           runId: target.runId,
           sessionId: target.sessionId,

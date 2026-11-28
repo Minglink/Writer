@@ -632,8 +632,23 @@ export class UtilitySupervisor {
       return;
     }
 
-    const targetWorker = this.workers.get(message.target);
-    if (!targetWorker) {
+    const isMainTarget = message.target === "main";
+    const targetWorker =
+      message.target === "main" ? undefined : this.workers.get(message.target);
+    if (isMainTarget && !this.options.internalCommandHandle) {
+      sourceWorker.sendInternalCommandResult(
+        message.target,
+        message.requestId,
+        message.parentRequestId,
+        this.createInternalCommandRejection(
+          message.command.id,
+          "utility.internal_command_unknown_target",
+          "Main internal command handler is not configured."
+        )
+      );
+      return;
+    }
+    if (!isMainTarget && !targetWorker) {
       sourceWorker.sendInternalCommandResult(
         message.target,
         message.requestId,
@@ -657,12 +672,22 @@ export class UtilitySupervisor {
       commandId: message.command.id
     });
 
-    const forward = () =>
-      targetWorker.requestCommand(
+    const forward = (): Promise<CommandResult> => {
+      if (!targetWorker) {
+        return Promise.resolve(
+          this.createInternalCommandRejection(
+            message.command.id,
+            "utility.internal_command_unhandled",
+            `Main did not handle internal command ${message.command.type}.`
+          )
+        );
+      }
+      return targetWorker.requestCommand(
         message.command,
         message.timeoutMs,
         targetRequestId
       );
+    };
     const request = this.options.internalCommandHandle
       ? Promise.resolve()
           .then(() =>
@@ -728,12 +753,14 @@ export class UtilitySupervisor {
     for (const pending of [...this.pendingInternalCommands.values()]) {
       if (pending.source === worker) {
         this.pendingInternalCommands.delete(pending.requestId);
-        this.workers
-          .get(pending.target)
-          ?.cancelCommandRequest(
-            pending.targetRequestId,
-            new Error(`Internal command source exited: ${reason}`)
-          );
+        if (pending.target !== "main") {
+          this.workers
+            .get(pending.target)
+            ?.cancelCommandRequest(
+              pending.targetRequestId,
+              new Error(`Internal command source exited: ${reason}`)
+            );
+        }
         continue;
       }
       if (pending.target === worker) {
@@ -757,9 +784,11 @@ export class UtilitySupervisor {
   private cancelPendingInternalCommands(code: string, message: string): void {
     for (const pending of [...this.pendingInternalCommands.values()]) {
       this.pendingInternalCommands.delete(pending.requestId);
-      this.workers
-        .get(pending.target)
-        ?.cancelCommandRequest(pending.targetRequestId, new Error(message));
+      if (pending.target !== "main") {
+        this.workers
+          .get(pending.target)
+          ?.cancelCommandRequest(pending.targetRequestId, new Error(message));
+      }
       this.workers
         .get(pending.source)
         ?.sendInternalCommandResult(

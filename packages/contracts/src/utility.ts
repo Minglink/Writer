@@ -23,7 +23,11 @@ export const UtilityCommandRequestMessageSchema = z.object({
   command: CommandEnvelopeSchema
 });
 
-export const UtilityInternalCommandTargetSchema = z.enum(["core", "tool"]);
+export const UtilityInternalCommandTargetSchema = z.enum([
+  "core",
+  "tool",
+  "main"
+]);
 export type UtilityInternalCommandTarget = z.infer<
   typeof UtilityInternalCommandTargetSchema
 >;

@@ -24,6 +24,7 @@ import type { LongAgentConfigStore } from "../long-agent-config-store";
 import type { MysteryAgentConfigStore } from "../mystery-agent-config-store";
 import type { exportLongManuscript } from "../long-manuscript-export";
 import type { ModelConfigStore } from "../model-config-store";
+import type { SubscriptionAccountManager } from "../subscriptions";
 import type { ModelUsageStore } from "../model-usage-store";
 import type { exportShortManuscript } from "../short-manuscript-export";
 import type { UtilitySupervisor } from "../supervisor";
@@ -57,6 +58,7 @@ export interface IpcCommandContext {
     event: Extract<SystemEventEnvelope, { type: "agent.usage_observed" }>
   ) => void;
   requireModelConfigStore: () => ModelConfigStore;
+  requireSubscriptionAccountManager?: () => SubscriptionAccountManager;
   requireModelUsageStore: () => ModelUsageStore;
   requireWorkspaceAgentConfigStore: () => WorkspaceAgentConfigStore;
   requireAgentTeamConfigStore: () => AgentTeamConfigStore;

@@ -1,5 +1,8 @@
 import { safeStorage } from "electron";
-import type { ModelSettingsInput } from "@writer/contracts";
+import {
+  isSubscriptionModel,
+  type ModelSettingsInput
+} from "@writer/contracts";
 import {
   forgetEnabledFreeModel,
   rememberEnabledFreeModel,
@@ -26,7 +29,7 @@ export function editModelSettings(
     if (encrypted) encryptedApiKeys[id] = encrypted;
   }
   for (const model of input.models) {
-    if (model.managedBy) continue;
+    if (model.managedBy || isSubscriptionModel(model)) continue;
     const apiKey = model.apiKey?.trim();
     if (apiKey) {
       if (!safeStorage.isEncryptionAvailable()) {
@@ -60,7 +63,9 @@ export function editModelSettings(
     settings: {
       ...settings,
       defaultModelId: input.defaultModelId,
-      models: input.models.filter((model) => !model.managedBy).map(toDiskModel)
+      models: input.models
+        .filter((model) => !model.managedBy && !isSubscriptionModel(model))
+        .map(toDiskModel)
     },
     secrets: { version: 1, encryptedApiKeys }
   };
@@ -77,7 +82,8 @@ export function setFreeModelEnabled(
   const [settings, secrets] = synchronizeState(
     state.settings,
     state.secrets,
-    state.freeCatalog
+    state.freeCatalog,
+    state.subscriptionCatalog
   );
   return {
     settings: enabled

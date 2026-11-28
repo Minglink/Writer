@@ -44,7 +44,14 @@ export function resolveRunModel(
       target.runtimeConfig,
       effectiveTemperature,
       configuredThinkingLevel,
-      { portableToolSchemaProfile: plan.portableToolSchemaProfile }
+      {
+        portableToolSchemaProfile: plan.portableToolSchemaProfile,
+        ...(target.subscriptionCredentialBridge
+          ? {
+              subscriptionCredentialBridge: target.subscriptionCredentialBridge
+            }
+          : {})
+      }
     );
     return {
       model: providerRuntime.model,

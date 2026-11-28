@@ -15,7 +15,12 @@ import {
   type ThinkingLevelMap
 } from "@earendil-works/pi-ai";
 import { anthropicMessagesApi } from "@earendil-works/pi-ai/api/anthropic-messages.lazy";
+import {
+  buildCopilotDynamicHeaders,
+  hasCopilotVisionInput
+} from "@earendil-works/pi-ai/api/github-copilot-headers";
 import { googleGenerativeAIApi } from "@earendil-works/pi-ai/api/google-generative-ai.lazy";
+import { openAICodexResponsesApi } from "@earendil-works/pi-ai/api/openai-codex-responses.lazy";
 import { openAICompletionsApi } from "@earendil-works/pi-ai/api/openai-completions.lazy";
 import { openAIResponsesApi } from "@earendil-works/pi-ai/api/openai-responses.lazy";
 import {
@@ -25,6 +30,22 @@ import {
   type AgentProviderRuntimeConfig,
   type ThinkingLevel as ConfiguredThinkingLevel
 } from "@writer/contracts";
+import {
+  CODEBUDDY_CHAT_DEFAULT_BASE_URL,
+  CURSOR_CONNECT_DEFAULT_BASE_URL,
+  GOOGLE_ANTIGRAVITY_DEFAULT_BASE_URL,
+  GOOGLE_CLOUD_CODE_ASSIST_DEFAULT_BASE_URL,
+  KIRO_CODEWHISPERER_DEFAULT_BASE_URL,
+  KIRO_PROFILE_ARN_INTERNAL_HEADER,
+  WINDSURF_CONNECT_DEFAULT_BASE_URL,
+  codeBuddyChatApi,
+  cursorConnectApi,
+  googleAntigravityApi,
+  googleCloudCodeAssistApi,
+  kiroCodeWhispererApi,
+  windsurfConnectApi,
+  withSubscriptionFailover
+} from "./subscriptions";
 import {
   applyProviderToolSchemaCompatibility,
   isOllamaProviderName,
@@ -48,17 +69,126 @@ type ProviderStreamFn = (
   options?: SimpleStreamOptions
 ) => ReturnType<StreamFn>;
 
-function providerStreams(
-  api: AgentProviderRuntimeConfig["api"]
-): ProviderStreams {
+const OPENAI_CODEX_DEFAULT_BASE_URL = "https://chatgpt.com/backend-api";
+const GITHUB_COPILOT_DEFAULT_BASE_URL =
+  "https://api.individual.githubcopilot.com";
+const ANTHROPIC_CLAUDE_SUBSCRIPTION_BASE_URL = "https://api.anthropic.com";
+const ANTHROPIC_CLAUDE_OAUTH_IDENTITY_HEADERS: Record<string, string> = {
+  "anthropic-dangerous-direct-browser-access": "true",
+  "User-Agent": "claude-cli/2.1.280",
+  "x-app": "cli"
+};
+const ANTHROPIC_CLAUDE_FALLBACK_BEARER_BETA =
+  "claude-code-20250219,oauth-2025-04-20,fine-grained-tool-streaming-2025-05-14,interleaved-thinking-2025-05-14";
+const GITHUB_COPILOT_STATIC_HEADERS: Record<string, string> = {
+  "User-Agent": "GitHubCopilotChat/0.35.0",
+  "Editor-Version": "vscode/1.107.0",
+  "Editor-Plugin-Version": "copilot-chat/0.35.0",
+  "Copilot-Integration-Id": "vscode-chat"
+};
+
+type ResolvedWireApi = Exclude<
+  AgentProviderRuntimeConfig["api"],
+  "github-copilot"
+>;
+
+function resolveCopilotWireApi(
+  modelId: string,
+  builtin: Model<Api> | undefined
+): "anthropic-messages" | "openai-responses" | "openai-completions" {
+  const builtinApi = builtin?.api;
+  if (builtinApi === "anthropic-messages") {
+    return "anthropic-messages";
+  }
+  if (builtinApi === "openai-responses") {
+    return "openai-responses";
+  }
+  if (builtinApi === "openai-completions") {
+    return "openai-completions";
+  }
+  if (/^claude/iu.test(modelId)) {
+    return "anthropic-messages";
+  }
+  if (/^(?:gpt-5|gpt-6|o[134]|codex|grok-4|mai-code)/iu.test(modelId)) {
+    return "openai-responses";
+  }
+  return "openai-completions";
+}
+
+function defaultBaseUrlForSubscriptionApi(
+  config: AgentProviderRuntimeConfig
+): string {
+  switch (config.api) {
+    case "openai-codex-responses":
+      return OPENAI_CODEX_DEFAULT_BASE_URL;
+    case "github-copilot":
+      return GITHUB_COPILOT_DEFAULT_BASE_URL;
+    case "anthropic-messages":
+      return config.subscriptionAuth?.provider === "anthropic-claude"
+        ? ANTHROPIC_CLAUDE_SUBSCRIPTION_BASE_URL
+        : "";
+    case "google-cloud-code-assist":
+      return GOOGLE_CLOUD_CODE_ASSIST_DEFAULT_BASE_URL;
+    case "google-antigravity":
+      return (
+        config.subscriptionAuth?.metadata?.endpoint ||
+        GOOGLE_ANTIGRAVITY_DEFAULT_BASE_URL
+      );
+    case "kiro-codewhisperer":
+      return (
+        config.subscriptionAuth?.metadata?.endpoint ||
+        KIRO_CODEWHISPERER_DEFAULT_BASE_URL
+      );
+    case "cursor-connect":
+      return (
+        config.subscriptionAuth?.metadata?.endpoint ||
+        CURSOR_CONNECT_DEFAULT_BASE_URL
+      );
+    case "windsurf-connect":
+      return (
+        config.subscriptionAuth?.metadata?.endpoint ||
+        WINDSURF_CONNECT_DEFAULT_BASE_URL
+      );
+    case "codebuddy-chat":
+      return (
+        config.subscriptionAuth?.metadata?.endpoint ||
+        CODEBUDDY_CHAT_DEFAULT_BASE_URL
+      );
+    default:
+      return "";
+  }
+}
+
+function providerStreams(api: ResolvedWireApi): ProviderStreams {
   if (api === "openai-completions") {
     return openAICompletionsApi();
   }
   if (api === "openai-responses") {
     return openAIResponsesApi();
   }
+  if (api === "openai-codex-responses") {
+    return openAICodexResponsesApi();
+  }
   if (api === "anthropic-messages") {
     return anthropicMessagesApi();
+  }
+  if (api === "google-cloud-code-assist") {
+    return googleCloudCodeAssistApi();
+  }
+  if (api === "google-antigravity") {
+    return googleAntigravityApi();
+  }
+  if (api === "kiro-codewhisperer") {
+    return kiroCodeWhispererApi();
+  }
+  if (api === "cursor-connect") {
+    return cursorConnectApi();
+  }
+  if (api === "windsurf-connect") {
+    return windsurfConnectApi();
+  }
+  if (api === "codebuddy-chat") {
+    return codeBuddyChatApi();
   }
   return googleGenerativeAIApi();
 }
@@ -111,12 +241,19 @@ export function buildProviderRuntime(
   streamFn: ProviderStreamFn;
 } {
   const builtin = findProviderModel(config);
+  const requestModelId = config.requestModelId ?? config.modelId;
+  const effectiveApi: ResolvedWireApi =
+    config.api === "github-copilot"
+      ? resolveCopilotWireApi(requestModelId, builtin)
+      : config.api;
   const configuredBaseUrl =
-    config.baseUrl || (builtin?.api === config.api ? builtin.baseUrl : "");
+    config.baseUrl ||
+    (builtin?.api === effectiveApi ? builtin.baseUrl : "") ||
+    defaultBaseUrlForSubscriptionApi(config);
   // Anthropic's SDK appends /v1/messages itself; saved gateway URLs often
   // already include /v1, unlike the SDK's expected unversioned base URL.
   const baseUrl =
-    config.api === "anthropic-messages"
+    effectiveApi === "anthropic-messages"
       ? configuredBaseUrl.replace(/\/v1\/?$/u, "")
       : configuredBaseUrl;
   if (!baseUrl) {
@@ -128,15 +265,14 @@ export function buildProviderRuntime(
     builtin.thinkingLevelMap?.off === null
       ? undefined
       : temperature;
-  const requestModelId = config.requestModelId ?? config.modelId;
 
   const thinkingLevelMap: ThinkingLevelMap = {
     ...(builtin?.thinkingLevelMap ?? {})
   };
   const compat =
-    config.api === "openai-completions"
+    effectiveApi === "openai-completions"
       ? resolveOpenAICompletionsCompat(config, builtin)
-      : config.api === "openai-responses" &&
+      : effectiveApi === "openai-responses" &&
           config.supportsDeveloperRole !== undefined
         ? {
             ...(builtin?.api === "openai-responses" ? builtin.compat : {}),
@@ -161,11 +297,42 @@ export function buildProviderRuntime(
       thinkingLevelMap.xhigh = "xhigh";
     }
   }
+  const hasFailoverBridge = Boolean(
+    config.subscriptionAuth && compatibility.subscriptionCredentialBridge
+  );
+  const subscriptionMetadataHeaders: Record<string, string> = {};
+  if (!hasFailoverBridge) {
+    if (config.subscriptionAuth?.metadata?.projectId) {
+      subscriptionMetadataHeaders["x-writer-subscription-project-id"] =
+        config.subscriptionAuth.metadata.projectId;
+    }
+    if (config.subscriptionAuth?.metadata?.profileArn) {
+      subscriptionMetadataHeaders[KIRO_PROFILE_ARN_INTERNAL_HEADER] =
+        config.subscriptionAuth.metadata.profileArn;
+    }
+  }
+  const hasSubscriptionMetadataHeaders =
+    Object.keys(subscriptionMetadataHeaders).length > 0;
+  const initialSubscriptionExtraHeaders = hasFailoverBridge
+    ? undefined
+    : config.subscriptionAuth?.extraHeaders;
+  const isAnthropicClaudeSubscription =
+    effectiveApi === "anthropic-messages" &&
+    config.subscriptionAuth?.provider === "anthropic-claude";
+  const staticModelHeaders = {
+    ...(config.api === "github-copilot" ? GITHUB_COPILOT_STATIC_HEADERS : {}),
+    ...(isAnthropicClaudeSubscription
+      ? ANTHROPIC_CLAUDE_OAUTH_IDENTITY_HEADERS
+      : {}),
+    ...(builtin?.headers ?? {}),
+    ...(initialSubscriptionExtraHeaders ?? {}),
+    ...subscriptionMetadataHeaders
+  };
   const model = {
-    ...(builtin?.api === config.api ? builtin : {}),
+    ...(builtin?.api === effectiveApi ? builtin : {}),
     id: requestModelId,
     name: config.label,
-    api: config.api,
+    api: effectiveApi,
     provider: config.provider,
     baseUrl,
     // `reasoning` describes a model capability to pi-ai; it is not the
@@ -190,11 +357,13 @@ export function buildProviderRuntime(
       DEFAULT_CUSTOM_MODEL_CONTEXT_WINDOW,
     maxTokens:
       config.maxTokens ?? builtin?.maxTokens ?? DEFAULT_CUSTOM_MODEL_MAX_TOKENS,
-    ...(builtin?.headers ? { headers: builtin.headers } : {}),
+    ...(Object.keys(staticModelHeaders).length > 0
+      ? { headers: staticModelHeaders }
+      : {}),
     ...(Object.keys(thinkingLevelMap).length > 0 ? { thinkingLevelMap } : {}),
     ...(compat ? { compat } : {})
   } as Model<Api>;
-  const streams = providerStreams(config.api);
+  const streams = providerStreams(effectiveApi);
   const openCodeRequestHeaders = createOpenCodeRequestHeaders({
     provider: config.provider,
     baseUrl
@@ -208,10 +377,51 @@ export function buildProviderRuntime(
   ) => {
     const openCodeHeaders = openCodeRequestHeaders(options?.sessionId);
     const sessionHeaders = siteSessionHeaders(options?.sessionId);
-    const requestHeaders =
-      openCodeHeaders || sessionHeaders
-        ? { ...openCodeHeaders, ...sessionHeaders }
+    const copilotDynamicHeaders =
+      config.api === "github-copilot"
+        ? buildCopilotDynamicHeaders({
+            messages: context.messages,
+            hasImages: hasCopilotVisionInput(context.messages)
+          })
         : undefined;
+    const resolvedToken =
+      config.subscriptionAuth && options?.apiKey
+        ? options.apiKey
+        : config.apiKey;
+    const useAnthropicSubscriptionBearer =
+      isAnthropicClaudeSubscription &&
+      Boolean(resolvedToken) &&
+      !resolvedToken.includes("sk-ant-oat");
+    const claudeBearerHeaders = useAnthropicSubscriptionBearer
+      ? {
+          ...ANTHROPIC_CLAUDE_OAUTH_IDENTITY_HEADERS,
+          "anthropic-beta": ANTHROPIC_CLAUDE_FALLBACK_BEARER_BETA,
+          Authorization: `Bearer ${resolvedToken}`
+        }
+      : undefined;
+    const requestHeaders =
+      openCodeHeaders ||
+      sessionHeaders ||
+      copilotDynamicHeaders ||
+      claudeBearerHeaders ||
+      initialSubscriptionExtraHeaders ||
+      hasSubscriptionMetadataHeaders
+        ? {
+            ...openCodeHeaders,
+            ...sessionHeaders,
+            ...copilotDynamicHeaders,
+            ...claudeBearerHeaders,
+            ...(initialSubscriptionExtraHeaders ?? {}),
+            ...subscriptionMetadataHeaders
+          }
+        : undefined;
+    const baseCallOptions = applyGeminiWritingSafetySettings(
+      config,
+      options ?? {}
+    );
+    if (useAnthropicSubscriptionBearer) {
+      delete baseCallOptions.apiKey;
+    }
     return streams.streamSimple(
       requestModel,
       normalizeContext(
@@ -222,10 +432,10 @@ export function buildProviderRuntime(
           compatibility.portableToolSchemaProfile
         )
       ),
-      applyGoogleClaudeThinkingCompatibility(config.api, requestModel.id, {
-        ...applyGeminiWritingSafetySettings(config, options ?? {}),
+      applyGoogleClaudeThinkingCompatibility(effectiveApi, requestModel.id, {
+        ...baseCallOptions,
         ...(requestHeaders
-          ? { headers: { ...options?.headers, ...requestHeaders } }
+          ? { headers: { ...requestHeaders, ...options?.headers } }
           : {}),
         ...(mandatoryZaiThinkingFallback
           ? { reasoning: mandatoryZaiThinkingFallback }
@@ -233,12 +443,12 @@ export function buildProviderRuntime(
         ...(effectiveTemperature !== undefined
           ? { temperature: effectiveTemperature }
           : {}),
-        ...(config.apiKey
-          ? { apiKey: config.apiKey }
-          : isOllamaProvider
-            ? { apiKey: "ollama" }
-            : options?.apiKey
-              ? { apiKey: options.apiKey }
+        ...(useAnthropicSubscriptionBearer
+          ? {}
+          : resolvedToken
+            ? { apiKey: resolvedToken }
+            : isOllamaProvider
+              ? { apiKey: "ollama" }
               : {})
       })
     );
@@ -246,14 +456,23 @@ export function buildProviderRuntime(
   const baseStreamFn = isGeminiOpenAIConfig(config)
     ? withGeminiOpenAIToolSignatures(streamFn)
     : streamFn;
+  const developerFallbackStreamFn = withDeveloperRoleFallback(
+    config,
+    model,
+    baseStreamFn,
+    compatibility.onDeveloperRoleFallback
+  );
+  const finalStreamFn =
+    config.subscriptionAuth && compatibility.subscriptionCredentialBridge
+      ? withSubscriptionFailover({
+          config,
+          bridge: compatibility.subscriptionCredentialBridge,
+          streamFn: developerFallbackStreamFn
+        })
+      : developerFallbackStreamFn;
   return {
     model,
-    streamFn: withDeveloperRoleFallback(
-      config,
-      model,
-      baseStreamFn,
-      compatibility.onDeveloperRoleFallback
-    )
+    streamFn: finalStreamFn
   };
 }
 

@@ -78,3 +78,18 @@ export type {
   WebSearchProviderTestInput,
   WebSearchProviderTestResult
 } from "./web-search";
+export {
+  ANTIGRAVITY_HUB_USER_AGENT,
+  GOOGLE_ANTIGRAVITY_DEFAULT_BASE_URL,
+  GOOGLE_CLOUD_CODE_ASSIST_DEFAULT_BASE_URL,
+  buildGoogleSubscriptionRequestEnvelope,
+  classifySubscriptionFailure,
+  googleAntigravityApi,
+  googleCloudCodeAssistApi,
+  withSubscriptionFailover
+} from "./subscriptions";
+export type {
+  ClassifiedSubscriptionFailure,
+  GoogleSubscriptionFetcher,
+  SubscriptionCredentialBridge
+} from "./subscriptions";

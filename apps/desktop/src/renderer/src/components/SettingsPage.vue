@@ -57,6 +57,9 @@ const ArchivedConversationsPanel = defineAsyncComponent(
 const ImageModelSettingsPanel = defineAsyncComponent(
   () => import("./ImageModelSettingsPanel.vue")
 );
+const SubscriptionModelSettingsPanel = defineAsyncComponent(
+  () => import("./subscriptions/SubscriptionModelSettingsPanel.vue")
+);
 
 const t = createScopedTranslator("components.settingsPage");
 
@@ -343,6 +346,12 @@ function handleBack(): void {
             :loading="modelUsageLoading"
             :model-alert-messages="[]"
             @query="emit('loadModelUsage', $event)"
+          />
+
+          <SubscriptionModelSettingsPanel
+            v-else-if="activeCategory === 'subscription-models'"
+            :runtime-available="runtimeAvailable"
+            @models-changed="emit('loadModels')"
           />
 
           <ImageModelSettingsPanel

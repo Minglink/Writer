@@ -29,6 +29,7 @@ import type {
   PiRuntimeAdapterOptions
 } from "./runtime-types";
 import type { AgentToolExecutionHooks } from "./subagent-runtime";
+import type { SubscriptionCredentialBridge } from "./subscriptions/types";
 import { AgentUserInputBroker } from "./user-input-broker";
 import {
   planWorkspaceRun,
@@ -107,7 +108,10 @@ export class PiAgentRuntimeAdapter implements AgentRuntime {
   }
 
   async testConnection(
-    config: AgentProviderRuntimeConfig
+    config: AgentProviderRuntimeConfig,
+    options?: {
+      subscriptionCredentialBridge?: SubscriptionCredentialBridge;
+    }
   ): Promise<ModelConnectionTestResult> {
     // Jev is a judgment model with its own endpoint; a chat probe would only
     // test an unrelated completions route.
@@ -125,7 +129,12 @@ export class PiAgentRuntimeAdapter implements AgentRuntime {
       {
         onDeveloperRoleFallback: () => {
           developerRoleFallback = true;
-        }
+        },
+        ...(options?.subscriptionCredentialBridge
+          ? {
+              subscriptionCredentialBridge: options.subscriptionCredentialBridge
+            }
+          : {})
       }
     );
     const stream = streamFn(

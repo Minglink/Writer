@@ -11,6 +11,7 @@ import { desktopEvents } from "./desktop-events-api";
 import { voice } from "./voice-api";
 import { imageModels } from "./image-models-api";
 import { webSearch } from "./web-search-api";
+import { subscriptions } from "./subscriptions-api";
 import { bookIdentity } from "./book-identity-api";
 import { longMaterialPack } from "./long-material-pack-api";
 import { libraryPackage } from "./library-package-api";
@@ -1293,6 +1294,7 @@ const api: WriterApi = {
     steer
   },
   models: sessionModels,
+  subscriptions,
   modelUsage: {
     query: queryModelUsage
   },

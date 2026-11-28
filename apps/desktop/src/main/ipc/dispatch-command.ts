@@ -11,6 +11,7 @@ import { isForbiddenRendererCommand } from "./forbidden-commands";
 import { handleLongCommands } from "./long-commands";
 import { handleManuscriptCommands } from "./manuscript-commands";
 import { handleModelCommands } from "./model-commands";
+import { handleSubscriptionCommands } from "../subscriptions";
 import { handleMysteryCommands } from "./mystery-commands";
 import { handleRendererStateCommands } from "./renderer-state-commands";
 import { handleSessionCommands } from "./session-commands";
@@ -75,6 +76,12 @@ export async function dispatchCommand(
     (await handleRendererStateCommands(ctx, command)) ??
     (await handleConversationExportCommands(ctx, command)) ??
     (await handleModelCommands(ctx, command)) ??
+    (ctx.requireSubscriptionAccountManager
+      ? await handleSubscriptionCommands(
+          command,
+          ctx.requireSubscriptionAccountManager()
+        )
+      : undefined) ??
     (await handleSessionCommands(ctx, command));
   if (result) {
     return result;

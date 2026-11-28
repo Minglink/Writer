@@ -13,6 +13,18 @@ export interface ModelSelectOption extends PopupSelectOption {
   group: { key: string; label: string };
 }
 
+const SUBSCRIPTION_PROVIDER_LABELS: Readonly<Record<string, string>> = {
+  "google-gemini-cli": "Google Gemini CLI",
+  "google-antigravity": "Google Antigravity",
+  "openai-codex": "OpenAI Codex",
+  "github-copilot": "GitHub Copilot",
+  "anthropic-claude": "Claude",
+  kiro: "Kiro",
+  cursor: "Cursor",
+  windsurf: "Windsurf",
+  codebuddy: "CodeBuddy"
+};
+
 /** Shared provider ordering and labels for every text-model selector. */
 export function buildModelSelectOptions(
   models: readonly Pick<
@@ -21,6 +33,7 @@ export function buildModelSelectOptions(
   >[]
 ): ModelSelectOption[] {
   const official: ModelSelectOption[] = [];
+  const subscription = new Map<string, ModelSelectOption[]>();
   const custom = new Map<string, ModelSelectOption[]>();
   const free: ModelSelectOption[] = [];
   for (const model of models) {
@@ -29,6 +42,20 @@ export function buildModelSelectOptions(
         value: model.id,
         label: model.label,
         group: { key: "official", label: t("officialSite") }
+      });
+    } else if (model.managedBy === "subscription") {
+      let options = subscription.get(model.provider);
+      if (!options) {
+        options = [];
+        subscription.set(model.provider, options);
+      }
+      options.push({
+        value: model.id,
+        label: model.label,
+        group: {
+          key: `subscription:${model.provider}`,
+          label: SUBSCRIPTION_PROVIDER_LABELS[model.provider] ?? model.provider
+        }
       });
     } else if (model.managedBy === "writer-free") {
       free.push({
@@ -55,5 +82,10 @@ export function buildModelSelectOptions(
       });
     }
   }
-  return [...official, ...[...custom.values()].flat(), ...free];
+  return [
+    ...official,
+    ...[...subscription.values()].flat(),
+    ...[...custom.values()].flat(),
+    ...free
+  ];
 }

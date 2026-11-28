@@ -26,6 +26,7 @@ export type ModelCommandContext = Pick<
   | "supervisor"
 > & {
   remoteFetch?: (input: string, init?: RequestInit) => Promise<Response>;
+  activeModelTests?: Set<string>;
 };
 
 async function dispatchModelCommand(
@@ -215,11 +216,17 @@ async function dispatchModelCommand(
           { id: command.id, context: command.context }
         )
       );
-      const result = await ctx.supervisor.requestCommand(
-        "agent",
-        internalCommand,
-        20_000
-      );
+      ctx.activeModelTests?.add(command.id);
+      let result: CommandResult;
+      try {
+        result = await ctx.supervisor.requestCommand(
+          "agent",
+          internalCommand,
+          20_000
+        );
+      } finally {
+        ctx.activeModelTests?.delete(command.id);
+      }
       if (result.status === "accepted") {
         const payload = ModelConnectionTestResultSchema.parse(result.payload);
         if (

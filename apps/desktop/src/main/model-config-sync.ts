@@ -2,6 +2,7 @@ import { safeStorage } from "electron";
 import {
   ModelConfigInputSchema,
   SYNC_MODEL_KEY_MAX_LENGTH,
+  isSubscriptionModel,
   syncEqual,
   toSyncModelConfig,
   type SyncedModelChange,
@@ -22,7 +23,7 @@ const MAX_CUSTOM_MODELS = 100;
 export function toSyncedModel(
   model: DiskModelConfig | undefined
 ): SyncModelConfig | null {
-  if (!model || model.managedBy) return null;
+  if (!model || model.managedBy || isSubscriptionModel(model)) return null;
   try {
     return toSyncModelConfig(model);
   } catch {
@@ -62,7 +63,12 @@ export function applySyncedModelChanges(
   for (const change of changes) {
     const index = models.findIndex((model) => model.id === change.id);
     const current = models[index];
-    if (current?.managedBy) throw new Error("这个模型由 Writer 托管。");
+    if (
+      current?.managedBy ||
+      isSubscriptionModel(change.id) ||
+      (change.next && isSubscriptionModel(change.next.model))
+    )
+      throw new Error("这个模型由 Writer 托管。");
     if (
       change.expected !== undefined &&
       !syncEqual(toSyncedEntry(current, secrets), change.expected)
