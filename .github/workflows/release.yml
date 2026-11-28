@@ -64,7 +64,19 @@ jobs:
         run: node tools/release-version.mjs
 
       - name: Build and verify Windows x64 installer
-        run: pnpm pack:win
+        env:
+          MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_ID: ${{ secrets.WRITER_GOOGLE_GEMINI_CLIENT_ID }}
+          MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_SECRET: ${{ secrets.WRITER_GOOGLE_GEMINI_CLIENT_SECRET }}
+          MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID: ${{ secrets.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID }}
+          MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET: ${{ secrets.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET }}
+        run: |
+          for key in MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_ID MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID; do
+            if [[ -z "${!key//[[:space:]]/}" ]]; then
+              echo "::error::Missing approved Google desktop OAuth client for ${key}"
+              exit 1
+            fi
+          done
+          pnpm pack:win
 
       - name: Generate latest.yml and SHA256SUMS.txt
         run: |

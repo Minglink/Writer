@@ -10,7 +10,12 @@ import {
   type SubscriptionQuotaBucket
 } from "@writer/contracts";
 import { generateOAuthState, generatePkcePair } from "../oauth-loopback";
-import { exchangeGoogleLoginCode } from "./google-oauth";
+import {
+  exchangeGoogleLoginCode,
+  googleOAuthClient,
+  resolveGoogleOAuthClient,
+  type GoogleOAuthClientConfig
+} from "./google-oauth";
 import { DEFAULT_SUBSCRIPTION_PROVIDER_METADATA } from "../registry";
 import {
   SubscriptionError,
@@ -38,7 +43,6 @@ import {
   type ProviderEnvironmentOptions,
   type SubscriptionFetcher
 } from "./shared";
-import type { GoogleOAuthClientConfig } from "./google-gemini-cli";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -54,6 +58,7 @@ const ANTIGRAVITY_SCOPES = [
 
 export interface GoogleAntigravityAdapterOptions extends ProviderEnvironmentOptions {
   oauthClient?: GoogleOAuthClientConfig;
+  bundledOAuthClient?: GoogleOAuthClientConfig | undefined;
   authBaseUrl?: string;
   tokenUrl?: string;
   userInfoUrl?: string;
@@ -181,23 +186,19 @@ function resolveAntigravityOAuthClient(
   env: NodeJS.ProcessEnv,
   extra?: Record<string, string>
 ): GoogleOAuthClientConfig | undefined {
-  if (options.oauthClient?.clientId) return options.oauthClient;
-  const configuredId =
-    nonEmptyString(env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID) ??
-    nonEmptyString(env.ANTIGRAVITY_OAUTH_CLIENT_ID);
-  const storedId = nonEmptyString(extra?.oauthClientId);
-  const clientId = storedId ?? configuredId;
-  if (!clientId) return undefined;
-  const clientSecret =
-    nonEmptyString(extra?.oauthClientSecret) ??
-    (clientId === configuredId
-      ? (nonEmptyString(env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET) ??
-        nonEmptyString(env.ANTIGRAVITY_OAUTH_CLIENT_SECRET))
-      : undefined);
-  return {
-    clientId,
-    ...(clientSecret ? { clientSecret } : {})
-  };
+  return resolveGoogleOAuthClient(
+    extra,
+    options.oauthClient,
+    googleOAuthClient(
+      env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID,
+      env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET
+    ),
+    googleOAuthClient(
+      env.ANTIGRAVITY_OAUTH_CLIENT_ID,
+      env.ANTIGRAVITY_OAUTH_CLIENT_SECRET
+    ),
+    options.bundledOAuthClient
+  );
 }
 
 function formatAntigravityTier(rawTier: unknown): string | undefined {
@@ -750,7 +751,7 @@ export function createGoogleAntigravityAdapter(
       if (!client) {
         throw new SubscriptionError(
           "subscriptions.oauth_client_not_configured",
-          "未配置 Google Antigravity OAuth 客户端参数。"
+          "此版本暂未启用 Google Antigravity 浏览器登录，可通过「导入本机」接入已有账号。"
         );
       }
       const pkce = generatePkcePair();

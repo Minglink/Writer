@@ -95,6 +95,22 @@ export async function fixtureFetch(input, init) {
     );
   }
   if (path.endsWith("/token")) {
+    if (
+      process.env.WRITER_PROBE_BUNDLED_GOOGLE_OAUTH === "1" &&
+      provider.startsWith("google-")
+    ) {
+      const form = new URLSearchParams(init?.body);
+      if (form.get("grant_type") === "authorization_code") {
+        const client =
+          provider === "google-antigravity" ? "antigravity" : "gemini";
+        assert.equal(form.get("client_id"), `${client}-bundled-fixture`);
+        assert.equal(
+          form.get("client_secret"),
+          `${client}-bundled-fixture-secret`
+        );
+        assert(form.get("code_verifier"));
+      }
+    }
     if (outcome === "rejected-code")
       return reply({ error: "invalid_grant" }, 400);
     await fixture.exchangeGate?.promise;

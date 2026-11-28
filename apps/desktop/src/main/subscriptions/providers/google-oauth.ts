@@ -1,5 +1,37 @@
 import { SubscriptionError, type AuthFlowContext } from "../types";
-import { isRecord, type SubscriptionFetcher } from "./shared";
+import { isRecord, nonEmptyString, type SubscriptionFetcher } from "./shared";
+
+export interface GoogleOAuthClientConfig {
+  clientId: string;
+  clientSecret?: string;
+}
+
+export function googleOAuthClient(
+  rawId?: string,
+  rawSecret?: string
+): GoogleOAuthClientConfig | undefined {
+  const clientId = nonEmptyString(rawId);
+  const clientSecret = nonEmptyString(rawSecret);
+  return clientId
+    ? { clientId, ...(clientSecret ? { clientSecret } : {}) }
+    : undefined;
+}
+
+export function resolveGoogleOAuthClient(
+  stored: Record<string, string> | undefined,
+  ...clients: (GoogleOAuthClientConfig | undefined)[]
+): GoogleOAuthClientConfig | undefined {
+  const storedId = nonEmptyString(stored?.oauthClientId);
+  if (!storedId) return clients.find((client) => client !== undefined);
+
+  const matchingSecret = clients.find(
+    (client) => client?.clientId === storedId && client.clientSecret
+  )?.clientSecret;
+  return googleOAuthClient(
+    storedId,
+    nonEmptyString(stored?.oauthClientSecret) ?? matchingSecret
+  );
+}
 
 export async function exchangeGoogleLoginCode(
   ctx: AuthFlowContext,

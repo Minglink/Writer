@@ -1,6 +1,11 @@
 import type { SubscriptionQuotaBucket } from "@writer/contracts";
 import { generateOAuthState, generatePkcePair } from "../oauth-loopback";
-import { exchangeGoogleLoginCode } from "./google-oauth";
+import {
+  exchangeGoogleLoginCode,
+  googleOAuthClient,
+  resolveGoogleOAuthClient,
+  type GoogleOAuthClientConfig
+} from "./google-oauth";
 import { DEFAULT_SUBSCRIPTION_PROVIDER_METADATA } from "../registry";
 import {
   SubscriptionError,
@@ -39,13 +44,9 @@ const GOOGLE_SCOPES = [
 ].join(" ");
 const GEMINI_CLI_CANDIDATE_ID = "gemini-cli:default";
 
-export interface GoogleOAuthClientConfig {
-  clientId: string;
-  clientSecret?: string;
-}
-
 export interface GoogleGeminiCliAdapterOptions extends ProviderEnvironmentOptions {
   oauthClient?: GoogleOAuthClientConfig;
+  bundledOAuthClient?: GoogleOAuthClientConfig | undefined;
   authBaseUrl?: string;
   tokenUrl?: string;
   userInfoUrl?: string;
@@ -89,23 +90,19 @@ function resolveGeminiOAuthClient(
   env: NodeJS.ProcessEnv,
   extra?: Record<string, string>
 ): GoogleOAuthClientConfig | undefined {
-  if (options.oauthClient?.clientId) return options.oauthClient;
-  const configuredId =
-    nonEmptyString(env.WRITER_GOOGLE_GEMINI_CLIENT_ID) ??
-    nonEmptyString(env.GEMINI_CLI_OAUTH_CLIENT_ID);
-  const storedId = nonEmptyString(extra?.oauthClientId);
-  const clientId = storedId ?? configuredId;
-  if (!clientId) return undefined;
-  const clientSecret =
-    nonEmptyString(extra?.oauthClientSecret) ??
-    (clientId === configuredId
-      ? (nonEmptyString(env.WRITER_GOOGLE_GEMINI_CLIENT_SECRET) ??
-        nonEmptyString(env.GEMINI_CLI_OAUTH_CLIENT_SECRET))
-      : undefined);
-  return {
-    clientId,
-    ...(clientSecret ? { clientSecret } : {})
-  };
+  return resolveGoogleOAuthClient(
+    extra,
+    options.oauthClient,
+    googleOAuthClient(
+      env.WRITER_GOOGLE_GEMINI_CLIENT_ID,
+      env.WRITER_GOOGLE_GEMINI_CLIENT_SECRET
+    ),
+    googleOAuthClient(
+      env.GEMINI_CLI_OAUTH_CLIENT_ID,
+      env.GEMINI_CLI_OAUTH_CLIENT_SECRET
+    ),
+    options.bundledOAuthClient
+  );
 }
 
 function formatGoogleTier(rawTier: unknown): string | undefined {
@@ -345,7 +342,7 @@ export function createGoogleGeminiCliAdapter(
       if (!client) {
         throw new SubscriptionError(
           "subscriptions.oauth_client_not_configured",
-          "未配置 Google Gemini CLI OAuth 客户端参数，请设置 WRITER_GOOGLE_GEMINI_CLIENT_ID 或改用“导入本机”读取 ~/.gemini/oauth_creds.json。"
+          "此版本暂未启用 Google Gemini CLI 浏览器登录，可通过「导入本机」接入已有账号。"
         );
       }
 

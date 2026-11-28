@@ -151,7 +151,7 @@ export const subT = registerFeatureMessages("subscriptionModels", {
     errSafeStorageUnavailable:
       "当前系统安全加密存储不可用，已拒绝明文保存订阅凭证。",
     errOAuthClientMissing:
-      "当前未配置该平台的 OAuth 客户端参数，请改用「导入本机」读取现有凭证。",
+      "此版本暂未启用该平台的浏览器登录。已有登录账号可通过「导入本机」接入。",
     errPoolExhausted: "当前平台所有启用账号均不可用，请刷新配额或稍后重试。",
     errModelsUnavailable: "未能获取最新模型，仍显示原有目录。",
     errAuthFailed: "登录授权失败或已超时，请重新发起。",
@@ -321,7 +321,7 @@ export const subT = registerFeatureMessages("subscriptionModels", {
     errSafeStorageUnavailable:
       "OS encrypted storage is unavailable; plaintext storage was refused.",
     errOAuthClientMissing:
-      "OAuth client is not configured for this provider. Use Import local instead.",
+      "Browser sign-in for this provider is unavailable in this build. Use Import local to connect an existing account.",
     errPoolExhausted:
       "All enabled accounts for this provider are currently unavailable.",
     errModelsUnavailable:

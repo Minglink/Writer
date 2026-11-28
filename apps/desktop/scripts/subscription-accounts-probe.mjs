@@ -86,9 +86,24 @@ if (!process.versions.electron) {
       fixture.outcome === "short-deadline" && ms === 300000 ? 1000 : ms,
       ...args
     );
-  process.env.WRITER_GOOGLE_GEMINI_CLIENT_ID = "gemini-fixture-client";
-  process.env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID =
-    "antigravity-fixture-client";
+  if (process.env.WRITER_PROBE_BUNDLED_GOOGLE_OAUTH === "1") {
+    for (const name of [
+      "WRITER_GOOGLE_GEMINI_CLIENT_ID",
+      "WRITER_GOOGLE_GEMINI_CLIENT_SECRET",
+      "WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID",
+      "WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET",
+      "GEMINI_CLI_OAUTH_CLIENT_ID",
+      "GEMINI_CLI_OAUTH_CLIENT_SECRET",
+      "ANTIGRAVITY_OAUTH_CLIENT_ID",
+      "ANTIGRAVITY_OAUTH_CLIENT_SECRET"
+    ]) {
+      delete process.env[name];
+    }
+  } else {
+    process.env.WRITER_GOOGLE_GEMINI_CLIENT_ID = "gemini-fixture-client";
+    process.env.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID =
+      "antigravity-fixture-client";
+  }
   await import("../out/main/index.js");
   void run().then(
     () => app.exit(0),
@@ -182,6 +197,18 @@ if (!process.versions.electron) {
     const loopback = async (uri, denied) => {
       const auth = new URL(uri);
       assert(auth.searchParams.get("code_challenge"));
+      if (
+        process.env.WRITER_PROBE_BUNDLED_GOOGLE_OAUTH === "1" &&
+        fixture.provider.startsWith("google-")
+      ) {
+        const client =
+          fixture.provider === "google-antigravity" ? "antigravity" : "gemini";
+        assert.equal(
+          auth.searchParams.get("client_id"),
+          `${client}-bundled-fixture`
+        );
+        assert(!auth.searchParams.has("client_secret"));
+      }
       const url = new URL(auth.searchParams.get("redirect_uri"));
       assert(
         ["localhost", "127.0.0.1"].includes(url.hostname) &&
