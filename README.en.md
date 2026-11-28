@@ -7,20 +7,20 @@
 *Stay in full command of million-word serials — every foreshadowing thread, character arc, and cliffhanger, without losing your voice.*
 
 [![Release](https://img.shields.io/github/v/release/Minglink/Writer?style=flat-square&label=Release&color=8B5E34)](https://github.com/Minglink/Writer/releases/latest)
-[![Download](https://img.shields.io/badge/Windows_x64-Installer_v0.1.7-2C2824?style=flat-square&logo=windows)](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
+[![Download](https://img.shields.io/badge/Windows_x64-Installer_v0.1.8-2C2824?style=flat-square&logo=windows)](https://github.com/Minglink/Writer/releases/tag/v0.1.8)
 [![Agent Kernel](https://img.shields.io/badge/Kernel-DeepSeek_Harness-2F6668?style=flat-square)](./packages/agent-runtime/src/dsh)
 [![Architecture](https://img.shields.io/badge/Electron-5--Process_Isolated-40845A?style=flat-square&logo=electron)](./apps/desktop)
 [![Storage](https://img.shields.io/badge/Local--First-Markdown_%2B_SQLite-6E5A44?style=flat-square)](./AGENTS.md)
 [![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-A94F47?style=flat-square)](./LICENSE)
 
-[简体中文](./README.md) · **English** · [Illustrated Guide (ZH)](./docs/USER_GUIDE.md) · [Download v0.1.7](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
+[简体中文](./README.md) · **English** · [Illustrated Guide (ZH)](./docs/USER_GUIDE.md) · [Download v0.1.8](https://github.com/Minglink/Writer/releases/tag/v0.1.8)
 
 </div>
 
 ---
 
 <p align="center">
-  <img src="./docs/images/showcase/long-workbench-overview.png" alt="Writer v0.1.7 Warm Book-Page Workbench" width="100%" />
+  <img src="./docs/images/showcase/long-workbench-overview.png" alt="Writer v0.1.8 Warm Book-Page Workbench" width="100%" />
 </p>
 
 ## Why Writer?
@@ -37,7 +37,7 @@ Writing a million-word serialized web novel is fundamentally different from draf
 
 ---
 
-## What's New in v0.1.7
+## What's New in v0.1.8
 
 ### 1. Direct Subscription Model Management (9 Platforms + Account Pool Failover)
 Connect your existing AI subscriptions directly inside **Settings → Subscription Model Management** without running external proxy servers:
@@ -98,7 +98,7 @@ Writer enforces strict process isolation across five Electron processes (**Rende
 
 ## Getting Started
 
-Download `Writer-0.1.7-win-x64.exe` (for **Windows 10 / 11 x64**) from [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest), or run from source (`Node.js >= 24`, `pnpm >= 11`):
+Download `Writer-0.1.8-win-x64.exe` (for **Windows 10 / 11 x64**) from [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest), or run from source (`Node.js >= 24`, `pnpm >= 11`):
 
 ```bash
 git clone https://github.com/Minglink/Writer.git

@@ -1,6 +1,6 @@
 {
   "name": "@writer/desktop",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Writer local desktop writing client",
   "private": true,
   "type": "module",

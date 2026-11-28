@@ -7,7 +7,7 @@
 *不替你喧宾夺主，只陪你稳稳驾驭百万字连载的每一个伏笔、人物与断章钩子。*
 
 [![Release](https://img.shields.io/github/v/release/Minglink/Writer?style=flat-square&label=Release&color=8B5E34)](https://github.com/Minglink/Writer/releases/latest)
-[![Download](https://img.shields.io/badge/Windows_x64-下载_v0.1.7_安装包-2C2824?style=flat-square&logo=windows)](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
+[![Download](https://img.shields.io/badge/Windows_x64-下载_v0.1.8_安装包-2C2824?style=flat-square&logo=windows)](https://github.com/Minglink/Writer/releases/tag/v0.1.8)
 [![Agent Kernel](https://img.shields.io/badge/Kernel-DeepSeek_Harness-2F6668?style=flat-square)](./packages/agent-runtime/src/dsh)
 [![Architecture](https://img.shields.io/badge/Electron-五进程安全隔离-40845A?style=flat-square&logo=electron)](./apps/desktop)
 [![Storage](https://img.shields.io/badge/Local--First-Markdown_%2B_SQLite-6E5A44?style=flat-square)](./AGENTS.md)
@@ -15,14 +15,14 @@
 
 `#订阅账号直连` · `#五大创作空间` · `#百万字长篇记忆` · `#限知视角防剧透` · `#拆书炼技` · `#Diff可审阅改稿` · `#6角色编剧室` · `#本地优先`
 
-**简体中文** · [English](./README.en.md) · [图文使用教程](./docs/USER_GUIDE.md) · [立即下载 v0.1.7](https://github.com/Minglink/Writer/releases/tag/v0.1.7)
+**简体中文** · [English](./README.en.md) · [图文使用教程](./docs/USER_GUIDE.md) · [立即下载 v0.1.8](https://github.com/Minglink/Writer/releases/tag/v0.1.8)
 
 </div>
 
 ---
 
 <p align="center">
-  <img src="./docs/images/showcase/long-workbench-overview.png" alt="Writer v0.1.7 书页护眼长篇写作工作台" width="100%" />
+  <img src="./docs/images/showcase/long-workbench-overview.png" alt="Writer v0.1.8 书页护眼长篇写作工作台" width="100%" />
 </p>
 
 ## 写在前面：为什么要专门给网文作家做一套写作 Agent？
@@ -40,7 +40,7 @@
 
 ---
 
-## v0.1.7 核心亮点与界面实拍
+## v0.1.8 核心亮点与界面实拍
 
 ### 1. 九大 AI 订阅账号原生直连 × 多账号主备自动切号
 手里已有 AI 订阅会员，无需额外部署第三方反代？打开左下角 **`设置 → 订阅模型管理`**，直接把现有订阅账号接入 Writer 全局模型池：
@@ -143,11 +143,11 @@ Writer 没有采用把数据库、密钥和模型请求一股脑塞进前端页�
 
 ### 方式一：下载安装包（开箱即用）
 
-前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新正式版安装包（当前版本 `v0.1.7`）：
+前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新正式版安装包（当前版本 `v0.1.8`）：
 
 | 平台 | 安装包文件 | 说明 |
 | --- | --- | --- |
-| **Windows 10 / 11 (x64)** | `Writer-0.1.7-win-x64.exe` | 下载后双击按向导安装，支持后续客户端内一键检测 GitHub Release 更新并后台升级 |
+| **Windows 10 / 11 (x64)** | `Writer-0.1.8-win-x64.exe` | 下载后双击按向导安装，支持后续客户端内一键检测 GitHub Release 更新并后台升级 |
 
 **首次打开三步开写：**
 1. 选择你的本地作品存放目录（纯本地文件夹，随时可用资源管理器或 Git 查看）。
