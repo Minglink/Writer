@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
+import { BUNDLED_GOOGLE_OAUTH_CLIENTS } from "./bundled-google-oauth.mjs";
 import {
   fixture,
   fixtureFetch,
@@ -201,12 +202,8 @@ if (!process.versions.electron) {
         process.env.WRITER_PROBE_BUNDLED_GOOGLE_OAUTH === "1" &&
         fixture.provider.startsWith("google-")
       ) {
-        const client =
-          fixture.provider === "google-antigravity" ? "antigravity" : "gemini";
-        assert.equal(
-          auth.searchParams.get("client_id"),
-          `${client}-bundled-fixture`
-        );
+        const client = BUNDLED_GOOGLE_OAUTH_CLIENTS[fixture.provider];
+        assert.equal(auth.searchParams.get("client_id"), client.clientId);
         assert(!auth.searchParams.has("client_secret"));
       }
       const url = new URL(auth.searchParams.get("redirect_uri"));

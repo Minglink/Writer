@@ -67,15 +67,10 @@ jobs:
         env:
           MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_ID: ${{ secrets.WRITER_GOOGLE_GEMINI_CLIENT_ID }}
           MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_SECRET: ${{ secrets.WRITER_GOOGLE_GEMINI_CLIENT_SECRET }}
-          MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID: ${{ secrets.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID }}
-          MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET: ${{ secrets.WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET }}
         run: |
-          for key in MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_ID MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID; do
-            if [[ -z "${!key//[[:space:]]/}" ]]; then
-              echo "::error::Missing approved Google desktop OAuth client for ${key}"
-              exit 1
-            fi
-          done
+          if [[ -z "${MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_ID//[[:space:]]/}" ]]; then
+            echo "::warning::No approved Gemini OAuth client configured; only the bundled Antigravity login ships"
+          fi
           pnpm pack:win
 
       - name: Generate latest.yml and SHA256SUMS.txt

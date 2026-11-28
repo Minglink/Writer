@@ -56,9 +56,15 @@ const ANTIGRAVITY_SCOPES = [
   "https://www.googleapis.com/auth/aicode"
 ].join(" ");
 
+// Cockpit Tools 内置的 Antigravity 桌面 OAuth 客户端，Google 已按它发放登录权限。
+export const ANTIGRAVITY_OAUTH_CLIENT: GoogleOAuthClientConfig = {
+  clientId:
+    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+  clientSecret: "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"
+};
+
 export interface GoogleAntigravityAdapterOptions extends ProviderEnvironmentOptions {
   oauthClient?: GoogleOAuthClientConfig;
-  bundledOAuthClient?: GoogleOAuthClientConfig | undefined;
   authBaseUrl?: string;
   tokenUrl?: string;
   userInfoUrl?: string;
@@ -197,7 +203,7 @@ function resolveAntigravityOAuthClient(
       env.ANTIGRAVITY_OAUTH_CLIENT_ID,
       env.ANTIGRAVITY_OAUTH_CLIENT_SECRET
     ),
-    options.bundledOAuthClient
+    ANTIGRAVITY_OAUTH_CLIENT
   );
 }
 

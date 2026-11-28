@@ -15,6 +15,7 @@
 | 内置智能体提示词 | [builtin-prompt-fingerprint](error/builtin-prompt-fingerprint.md) |
 | contracts schema、作品存储、长篇索引、双端同步 | [schema-compat](error/schema-compat.md)、[limit-mismatch](error/limit-mismatch.md)、[windows-path](error/windows-path.md) |
 | Main / Utility 错误路径、IPC | [cross-process-error](error/cross-process-error.md) |
+| Antigravity 订阅目录、模型请求与配额 | [antigravity-model-catalog](error/antigravity-model-catalog.md) |
 | 拉起 Electron、冒烟、探针、开发服务器 | [process-kill](error/process-kill.md)、[mcp-dev-endpoint](error/mcp-dev-endpoint.md) |
 | 提交、多会话共用工作区 | [mixed-worktree](error/mixed-worktree.md) |
 
@@ -33,6 +34,7 @@
 | 热更新后 `Catalog index store has been disposed.`、长篇目录消失、会话保存队列关闭 | [workspace-hmr-cleanup](error/workspace-hmr-cleanup.md) |
 | 界面显示 `[object Object]`、按错误文字分支 | [cross-process-error](error/cross-process-error.md) |
 | 点开关整页变灰、按钮位移、打字被吞、光标跳 | [ui-flicker](error/ui-flicker.md) |
+| Antigravity 拉取成功仍少模型，调用后配额看似不变 | [antigravity-model-catalog](error/antigravity-model-catalog.md) |
 | 分栏拖动卡顿、长篇比短篇慢、目录越多越卡 | [pane-resize-performance](error/pane-resize-performance.md) |
 | 短篇流畅，长篇普通章节拖动也卡，章卡右列表更卡 | [long-editor-resize](error/long-editor-resize.md) |
 | `stopReason: "length"`、“没有生成可交接的摘要” | [output-truncation](error/output-truncation.md) |

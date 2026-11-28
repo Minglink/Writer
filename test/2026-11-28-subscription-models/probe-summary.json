@@ -1,0 +1,21 @@
+{
+  "flickerCheck": {
+    "frameCount": 3,
+    "checked1Transitions": 1,
+    "anyUnrelatedDisabled": false,
+    "finalChecked1": true,
+    "defaultIsFlash": true
+  },
+  "compactLight": {
+    "contentOverflowX": 0,
+    "panelOverflowX": 0
+  },
+  "compactDark": {
+    "contentOverflowX": 0,
+    "panelOverflowX": 0
+  },
+  "selectorHasGeminiFlash": true,
+  "selectorHasCodex": true,
+  "selectorHasAntigravity": true,
+  "consoleErrors": []
+}

@@ -23,13 +23,7 @@ export function createPhaseOneSubscriptionAdapters(
         import.meta.env.MAIN_VITE_WRITER_GOOGLE_GEMINI_CLIENT_SECRET
       )
     }),
-    createGoogleAntigravityAdapter({
-      ...options,
-      bundledOAuthClient: googleOAuthClient(
-        import.meta.env.MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID,
-        import.meta.env.MAIN_VITE_WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET
-      )
-    }),
+    createGoogleAntigravityAdapter(options),
     createOpenAICodexAdapter(options),
     createGitHubCopilotAdapter(options)
   ];

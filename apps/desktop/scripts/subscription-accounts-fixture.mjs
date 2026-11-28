@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { BUNDLED_GOOGLE_OAUTH_CLIENTS } from "./bundled-google-oauth.mjs";
 
 export const fixture = {
   provider: "",
@@ -101,13 +102,9 @@ export async function fixtureFetch(input, init) {
     ) {
       const form = new URLSearchParams(init?.body);
       if (form.get("grant_type") === "authorization_code") {
-        const client =
-          provider === "google-antigravity" ? "antigravity" : "gemini";
-        assert.equal(form.get("client_id"), `${client}-bundled-fixture`);
-        assert.equal(
-          form.get("client_secret"),
-          `${client}-bundled-fixture-secret`
-        );
+        const client = BUNDLED_GOOGLE_OAUTH_CLIENTS[provider];
+        assert.equal(form.get("client_id"), client.clientId);
+        assert.equal(form.get("client_secret"), client.clientSecret);
         assert(form.get("code_verifier"));
       }
     }

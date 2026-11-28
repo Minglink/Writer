@@ -10,7 +10,10 @@ import type {
 } from "../types";
 import type { LoopbackStarter } from "./shared";
 import { createGoogleGeminiCliAdapter } from "./google-gemini-cli";
-import { createGoogleAntigravityAdapter } from "./google-antigravity";
+import {
+  createGoogleAntigravityAdapter,
+  ANTIGRAVITY_OAUTH_CLIENT
+} from "./google-antigravity";
 import { createOpenAICodexAdapter } from "./openai-codex";
 import { createGitHubCopilotAdapter } from "./github-copilot";
 
@@ -113,49 +116,74 @@ describe("Phase 1 Subscription Provider Adapters", () => {
     }
   );
 
-  it.each([
-    [
-      createGoogleGeminiCliAdapter,
-      "WRITER_GOOGLE_GEMINI_CLIENT_ID",
-      "WRITER_GOOGLE_GEMINI_CLIENT_SECRET"
-    ],
-    [
-      createGoogleAntigravityAdapter,
-      "WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID",
-      "WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET"
-    ]
-  ] as const)(
-    "uses locally configured Google OAuth client credentials",
-    async (createAdapter, clientIdKey, clientSecretKey) => {
-      const { ctx } = createAuthContext();
-      const startLoopback: LoopbackStarter = vi.fn(async ({ state }) => ({
-        port: 43110,
-        redirectUri: "https://callback.example.test/return",
-        waitForCallback: Promise.resolve({
-          code: "fixture-code",
-          state,
-          params: {}
-        }),
-        close: vi.fn(async () => undefined)
-      }));
-      await expect(
-        createAdapter({ env: {}, startLoopback }).startAuth!(ctx)
-      ).rejects.toMatchObject({
-        code: "subscriptions.oauth_client_not_configured"
-      });
-      expect(startLoopback).not.toHaveBeenCalled();
+  it("uses locally configured Google Gemini CLI OAuth client credentials", async () => {
+    const { ctx } = createAuthContext();
+    const startLoopback: LoopbackStarter = vi.fn(async ({ state }) => ({
+      port: 43110,
+      redirectUri: "https://callback.example.test/return",
+      waitForCallback: Promise.resolve({
+        code: "fixture-code",
+        state,
+        params: {}
+      }),
+      close: vi.fn(async () => undefined)
+    }));
+    await expect(
+      createGoogleGeminiCliAdapter({ env: {}, startLoopback }).startAuth!(ctx)
+    ).rejects.toMatchObject({
+      code: "subscriptions.oauth_client_not_configured"
+    });
+    expect(startLoopback).not.toHaveBeenCalled();
 
+    const fetcher = vi.fn(async (_url: string, init?: RequestInit) => {
+      const params = new URLSearchParams(String(init?.body));
+      expect(params.get("client_id")).toBe("local-client-id");
+      expect(params.get("client_secret")).toBe("local-client-secret");
+      return Response.json({ error: "invalid_grant" }, { status: 400 });
+    });
+    const adapter = createGoogleGeminiCliAdapter({
+      env: {
+        WRITER_GOOGLE_GEMINI_CLIENT_ID: "local-client-id",
+        WRITER_GOOGLE_GEMINI_CLIENT_SECRET: "local-client-secret"
+      },
+      authBaseUrl: "https://auth.example.test/authorize",
+      tokenUrl: "https://token.example.test/exchange",
+      startLoopback,
+      fetcher
+    });
+    const handle = await adapter.startAuth!(ctx);
+    const url = new URL(handle.verificationUri!);
+    expect(url.searchParams.get("client_id")).toBe("local-client-id");
+    expect(url.searchParams.has("client_secret")).toBe(false);
+    await expect(handle.completion).rejects.toMatchObject({
+      code: "subscriptions.oauth_code_rejected"
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  it("ships the approved Antigravity OAuth client, and lets local configuration override it", async () => {
+    const { ctx } = createAuthContext();
+    const startLoopback: LoopbackStarter = vi.fn(async ({ state }) => ({
+      port: 43110,
+      redirectUri: "https://callback.example.test/return",
+      waitForCallback: Promise.resolve({
+        code: "fixture-code",
+        state,
+        params: {}
+      }),
+      close: vi.fn(async () => undefined)
+    }));
+    const sentBodies: URLSearchParams[] = [];
+    const runAuth = async (env: NodeJS.ProcessEnv) => {
       const fetcher = vi.fn(async (_url: string, init?: RequestInit) => {
-        const params = new URLSearchParams(String(init?.body));
-        expect(params.get("client_id")).toBe("local-client-id");
-        expect(params.get("client_secret")).toBe("local-client-secret");
-        return Response.json({ error: "invalid_grant" }, { status: 400 });
+        const params = new URLSearchParams(String(init?.body ?? ""));
+        if (params.get("grant_type") === "authorization_code") {
+          sentBodies.push(params);
+        }
+        return Response.json({ access_token: "ag-access" }, { status: 200 });
       });
-      const adapter = createAdapter({
-        env: {
-          [clientIdKey]: "local-client-id",
-          [clientSecretKey]: "local-client-secret"
-        },
+      const adapter = createGoogleAntigravityAdapter({
+        env,
         authBaseUrl: "https://auth.example.test/authorize",
         tokenUrl: "https://token.example.test/exchange",
         startLoopback,
@@ -163,14 +191,34 @@ describe("Phase 1 Subscription Provider Adapters", () => {
       });
       const handle = await adapter.startAuth!(ctx);
       const url = new URL(handle.verificationUri!);
-      expect(url.searchParams.get("client_id")).toBe("local-client-id");
       expect(url.searchParams.has("client_secret")).toBe(false);
-      await expect(handle.completion).rejects.toMatchObject({
-        code: "subscriptions.oauth_code_rejected"
-      });
-      expect(fetcher).toHaveBeenCalledOnce();
-    }
-  );
+      await handle.completion;
+      const sent = sentBodies.at(-1)!;
+      expect(sent.get("code_verifier")).toBeTruthy();
+      return {
+        linkClientId: url.searchParams.get("client_id"),
+        sentClientId: sent.get("client_id"),
+        sentClientSecret: sent.get("client_secret")
+      };
+    };
+
+    expect(await runAuth({})).toEqual({
+      linkClientId: ANTIGRAVITY_OAUTH_CLIENT.clientId,
+      sentClientId: ANTIGRAVITY_OAUTH_CLIENT.clientId,
+      sentClientSecret: ANTIGRAVITY_OAUTH_CLIENT.clientSecret
+    });
+
+    expect(
+      await runAuth({
+        WRITER_GOOGLE_ANTIGRAVITY_CLIENT_ID: "local-client-id",
+        WRITER_GOOGLE_ANTIGRAVITY_CLIENT_SECRET: "local-client-secret"
+      })
+    ).toEqual({
+      linkClientId: "local-client-id",
+      sentClientId: "local-client-id",
+      sentClientSecret: "local-client-secret"
+    });
+  });
 
   it("supports Google Gemini CLI OAuth PKCE, read-only local import, quota check, refresh, and secret-free runtime credentials", async () => {
     const homeDir = await createTempHome();

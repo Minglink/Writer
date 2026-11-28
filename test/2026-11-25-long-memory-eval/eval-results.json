@@ -130,7 +130,7 @@
     }
   ],
   "summary": {
-    "generatedAt": "2026-11-24T21:19:20.778Z",
+    "generatedAt": "2026-11-28T10:47:52.445Z",
     "arms": [
       {
         "arm": "current_writer",
@@ -147,7 +147,7 @@
           "model_misuse": 0
         },
         "avgToolCalls": 0,
-        "p95DurationMs": 47
+        "p95DurationMs": 25
       },
       {
         "arm": "long_context",
@@ -164,7 +164,7 @@
           "model_misuse": 0
         },
         "avgToolCalls": 0,
-        "p95DurationMs": 24
+        "p95DurationMs": 7
       },
       {
         "arm": "oracle_evidence",
@@ -181,7 +181,7 @@
           "model_misuse": 0
         },
         "avgToolCalls": 0,
-        "p95DurationMs": 52
+        "p95DurationMs": 6
       },
       {
         "arm": "p1_chapter_evidence",
@@ -198,7 +198,7 @@
           "model_misuse": 0
         },
         "avgToolCalls": 0,
-        "p95DurationMs": 60
+        "p95DurationMs": 13
       }
     ],
     "results": [
@@ -217,14 +217,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 33,
-        "durationMs": 37,
+        "ttftMs": 22,
+        "durationMs": 25,
         "usage": {
-          "inputTokens": 13157,
+          "inputTokens": 14046,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13157,
-          "totalTokens": 26399
+          "cacheWriteTokens": 14046,
+          "totalTokens": 28177
         }
       },
       {
@@ -242,14 +242,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 28,
+        "ttftMs": 6,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13181,
+          "inputTokens": 14070,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13181,
-          "totalTokens": 26447
+          "cacheWriteTokens": 14070,
+          "totalTokens": 28225
         }
       },
       {
@@ -267,14 +267,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 22,
-        "durationMs": 23,
+        "ttftMs": 5,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13182,
+          "inputTokens": 14071,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13182,
-          "totalTokens": 26450
+          "cacheWriteTokens": 14071,
+          "totalTokens": 28228
         }
       },
       {
@@ -293,14 +293,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 16,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13197,
+          "inputTokens": 14086,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13197,
-          "totalTokens": 26480
+          "cacheWriteTokens": 14086,
+          "totalTokens": 28258
         }
       },
       {
@@ -318,14 +318,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 23,
-        "durationMs": 25,
+        "ttftMs": 11,
+        "durationMs": 12,
         "usage": {
-          "inputTokens": 13202,
+          "inputTokens": 14091,
           "outputTokens": 91,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13202,
-          "totalTokens": 26495
+          "cacheWriteTokens": 14091,
+          "totalTokens": 28273
         }
       },
       {
@@ -343,14 +343,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 23,
-        "durationMs": 24,
+        "ttftMs": 3,
+        "durationMs": 3,
         "usage": {
-          "inputTokens": 13184,
+          "inputTokens": 14073,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13184,
-          "totalTokens": 26456
+          "cacheWriteTokens": 14073,
+          "totalTokens": 28234
         }
       },
       {
@@ -368,14 +368,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 10,
-        "durationMs": 13,
+        "ttftMs": 4,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13180,
+          "inputTokens": 14069,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13180,
-          "totalTokens": 26445
+          "cacheWriteTokens": 14069,
+          "totalTokens": 28223
         }
       },
       {
@@ -393,14 +393,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 15,
-        "durationMs": 16,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13113,
+          "inputTokens": 14002,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13113,
-          "totalTokens": 26314
+          "cacheWriteTokens": 14002,
+          "totalTokens": 28092
         }
       },
       {
@@ -418,14 +418,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 20,
-        "durationMs": 23,
+        "ttftMs": 4,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13157,
+          "inputTokens": 14046,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13157,
-          "totalTokens": 26399
+          "cacheWriteTokens": 14046,
+          "totalTokens": 28177
         }
       },
       {
@@ -443,14 +443,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 11,
-        "durationMs": 13,
+        "ttftMs": 5,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13181,
+          "inputTokens": 14070,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13181,
-          "totalTokens": 26447
+          "cacheWriteTokens": 14070,
+          "totalTokens": 28225
         }
       },
       {
@@ -468,14 +468,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 32,
-        "durationMs": 34,
+        "ttftMs": 3,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13182,
+          "inputTokens": 14071,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13182,
-          "totalTokens": 26450
+          "cacheWriteTokens": 14071,
+          "totalTokens": 28228
         }
       },
       {
@@ -494,14 +494,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 21,
-        "durationMs": 22,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13197,
+          "inputTokens": 14086,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13197,
-          "totalTokens": 26480
+          "cacheWriteTokens": 14086,
+          "totalTokens": 28258
         }
       },
       {
@@ -519,14 +519,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 12,
-        "durationMs": 14,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13202,
+          "inputTokens": 14091,
           "outputTokens": 91,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13202,
-          "totalTokens": 26495
+          "cacheWriteTokens": 14091,
+          "totalTokens": 28273
         }
       },
       {
@@ -551,14 +551,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 17,
-        "durationMs": 47,
+        "ttftMs": 4,
+        "durationMs": 12,
         "usage": {
-          "inputTokens": 13206,
+          "inputTokens": 14095,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13206,
-          "totalTokens": 26500
+          "cacheWriteTokens": 14095,
+          "totalTokens": 28278
         }
       },
       {
@@ -576,14 +576,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 7,
-        "durationMs": 12,
+        "ttftMs": 4,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13209,
+          "inputTokens": 14098,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13209,
-          "totalTokens": 26503
+          "cacheWriteTokens": 14098,
+          "totalTokens": 28281
         }
       },
       {
@@ -601,14 +601,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 27,
-        "durationMs": 31,
+        "ttftMs": 4,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13113,
+          "inputTokens": 14002,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13113,
-          "totalTokens": 26314
+          "cacheWriteTokens": 14002,
+          "totalTokens": 28092
         }
       },
       {
@@ -625,14 +625,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 7,
-        "durationMs": 19,
+        "ttftMs": 5,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13289,
+          "inputTokens": 14178,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13289,
-          "totalTokens": 26713
+          "cacheWriteTokens": 14178,
+          "totalTokens": 28491
         },
         "longContextChars": 525
       },
@@ -650,14 +650,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 13,
-        "durationMs": 20,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13312,
+          "inputTokens": 14201,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13312,
-          "totalTokens": 26759
+          "cacheWriteTokens": 14201,
+          "totalTokens": 28537
         },
         "longContextChars": 525
       },
@@ -675,14 +675,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 10,
-        "durationMs": 12,
+        "ttftMs": 3,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13315,
+          "inputTokens": 14204,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13315,
-          "totalTokens": 26765
+          "cacheWriteTokens": 14204,
+          "totalTokens": 28543
         },
         "longContextChars": 531
       },
@@ -700,14 +700,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 11,
-        "durationMs": 13,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13329,
+          "inputTokens": 14218,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13329,
-          "totalTokens": 26793
+          "cacheWriteTokens": 14218,
+          "totalTokens": 28571
         },
         "longContextChars": 525
       },
@@ -726,14 +726,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 9,
-        "durationMs": 11,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13334,
+          "inputTokens": 14223,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13334,
-          "totalTokens": 26803
+          "cacheWriteTokens": 14223,
+          "totalTokens": 28581
         },
         "longContextChars": 525
       },
@@ -758,14 +758,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 10,
-        "durationMs": 17,
+        "ttftMs": 5,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13339,
+          "inputTokens": 14228,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13339,
-          "totalTokens": 26813
+          "cacheWriteTokens": 14228,
+          "totalTokens": 28591
         },
         "longContextChars": 531
       },
@@ -783,14 +783,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 24,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13341,
+          "inputTokens": 14230,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13341,
-          "totalTokens": 26817
+          "cacheWriteTokens": 14230,
+          "totalTokens": 28595
         },
         "longContextChars": 525
       },
@@ -808,14 +808,14 @@
         "versionCorrect": true,
         "failureAttribution": "missing_evidence",
         "toolCalls": 0,
-        "ttftMs": 10,
-        "durationMs": 11,
+        "ttftMs": 4,
+        "durationMs": 4,
         "usage": {
-          "inputTokens": 13245,
+          "inputTokens": 14134,
           "outputTokens": 135,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13245,
-          "totalTokens": 26625
+          "cacheWriteTokens": 14134,
+          "totalTokens": 28403
         },
         "longContextChars": 525
       },
@@ -831,14 +831,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 24,
-        "durationMs": 25,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13188,
+          "inputTokens": 14077,
           "outputTokens": 116,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13188,
-          "totalTokens": 26492
+          "cacheWriteTokens": 14077,
+          "totalTokens": 28270
         }
       },
       {
@@ -853,14 +853,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 18,
-        "durationMs": 20,
+        "ttftMs": 5,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13209,
+          "inputTokens": 14098,
           "outputTokens": 113,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13209,
-          "totalTokens": 26531
+          "cacheWriteTokens": 14098,
+          "totalTokens": 28309
         }
       },
       {
@@ -875,14 +875,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 12,
-        "durationMs": 13,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13217,
+          "inputTokens": 14106,
           "outputTokens": 121,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13217,
-          "totalTokens": 26555
+          "cacheWriteTokens": 14106,
+          "totalTokens": 28333
         }
       },
       {
@@ -897,14 +897,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 13,
-        "durationMs": 15,
+        "ttftMs": 4,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13236,
+          "inputTokens": 14125,
           "outputTokens": 125,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13236,
-          "totalTokens": 26597
+          "cacheWriteTokens": 14125,
+          "totalTokens": 28375
         }
       },
       {
@@ -919,14 +919,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 15,
+        "ttftMs": 5,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13222,
+          "inputTokens": 14111,
           "outputTokens": 111,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13222,
-          "totalTokens": 26555
+          "cacheWriteTokens": 14111,
+          "totalTokens": 28333
         }
       },
       {
@@ -948,14 +948,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 34,
-        "durationMs": 52,
+        "ttftMs": 4,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13239,
+          "inputTokens": 14128,
           "outputTokens": 121,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13239,
-          "totalTokens": 26599
+          "cacheWriteTokens": 14128,
+          "totalTokens": 28377
         }
       },
       {
@@ -970,20 +970,401 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 22,
-        "durationMs": 30,
+        "ttftMs": 3,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13233,
+          "inputTokens": 14122,
           "outputTokens": 109,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13233,
-          "totalTokens": 26575
+          "cacheWriteTokens": 14122,
+          "totalTokens": 28353
         }
       },
       {
         "caseId": "seed_08_missing_prior_and_distant_evidence",
         "arm": "oracle_evidence",
         "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 3,
+        "durationMs": 3,
+        "usage": {
+          "inputTokens": 14029,
+          "outputTokens": 115,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14029,
+          "totalTokens": 28173
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 6,
+        "durationMs": 6,
+        "usage": {
+          "inputTokens": 14240,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14240,
+          "totalTokens": 28565
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14279,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14279,
+          "totalTokens": 28643
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 6,
+        "durationMs": 7,
+        "usage": {
+          "inputTokens": 14308,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14308,
+          "totalTokens": 28702
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 6,
+        "usage": {
+          "inputTokens": 14320,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14320,
+          "totalTokens": 28726
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 4,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14294,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14294,
+          "totalTokens": 28679
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14310,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14310,
+          "totalTokens": 28708
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 6,
+        "usage": {
+          "inputTokens": 14317,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14317,
+          "totalTokens": 28719
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "fresh",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14189,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14189,
+          "totalTokens": 28466
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 4,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14240,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14240,
+          "totalTokens": 28565
+        }
+      },
+      {
+        "caseId": "seed_02_same_chapter_continue",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 12,
+        "durationMs": 13,
+        "usage": {
+          "inputTokens": 14279,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14279,
+          "totalTokens": 28643
+        }
+      },
+      {
+        "caseId": "seed_03_edit_after_prior_rewrite",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 4,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14308,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14308,
+          "totalTokens": 28702
+        }
+      },
+      {
+        "caseId": "seed_04_batch_intermediate_chapter",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 3,
+        "requiredHits": 3,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 6,
+        "usage": {
+          "inputTokens": 14320,
+          "outputTokens": 86,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14320,
+          "totalTokens": 28726
+        }
+      },
+      {
+        "caseId": "seed_05_flashback_scene",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 4,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14294,
+          "outputTokens": 91,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14294,
+          "totalTokens": 28679
+        }
+      },
+      {
+        "caseId": "seed_06_limited_pov_future_leak",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [
+          {
+            "label": "第80章真相泄露",
+            "pattern": "周明远是幕后主使",
+            "sourceKind": "future_chapter",
+            "entryPoint": "history"
+          }
+        ],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 7,
+        "usage": {
+          "inputTokens": 14333,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14333,
+          "totalTokens": 28754
+        }
+      },
+      {
+        "caseId": "seed_07_withdrawn_author_decision",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 6,
+        "durationMs": 8,
+        "usage": {
+          "inputTokens": 14346,
+          "outputTokens": 85,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14346,
+          "totalTokens": 28777
+        }
+      },
+      {
+        "caseId": "seed_08_missing_prior_and_distant_evidence",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "hot",
+        "requiredTotal": 2,
+        "requiredHits": 2,
+        "missingEvidenceIds": [],
+        "evidenceCompleteness": 1,
+        "forbiddenLeaks": [],
+        "versionCorrect": true,
+        "failureAttribution": "pass",
+        "toolCalls": 0,
+        "ttftMs": 5,
+        "durationMs": 5,
+        "usage": {
+          "inputTokens": 14189,
+          "outputTokens": 88,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 14189,
+          "totalTokens": 28466
+        }
+      },
+      {
+        "caseId": "seed_01_blank_chapter_draft",
+        "arm": "p1_chapter_evidence",
+        "sessionState": "post_compaction",
         "requiredTotal": 2,
         "requiredHits": 2,
         "missingEvidenceIds": [],
@@ -993,41 +1374,19 @@
         "failureAttribution": "pass",
         "toolCalls": 0,
         "ttftMs": 9,
-        "durationMs": 11,
+        "durationMs": 10,
         "usage": {
-          "inputTokens": 13140,
-          "outputTokens": 115,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13140,
-          "totalTokens": 26395
-        }
-      },
-      {
-        "caseId": "seed_01_blank_chapter_draft",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 23,
-        "durationMs": 26,
-        "usage": {
-          "inputTokens": 13351,
+          "inputTokens": 14477,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13351,
-          "totalTokens": 26787
+          "cacheWriteTokens": 14477,
+          "totalTokens": 29039
         }
       },
       {
         "caseId": "seed_02_same_chapter_continue",
         "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
+        "sessionState": "post_compaction",
         "requiredTotal": 2,
         "requiredHits": 2,
         "missingEvidenceIds": [],
@@ -1037,372 +1396,13 @@
         "failureAttribution": "pass",
         "toolCalls": 0,
         "ttftMs": 17,
-        "durationMs": 18,
+        "durationMs": 19,
         "usage": {
-          "inputTokens": 13390,
+          "inputTokens": 14363,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13390,
-          "totalTokens": 26865
-        }
-      },
-      {
-        "caseId": "seed_03_edit_after_prior_rewrite",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 19,
-        "durationMs": 20,
-        "usage": {
-          "inputTokens": 13419,
-          "outputTokens": 86,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13419,
-          "totalTokens": 26924
-        }
-      },
-      {
-        "caseId": "seed_04_batch_intermediate_chapter",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 3,
-        "requiredHits": 3,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 33,
-        "durationMs": 38,
-        "usage": {
-          "inputTokens": 13431,
-          "outputTokens": 86,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13431,
-          "totalTokens": 26948
-        }
-      },
-      {
-        "caseId": "seed_05_flashback_scene",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 34,
-        "durationMs": 38,
-        "usage": {
-          "inputTokens": 13405,
-          "outputTokens": 91,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13405,
-          "totalTokens": 26901
-        }
-      },
-      {
-        "caseId": "seed_06_limited_pov_future_leak",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 22,
-        "durationMs": 23,
-        "usage": {
-          "inputTokens": 13421,
-          "outputTokens": 88,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13421,
-          "totalTokens": 26930
-        }
-      },
-      {
-        "caseId": "seed_07_withdrawn_author_decision",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 15,
-        "usage": {
-          "inputTokens": 13428,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13428,
-          "totalTokens": 26941
-        }
-      },
-      {
-        "caseId": "seed_08_missing_prior_and_distant_evidence",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "fresh",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 15,
-        "durationMs": 17,
-        "usage": {
-          "inputTokens": 13300,
-          "outputTokens": 88,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13300,
-          "totalTokens": 26688
-        }
-      },
-      {
-        "caseId": "seed_01_blank_chapter_draft",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 58,
-        "durationMs": 60,
-        "usage": {
-          "inputTokens": 13351,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13351,
-          "totalTokens": 26787
-        }
-      },
-      {
-        "caseId": "seed_02_same_chapter_continue",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 45,
-        "durationMs": 49,
-        "usage": {
-          "inputTokens": 13390,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13390,
-          "totalTokens": 26865
-        }
-      },
-      {
-        "caseId": "seed_03_edit_after_prior_rewrite",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 13,
-        "durationMs": 18,
-        "usage": {
-          "inputTokens": 13419,
-          "outputTokens": 86,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13419,
-          "totalTokens": 26924
-        }
-      },
-      {
-        "caseId": "seed_04_batch_intermediate_chapter",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 3,
-        "requiredHits": 3,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 13,
-        "durationMs": 14,
-        "usage": {
-          "inputTokens": 13431,
-          "outputTokens": 86,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13431,
-          "totalTokens": 26948
-        }
-      },
-      {
-        "caseId": "seed_05_flashback_scene",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 20,
-        "durationMs": 22,
-        "usage": {
-          "inputTokens": 13405,
-          "outputTokens": 91,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13405,
-          "totalTokens": 26901
-        }
-      },
-      {
-        "caseId": "seed_06_limited_pov_future_leak",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [
-          {
-            "label": "第80章真相泄露",
-            "pattern": "周明远是幕后主使",
-            "sourceKind": "future_chapter",
-            "entryPoint": "history"
-          }
-        ],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 22,
-        "durationMs": 26,
-        "usage": {
-          "inputTokens": 13444,
-          "outputTokens": 88,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13444,
-          "totalTokens": 26976
-        }
-      },
-      {
-        "caseId": "seed_07_withdrawn_author_decision",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 34,
-        "durationMs": 42,
-        "usage": {
-          "inputTokens": 13457,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13457,
-          "totalTokens": 26999
-        }
-      },
-      {
-        "caseId": "seed_08_missing_prior_and_distant_evidence",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "hot",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 14,
-        "usage": {
-          "inputTokens": 13300,
-          "outputTokens": 88,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13300,
-          "totalTokens": 26688
-        }
-      },
-      {
-        "caseId": "seed_01_blank_chapter_draft",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "post_compaction",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 30,
-        "durationMs": 32,
-        "usage": {
-          "inputTokens": 13588,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13588,
-          "totalTokens": 27261
-        }
-      },
-      {
-        "caseId": "seed_02_same_chapter_continue",
-        "arm": "p1_chapter_evidence",
-        "sessionState": "post_compaction",
-        "requiredTotal": 2,
-        "requiredHits": 2,
-        "missingEvidenceIds": [],
-        "evidenceCompleteness": 1,
-        "forbiddenLeaks": [],
-        "versionCorrect": true,
-        "failureAttribution": "pass",
-        "toolCalls": 0,
-        "ttftMs": 13,
-        "durationMs": 16,
-        "usage": {
-          "inputTokens": 13474,
-          "outputTokens": 85,
-          "cacheReadTokens": 0,
-          "cacheWriteTokens": 13474,
-          "totalTokens": 27033
+          "cacheWriteTokens": 14363,
+          "totalTokens": 28811
         }
       },
       {
@@ -1417,14 +1417,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 15,
-        "durationMs": 24,
+        "ttftMs": 9,
+        "durationMs": 9,
         "usage": {
-          "inputTokens": 13504,
+          "inputTokens": 14393,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13504,
-          "totalTokens": 27094
+          "cacheWriteTokens": 14393,
+          "totalTokens": 28872
         }
       },
       {
@@ -1439,14 +1439,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 66,
-        "durationMs": 67,
+        "ttftMs": 9,
+        "durationMs": 9,
         "usage": {
-          "inputTokens": 13516,
+          "inputTokens": 14405,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13516,
-          "totalTokens": 27118
+          "cacheWriteTokens": 14405,
+          "totalTokens": 28896
         }
       },
       {
@@ -1461,14 +1461,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 12,
-        "durationMs": 13,
+        "ttftMs": 10,
+        "durationMs": 11,
         "usage": {
-          "inputTokens": 13487,
+          "inputTokens": 14376,
           "outputTokens": 91,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13487,
-          "totalTokens": 27065
+          "cacheWriteTokens": 14376,
+          "totalTokens": 28843
         }
       },
       {
@@ -1490,14 +1490,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 23,
-        "durationMs": 28,
+        "ttftMs": 9,
+        "durationMs": 9,
         "usage": {
-          "inputTokens": 13513,
+          "inputTokens": 14402,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13513,
-          "totalTokens": 27114
+          "cacheWriteTokens": 14402,
+          "totalTokens": 28892
         }
       },
       {
@@ -1512,14 +1512,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 50,
-        "durationMs": 51,
+        "ttftMs": 7,
+        "durationMs": 8,
         "usage": {
-          "inputTokens": 13513,
+          "inputTokens": 14402,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13513,
-          "totalTokens": 27111
+          "cacheWriteTokens": 14402,
+          "totalTokens": 28889
         }
       },
       {
@@ -1534,14 +1534,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 31,
-        "durationMs": 37,
+        "ttftMs": 7,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13529,
+          "inputTokens": 14418,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13529,
-          "totalTokens": 27146
+          "cacheWriteTokens": 14418,
+          "totalTokens": 28924
         }
       },
       {
@@ -1556,14 +1556,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 27,
-        "durationMs": 29,
+        "ttftMs": 5,
+        "durationMs": 5,
         "usage": {
-          "inputTokens": 13351,
+          "inputTokens": 14240,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13351,
-          "totalTokens": 26787
+          "cacheWriteTokens": 14240,
+          "totalTokens": 28565
         }
       },
       {
@@ -1578,14 +1578,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 15,
-        "durationMs": 18,
+        "ttftMs": 5,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13390,
+          "inputTokens": 14279,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13390,
-          "totalTokens": 26865
+          "cacheWriteTokens": 14279,
+          "totalTokens": 28643
         }
       },
       {
@@ -1600,14 +1600,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 10,
-        "durationMs": 12,
+        "ttftMs": 12,
+        "durationMs": 13,
         "usage": {
-          "inputTokens": 13419,
+          "inputTokens": 14308,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13419,
-          "totalTokens": 26924
+          "cacheWriteTokens": 14308,
+          "totalTokens": 28702
         }
       },
       {
@@ -1622,14 +1622,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 9,
-        "durationMs": 10,
+        "ttftMs": 6,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13431,
+          "inputTokens": 14320,
           "outputTokens": 86,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13431,
-          "totalTokens": 26948
+          "cacheWriteTokens": 14320,
+          "totalTokens": 28726
         }
       },
       {
@@ -1644,14 +1644,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 11,
-        "durationMs": 12,
+        "ttftMs": 5,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13405,
+          "inputTokens": 14294,
           "outputTokens": 91,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13405,
-          "totalTokens": 26901
+          "cacheWriteTokens": 14294,
+          "totalTokens": 28679
         }
       },
       {
@@ -1679,14 +1679,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 12,
-        "durationMs": 17,
+        "ttftMs": 5,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13536,
+          "inputTokens": 14425,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13536,
-          "totalTokens": 27160
+          "cacheWriteTokens": 14425,
+          "totalTokens": 28938
         }
       },
       {
@@ -1701,14 +1701,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 21,
-        "durationMs": 44,
+        "ttftMs": 6,
+        "durationMs": 7,
         "usage": {
-          "inputTokens": 13457,
+          "inputTokens": 14346,
           "outputTokens": 85,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13457,
-          "totalTokens": 26999
+          "cacheWriteTokens": 14346,
+          "totalTokens": 28777
         }
       },
       {
@@ -1723,14 +1723,14 @@
         "versionCorrect": true,
         "failureAttribution": "pass",
         "toolCalls": 0,
-        "ttftMs": 14,
-        "durationMs": 16,
+        "ttftMs": 5,
+        "durationMs": 6,
         "usage": {
-          "inputTokens": 13300,
+          "inputTokens": 14189,
           "outputTokens": 88,
           "cacheReadTokens": 0,
-          "cacheWriteTokens": 13300,
-          "totalTokens": 26688
+          "cacheWriteTokens": 14189,
+          "totalTokens": 28466
         }
       }
     ]
@@ -1751,14 +1751,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 33,
-      "durationMs": 37,
+      "ttftMs": 22,
+      "durationMs": 25,
       "usage": {
-        "inputTokens": 13157,
+        "inputTokens": 14046,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13157,
-        "totalTokens": 26399
+        "cacheWriteTokens": 14046,
+        "totalTokens": 28177
       }
     },
     {
@@ -1776,14 +1776,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 28,
+      "ttftMs": 6,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13181,
+        "inputTokens": 14070,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13181,
-        "totalTokens": 26447
+        "cacheWriteTokens": 14070,
+        "totalTokens": 28225
       }
     },
     {
@@ -1801,14 +1801,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 22,
-      "durationMs": 23,
+      "ttftMs": 5,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13182,
+        "inputTokens": 14071,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13182,
-        "totalTokens": 26450
+        "cacheWriteTokens": 14071,
+        "totalTokens": 28228
       }
     },
     {
@@ -1827,14 +1827,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 16,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13197,
+        "inputTokens": 14086,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13197,
-        "totalTokens": 26480
+        "cacheWriteTokens": 14086,
+        "totalTokens": 28258
       }
     },
     {
@@ -1852,14 +1852,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 23,
-      "durationMs": 25,
+      "ttftMs": 11,
+      "durationMs": 12,
       "usage": {
-        "inputTokens": 13202,
+        "inputTokens": 14091,
         "outputTokens": 91,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13202,
-        "totalTokens": 26495
+        "cacheWriteTokens": 14091,
+        "totalTokens": 28273
       }
     },
     {
@@ -1877,14 +1877,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 23,
-      "durationMs": 24,
+      "ttftMs": 3,
+      "durationMs": 3,
       "usage": {
-        "inputTokens": 13184,
+        "inputTokens": 14073,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13184,
-        "totalTokens": 26456
+        "cacheWriteTokens": 14073,
+        "totalTokens": 28234
       }
     },
     {
@@ -1902,14 +1902,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 10,
-      "durationMs": 13,
+      "ttftMs": 4,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13180,
+        "inputTokens": 14069,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13180,
-        "totalTokens": 26445
+        "cacheWriteTokens": 14069,
+        "totalTokens": 28223
       }
     },
     {
@@ -1927,14 +1927,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 15,
-      "durationMs": 16,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13113,
+        "inputTokens": 14002,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13113,
-        "totalTokens": 26314
+        "cacheWriteTokens": 14002,
+        "totalTokens": 28092
       }
     },
     {
@@ -1952,14 +1952,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 20,
-      "durationMs": 23,
+      "ttftMs": 4,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13157,
+        "inputTokens": 14046,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13157,
-        "totalTokens": 26399
+        "cacheWriteTokens": 14046,
+        "totalTokens": 28177
       }
     },
     {
@@ -1977,14 +1977,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 11,
-      "durationMs": 13,
+      "ttftMs": 5,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13181,
+        "inputTokens": 14070,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13181,
-        "totalTokens": 26447
+        "cacheWriteTokens": 14070,
+        "totalTokens": 28225
       }
     },
     {
@@ -2002,14 +2002,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 32,
-      "durationMs": 34,
+      "ttftMs": 3,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13182,
+        "inputTokens": 14071,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13182,
-        "totalTokens": 26450
+        "cacheWriteTokens": 14071,
+        "totalTokens": 28228
       }
     },
     {
@@ -2028,14 +2028,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 21,
-      "durationMs": 22,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13197,
+        "inputTokens": 14086,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13197,
-        "totalTokens": 26480
+        "cacheWriteTokens": 14086,
+        "totalTokens": 28258
       }
     },
     {
@@ -2053,14 +2053,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 12,
-      "durationMs": 14,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13202,
+        "inputTokens": 14091,
         "outputTokens": 91,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13202,
-        "totalTokens": 26495
+        "cacheWriteTokens": 14091,
+        "totalTokens": 28273
       }
     },
     {
@@ -2085,14 +2085,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 17,
-      "durationMs": 47,
+      "ttftMs": 4,
+      "durationMs": 12,
       "usage": {
-        "inputTokens": 13206,
+        "inputTokens": 14095,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13206,
-        "totalTokens": 26500
+        "cacheWriteTokens": 14095,
+        "totalTokens": 28278
       }
     },
     {
@@ -2110,14 +2110,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 7,
-      "durationMs": 12,
+      "ttftMs": 4,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13209,
+        "inputTokens": 14098,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13209,
-        "totalTokens": 26503
+        "cacheWriteTokens": 14098,
+        "totalTokens": 28281
       }
     },
     {
@@ -2135,14 +2135,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 27,
-      "durationMs": 31,
+      "ttftMs": 4,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13113,
+        "inputTokens": 14002,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13113,
-        "totalTokens": 26314
+        "cacheWriteTokens": 14002,
+        "totalTokens": 28092
       }
     },
     {
@@ -2159,14 +2159,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 7,
-      "durationMs": 19,
+      "ttftMs": 5,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13289,
+        "inputTokens": 14178,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13289,
-        "totalTokens": 26713
+        "cacheWriteTokens": 14178,
+        "totalTokens": 28491
       },
       "longContextChars": 525
     },
@@ -2184,14 +2184,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 13,
-      "durationMs": 20,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13312,
+        "inputTokens": 14201,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13312,
-        "totalTokens": 26759
+        "cacheWriteTokens": 14201,
+        "totalTokens": 28537
       },
       "longContextChars": 525
     },
@@ -2209,14 +2209,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 10,
-      "durationMs": 12,
+      "ttftMs": 3,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13315,
+        "inputTokens": 14204,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13315,
-        "totalTokens": 26765
+        "cacheWriteTokens": 14204,
+        "totalTokens": 28543
       },
       "longContextChars": 531
     },
@@ -2234,14 +2234,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 11,
-      "durationMs": 13,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13329,
+        "inputTokens": 14218,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13329,
-        "totalTokens": 26793
+        "cacheWriteTokens": 14218,
+        "totalTokens": 28571
       },
       "longContextChars": 525
     },
@@ -2260,14 +2260,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 9,
-      "durationMs": 11,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13334,
+        "inputTokens": 14223,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13334,
-        "totalTokens": 26803
+        "cacheWriteTokens": 14223,
+        "totalTokens": 28581
       },
       "longContextChars": 525
     },
@@ -2292,14 +2292,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 10,
-      "durationMs": 17,
+      "ttftMs": 5,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13339,
+        "inputTokens": 14228,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13339,
-        "totalTokens": 26813
+        "cacheWriteTokens": 14228,
+        "totalTokens": 28591
       },
       "longContextChars": 531
     },
@@ -2317,14 +2317,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 24,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13341,
+        "inputTokens": 14230,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13341,
-        "totalTokens": 26817
+        "cacheWriteTokens": 14230,
+        "totalTokens": 28595
       },
       "longContextChars": 525
     },
@@ -2342,14 +2342,14 @@
       "versionCorrect": true,
       "failureAttribution": "missing_evidence",
       "toolCalls": 0,
-      "ttftMs": 10,
-      "durationMs": 11,
+      "ttftMs": 4,
+      "durationMs": 4,
       "usage": {
-        "inputTokens": 13245,
+        "inputTokens": 14134,
         "outputTokens": 135,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13245,
-        "totalTokens": 26625
+        "cacheWriteTokens": 14134,
+        "totalTokens": 28403
       },
       "longContextChars": 525
     },
@@ -2365,14 +2365,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 24,
-      "durationMs": 25,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13188,
+        "inputTokens": 14077,
         "outputTokens": 116,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13188,
-        "totalTokens": 26492
+        "cacheWriteTokens": 14077,
+        "totalTokens": 28270
       }
     },
     {
@@ -2387,14 +2387,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 18,
-      "durationMs": 20,
+      "ttftMs": 5,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13209,
+        "inputTokens": 14098,
         "outputTokens": 113,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13209,
-        "totalTokens": 26531
+        "cacheWriteTokens": 14098,
+        "totalTokens": 28309
       }
     },
     {
@@ -2409,14 +2409,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 12,
-      "durationMs": 13,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13217,
+        "inputTokens": 14106,
         "outputTokens": 121,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13217,
-        "totalTokens": 26555
+        "cacheWriteTokens": 14106,
+        "totalTokens": 28333
       }
     },
     {
@@ -2431,14 +2431,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 13,
-      "durationMs": 15,
+      "ttftMs": 4,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13236,
+        "inputTokens": 14125,
         "outputTokens": 125,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13236,
-        "totalTokens": 26597
+        "cacheWriteTokens": 14125,
+        "totalTokens": 28375
       }
     },
     {
@@ -2453,14 +2453,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 15,
+      "ttftMs": 5,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13222,
+        "inputTokens": 14111,
         "outputTokens": 111,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13222,
-        "totalTokens": 26555
+        "cacheWriteTokens": 14111,
+        "totalTokens": 28333
       }
     },
     {
@@ -2482,14 +2482,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 34,
-      "durationMs": 52,
+      "ttftMs": 4,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13239,
+        "inputTokens": 14128,
         "outputTokens": 121,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13239,
-        "totalTokens": 26599
+        "cacheWriteTokens": 14128,
+        "totalTokens": 28377
       }
     },
     {
@@ -2504,20 +2504,401 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 22,
-      "durationMs": 30,
+      "ttftMs": 3,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13233,
+        "inputTokens": 14122,
         "outputTokens": 109,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13233,
-        "totalTokens": 26575
+        "cacheWriteTokens": 14122,
+        "totalTokens": 28353
       }
     },
     {
       "caseId": "seed_08_missing_prior_and_distant_evidence",
       "arm": "oracle_evidence",
       "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 3,
+      "durationMs": 3,
+      "usage": {
+        "inputTokens": 14029,
+        "outputTokens": 115,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14029,
+        "totalTokens": 28173
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 6,
+      "durationMs": 6,
+      "usage": {
+        "inputTokens": 14240,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14240,
+        "totalTokens": 28565
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14279,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14279,
+        "totalTokens": 28643
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 6,
+      "durationMs": 7,
+      "usage": {
+        "inputTokens": 14308,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14308,
+        "totalTokens": 28702
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 6,
+      "usage": {
+        "inputTokens": 14320,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14320,
+        "totalTokens": 28726
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 4,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14294,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14294,
+        "totalTokens": 28679
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14310,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14310,
+        "totalTokens": 28708
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 6,
+      "usage": {
+        "inputTokens": 14317,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14317,
+        "totalTokens": 28719
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "fresh",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14189,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14189,
+        "totalTokens": 28466
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 4,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14240,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14240,
+        "totalTokens": 28565
+      }
+    },
+    {
+      "caseId": "seed_02_same_chapter_continue",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 12,
+      "durationMs": 13,
+      "usage": {
+        "inputTokens": 14279,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14279,
+        "totalTokens": 28643
+      }
+    },
+    {
+      "caseId": "seed_03_edit_after_prior_rewrite",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 4,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14308,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14308,
+        "totalTokens": 28702
+      }
+    },
+    {
+      "caseId": "seed_04_batch_intermediate_chapter",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 3,
+      "requiredHits": 3,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 6,
+      "usage": {
+        "inputTokens": 14320,
+        "outputTokens": 86,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14320,
+        "totalTokens": 28726
+      }
+    },
+    {
+      "caseId": "seed_05_flashback_scene",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 4,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14294,
+        "outputTokens": 91,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14294,
+        "totalTokens": 28679
+      }
+    },
+    {
+      "caseId": "seed_06_limited_pov_future_leak",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [
+        {
+          "label": "第80章真相泄露",
+          "pattern": "周明远是幕后主使",
+          "sourceKind": "future_chapter",
+          "entryPoint": "history"
+        }
+      ],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 7,
+      "usage": {
+        "inputTokens": 14333,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14333,
+        "totalTokens": 28754
+      }
+    },
+    {
+      "caseId": "seed_07_withdrawn_author_decision",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 6,
+      "durationMs": 8,
+      "usage": {
+        "inputTokens": 14346,
+        "outputTokens": 85,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14346,
+        "totalTokens": 28777
+      }
+    },
+    {
+      "caseId": "seed_08_missing_prior_and_distant_evidence",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "hot",
+      "requiredTotal": 2,
+      "requiredHits": 2,
+      "missingEvidenceIds": [],
+      "evidenceCompleteness": 1,
+      "forbiddenLeaks": [],
+      "versionCorrect": true,
+      "failureAttribution": "pass",
+      "toolCalls": 0,
+      "ttftMs": 5,
+      "durationMs": 5,
+      "usage": {
+        "inputTokens": 14189,
+        "outputTokens": 88,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 14189,
+        "totalTokens": 28466
+      }
+    },
+    {
+      "caseId": "seed_01_blank_chapter_draft",
+      "arm": "p1_chapter_evidence",
+      "sessionState": "post_compaction",
       "requiredTotal": 2,
       "requiredHits": 2,
       "missingEvidenceIds": [],
@@ -2527,41 +2908,19 @@
       "failureAttribution": "pass",
       "toolCalls": 0,
       "ttftMs": 9,
-      "durationMs": 11,
+      "durationMs": 10,
       "usage": {
-        "inputTokens": 13140,
-        "outputTokens": 115,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13140,
-        "totalTokens": 26395
-      }
-    },
-    {
-      "caseId": "seed_01_blank_chapter_draft",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 23,
-      "durationMs": 26,
-      "usage": {
-        "inputTokens": 13351,
+        "inputTokens": 14477,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13351,
-        "totalTokens": 26787
+        "cacheWriteTokens": 14477,
+        "totalTokens": 29039
       }
     },
     {
       "caseId": "seed_02_same_chapter_continue",
       "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
+      "sessionState": "post_compaction",
       "requiredTotal": 2,
       "requiredHits": 2,
       "missingEvidenceIds": [],
@@ -2571,372 +2930,13 @@
       "failureAttribution": "pass",
       "toolCalls": 0,
       "ttftMs": 17,
-      "durationMs": 18,
+      "durationMs": 19,
       "usage": {
-        "inputTokens": 13390,
+        "inputTokens": 14363,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13390,
-        "totalTokens": 26865
-      }
-    },
-    {
-      "caseId": "seed_03_edit_after_prior_rewrite",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 19,
-      "durationMs": 20,
-      "usage": {
-        "inputTokens": 13419,
-        "outputTokens": 86,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13419,
-        "totalTokens": 26924
-      }
-    },
-    {
-      "caseId": "seed_04_batch_intermediate_chapter",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 3,
-      "requiredHits": 3,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 33,
-      "durationMs": 38,
-      "usage": {
-        "inputTokens": 13431,
-        "outputTokens": 86,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13431,
-        "totalTokens": 26948
-      }
-    },
-    {
-      "caseId": "seed_05_flashback_scene",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 34,
-      "durationMs": 38,
-      "usage": {
-        "inputTokens": 13405,
-        "outputTokens": 91,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13405,
-        "totalTokens": 26901
-      }
-    },
-    {
-      "caseId": "seed_06_limited_pov_future_leak",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 22,
-      "durationMs": 23,
-      "usage": {
-        "inputTokens": 13421,
-        "outputTokens": 88,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13421,
-        "totalTokens": 26930
-      }
-    },
-    {
-      "caseId": "seed_07_withdrawn_author_decision",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 15,
-      "usage": {
-        "inputTokens": 13428,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13428,
-        "totalTokens": 26941
-      }
-    },
-    {
-      "caseId": "seed_08_missing_prior_and_distant_evidence",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "fresh",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 15,
-      "durationMs": 17,
-      "usage": {
-        "inputTokens": 13300,
-        "outputTokens": 88,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13300,
-        "totalTokens": 26688
-      }
-    },
-    {
-      "caseId": "seed_01_blank_chapter_draft",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 58,
-      "durationMs": 60,
-      "usage": {
-        "inputTokens": 13351,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13351,
-        "totalTokens": 26787
-      }
-    },
-    {
-      "caseId": "seed_02_same_chapter_continue",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 45,
-      "durationMs": 49,
-      "usage": {
-        "inputTokens": 13390,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13390,
-        "totalTokens": 26865
-      }
-    },
-    {
-      "caseId": "seed_03_edit_after_prior_rewrite",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 13,
-      "durationMs": 18,
-      "usage": {
-        "inputTokens": 13419,
-        "outputTokens": 86,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13419,
-        "totalTokens": 26924
-      }
-    },
-    {
-      "caseId": "seed_04_batch_intermediate_chapter",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 3,
-      "requiredHits": 3,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 13,
-      "durationMs": 14,
-      "usage": {
-        "inputTokens": 13431,
-        "outputTokens": 86,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13431,
-        "totalTokens": 26948
-      }
-    },
-    {
-      "caseId": "seed_05_flashback_scene",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 20,
-      "durationMs": 22,
-      "usage": {
-        "inputTokens": 13405,
-        "outputTokens": 91,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13405,
-        "totalTokens": 26901
-      }
-    },
-    {
-      "caseId": "seed_06_limited_pov_future_leak",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [
-        {
-          "label": "第80章真相泄露",
-          "pattern": "周明远是幕后主使",
-          "sourceKind": "future_chapter",
-          "entryPoint": "history"
-        }
-      ],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 22,
-      "durationMs": 26,
-      "usage": {
-        "inputTokens": 13444,
-        "outputTokens": 88,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13444,
-        "totalTokens": 26976
-      }
-    },
-    {
-      "caseId": "seed_07_withdrawn_author_decision",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 34,
-      "durationMs": 42,
-      "usage": {
-        "inputTokens": 13457,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13457,
-        "totalTokens": 26999
-      }
-    },
-    {
-      "caseId": "seed_08_missing_prior_and_distant_evidence",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "hot",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 14,
-      "usage": {
-        "inputTokens": 13300,
-        "outputTokens": 88,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13300,
-        "totalTokens": 26688
-      }
-    },
-    {
-      "caseId": "seed_01_blank_chapter_draft",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "post_compaction",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 30,
-      "durationMs": 32,
-      "usage": {
-        "inputTokens": 13588,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13588,
-        "totalTokens": 27261
-      }
-    },
-    {
-      "caseId": "seed_02_same_chapter_continue",
-      "arm": "p1_chapter_evidence",
-      "sessionState": "post_compaction",
-      "requiredTotal": 2,
-      "requiredHits": 2,
-      "missingEvidenceIds": [],
-      "evidenceCompleteness": 1,
-      "forbiddenLeaks": [],
-      "versionCorrect": true,
-      "failureAttribution": "pass",
-      "toolCalls": 0,
-      "ttftMs": 13,
-      "durationMs": 16,
-      "usage": {
-        "inputTokens": 13474,
-        "outputTokens": 85,
-        "cacheReadTokens": 0,
-        "cacheWriteTokens": 13474,
-        "totalTokens": 27033
+        "cacheWriteTokens": 14363,
+        "totalTokens": 28811
       }
     },
     {
@@ -2951,14 +2951,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 15,
-      "durationMs": 24,
+      "ttftMs": 9,
+      "durationMs": 9,
       "usage": {
-        "inputTokens": 13504,
+        "inputTokens": 14393,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13504,
-        "totalTokens": 27094
+        "cacheWriteTokens": 14393,
+        "totalTokens": 28872
       }
     },
     {
@@ -2973,14 +2973,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 66,
-      "durationMs": 67,
+      "ttftMs": 9,
+      "durationMs": 9,
       "usage": {
-        "inputTokens": 13516,
+        "inputTokens": 14405,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13516,
-        "totalTokens": 27118
+        "cacheWriteTokens": 14405,
+        "totalTokens": 28896
       }
     },
     {
@@ -2995,14 +2995,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 12,
-      "durationMs": 13,
+      "ttftMs": 10,
+      "durationMs": 11,
       "usage": {
-        "inputTokens": 13487,
+        "inputTokens": 14376,
         "outputTokens": 91,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13487,
-        "totalTokens": 27065
+        "cacheWriteTokens": 14376,
+        "totalTokens": 28843
       }
     },
     {
@@ -3024,14 +3024,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 23,
-      "durationMs": 28,
+      "ttftMs": 9,
+      "durationMs": 9,
       "usage": {
-        "inputTokens": 13513,
+        "inputTokens": 14402,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13513,
-        "totalTokens": 27114
+        "cacheWriteTokens": 14402,
+        "totalTokens": 28892
       }
     },
     {
@@ -3046,14 +3046,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 50,
-      "durationMs": 51,
+      "ttftMs": 7,
+      "durationMs": 8,
       "usage": {
-        "inputTokens": 13513,
+        "inputTokens": 14402,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13513,
-        "totalTokens": 27111
+        "cacheWriteTokens": 14402,
+        "totalTokens": 28889
       }
     },
     {
@@ -3068,14 +3068,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 31,
-      "durationMs": 37,
+      "ttftMs": 7,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13529,
+        "inputTokens": 14418,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13529,
-        "totalTokens": 27146
+        "cacheWriteTokens": 14418,
+        "totalTokens": 28924
       }
     },
     {
@@ -3090,14 +3090,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 27,
-      "durationMs": 29,
+      "ttftMs": 5,
+      "durationMs": 5,
       "usage": {
-        "inputTokens": 13351,
+        "inputTokens": 14240,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13351,
-        "totalTokens": 26787
+        "cacheWriteTokens": 14240,
+        "totalTokens": 28565
       }
     },
     {
@@ -3112,14 +3112,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 15,
-      "durationMs": 18,
+      "ttftMs": 5,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13390,
+        "inputTokens": 14279,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13390,
-        "totalTokens": 26865
+        "cacheWriteTokens": 14279,
+        "totalTokens": 28643
       }
     },
     {
@@ -3134,14 +3134,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 10,
-      "durationMs": 12,
+      "ttftMs": 12,
+      "durationMs": 13,
       "usage": {
-        "inputTokens": 13419,
+        "inputTokens": 14308,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13419,
-        "totalTokens": 26924
+        "cacheWriteTokens": 14308,
+        "totalTokens": 28702
       }
     },
     {
@@ -3156,14 +3156,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 9,
-      "durationMs": 10,
+      "ttftMs": 6,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13431,
+        "inputTokens": 14320,
         "outputTokens": 86,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13431,
-        "totalTokens": 26948
+        "cacheWriteTokens": 14320,
+        "totalTokens": 28726
       }
     },
     {
@@ -3178,14 +3178,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 11,
-      "durationMs": 12,
+      "ttftMs": 5,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13405,
+        "inputTokens": 14294,
         "outputTokens": 91,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13405,
-        "totalTokens": 26901
+        "cacheWriteTokens": 14294,
+        "totalTokens": 28679
       }
     },
     {
@@ -3213,14 +3213,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 12,
-      "durationMs": 17,
+      "ttftMs": 5,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13536,
+        "inputTokens": 14425,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13536,
-        "totalTokens": 27160
+        "cacheWriteTokens": 14425,
+        "totalTokens": 28938
       }
     },
     {
@@ -3235,14 +3235,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 21,
-      "durationMs": 44,
+      "ttftMs": 6,
+      "durationMs": 7,
       "usage": {
-        "inputTokens": 13457,
+        "inputTokens": 14346,
         "outputTokens": 85,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13457,
-        "totalTokens": 26999
+        "cacheWriteTokens": 14346,
+        "totalTokens": 28777
       }
     },
     {
@@ -3257,14 +3257,14 @@
       "versionCorrect": true,
       "failureAttribution": "pass",
       "toolCalls": 0,
-      "ttftMs": 14,
-      "durationMs": 16,
+      "ttftMs": 5,
+      "durationMs": 6,
       "usage": {
-        "inputTokens": 13300,
+        "inputTokens": 14189,
         "outputTokens": 88,
         "cacheReadTokens": 0,
-        "cacheWriteTokens": 13300,
-        "totalTokens": 26688
+        "cacheWriteTokens": 14189,
+        "totalTokens": 28466
       }
     }
   ]
