@@ -2,18 +2,17 @@
   "mandatory": false,
   "enabled": true,
   "minimumSupportedVersion": "0.1.0",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "feedUrl": "https://github.com/Minglink/Writer/releases/latest/download",
-  "publishedAt": "2026-11-28T19:04:32+08:00",
+  "publishedAt": "2026-11-28T20:55:02+08:00",
   "channel": "stable",
   "releaseNotes": [
-    "新增九个订阅平台的账号池和模型目录，可将已启用的订阅模型用于创作或设为默认模型。",
-    "修复 Google 登录返回后账号保存被意外取消的问题。浏览器回调页会提示返回 Writer 查看保存结果。",
-    "Google 浏览器登录使用本机配置的 OAuth 客户端。也可在官方客户端登录后，使用「导入本机」接入已有账户。",
-    "更新 Google Antigravity 在线模型目录。账号配额默认折叠，可手动刷新，展开后会自动更新。",
-    "修复刷新 Writer 官网模型目录时丢失已保存的默认模型选择。"
+    "Google Antigravity 浏览器登录随安装包提供获准使用的客户端，装好即可用 Google 账号登录，无需再配置环境变量。",
+    "登录链接、回调校验、换取令牌与账号保存全流程已在干净安装上实测通过。",
+    "补齐订阅模型管理、配额折叠与浏览器返回 Writer 的文档、截图和错误排查条目。",
+    "本地仍可用 WRITER_GOOGLE_ANTIGRAVITY_* 环境变量覆盖内置客户端。"
   ],
-  "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.7",
-  "title": "Writer 0.1.7",
+  "releasePage": "https://github.com/Minglink/Writer/releases/tag/v0.1.8",
+  "title": "Writer 0.1.8",
   "schemaVersion": 1
 }
