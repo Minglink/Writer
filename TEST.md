@@ -83,4 +83,4 @@ Get-Item apps/desktop/out/main/index.js | Select-Object LastWriteTime
 | 2026-11-28 | 1.7.0 源码恢复 | 重编译的 472 个文件与参考构建及包内文件一致，九平台模拟账号复验通过。全量检查定位到官网默认模型的一项回归。 | [恢复验收](test/2026-11-28-source-recovery.md) |
 | 2026-11-28 | Windows x64 0.1.7 发布 | 官网默认模型回归通过，最终包已验证首次启动、重开和九平台账号，GitHub 下载与更新清单已核对。 | [发布验收](test/2026-11-28-release-0.1.7.md) |
 | 2026-11-28 | Google OAuth 发行配置 | 清除运行时配置后，两个 Google 入口使用构建提供的占位客户端完成模拟登录，九平台账号复验通过。 | [验收记录](test/2026-11-28-google-release-login.md) |
-| 2026-11-28 | Antigravity 内置 OAuth 客户端 | 清空运行时配置后探针九平台通过；干净安装的包完成真实 Google 授权并保存账号、拉回 10 个模型。 | [验收记录](test/2026-11-28-antigravity-bundled-client.md) |
+| 2026-11-28 | Antigravity 内置 OAuth 客户端 | 清空运行时配置后探针九平台通过；干净安装的包完成真实 Google 授权并保存账号、拉回 10 个模型，已发布 0.1.8。 | [验收记录](test/2026-11-28-antigravity-bundled-client.md) |

@@ -22,7 +22,8 @@
 - 57 项订阅测试（含新增的两条内置客户端断言）与 8 项 provider 测试通过；类型、边界、构建、打包及包内首次启动与重开冒烟通过。
 - 探针在清空运行时配置后，Antigravity 链接的 `client_id` 与令牌请求的客户端密钥均为内置值，链接不含密钥；九平台全部通过。
 - 干净安装的 0.1.8 打开 Google 授权页并完成登录后，账号写入 `subscription-accounts.json` 且附带加密密钥，状态 `active`、套餐 Pro，随即拉回 10 个可用模型。
-- 安装包 106,867,156 字节，SHA-256 为 `9cd5fde5bb33802e94b3135807f6846be66307d301db2892320e4c6b289facde`。[登录链接](../test/2026-11-28-antigravity-approved-client/01-login-link.png) · [账号保存](../test/2026-11-28-antigravity-approved-client/02-account-saved.png) · [模拟链路截图](2026-11-28-antigravity-approved-client/accounts/)
+- 安装包 106,867,156 字节，SHA-256 为 `9cd5fde5bb33802e94b3135807f6846be66307d301db2892320e4c6b289facde`，公开附件与该哈希一致。[登录链接](../test/2026-11-28-antigravity-approved-client/01-login-link.png) · [账号保存](../test/2026-11-28-antigravity-approved-client/02-account-saved.png) · [模拟链路截图](2026-11-28-antigravity-approved-client/accounts/)
+- 已发布 [v0.1.8](https://github.com/Minglink/Writer/releases/tag/v0.1.8)，`update.json` 推送后公开清单返回 0.1.8 与对应发布页。安装包在原地升级后账号与模型目录保持可用。
 
 ## 未覆盖与后续
 
