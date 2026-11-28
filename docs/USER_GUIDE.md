@@ -21,7 +21,7 @@
 
 ## 1. 下载安装与首次配置
 
-1. 前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新的 Windows x64 安装包（例如 `Writer-0.1.7-win-x64.exe`）并双击安装。
+1. 前往 [**GitHub Releases**](https://github.com/Minglink/Writer/releases/latest) 下载最新的 Windows x64 安装包（例如 `Writer-0.1.8-win-x64.exe`）并双击安装。
 2. 首次启动时选择一个本地文件夹作为**作品根目录**：
    - 所有作品均以标准 `writer.json` + **UTF-8 Markdown** 文件夹保存在你自己的硬盘中，随时可用资源管理器、Git 或网盘同步备份。
 3. 打开左下角 **设置 → 模型配置**，填写你常用的大模型 API 地址与密钥（支持 OpenAI Completions / Responses、Anthropic Messages、Google Generative AI 等兼容接口），点击「测试连接」通过后即可开写。
@@ -36,7 +36,7 @@
 - **支持平台**：Google Gemini CLI、Google Antigravity、OpenAI Codex（ChatGPT Plus/Pro）、GitHub Copilot、Claude（Pro/Max）、Kiro（AWS）、Cursor、Windsurf、CodeBuddy。
   - 其中部分社区适配渠道（如 Google Antigravity、Cursor、Windsurf）会在页面顶部展示弱底提示条，若上游接口临时调整可随时切换其他渠道。
 - **三种接入方式**：
-  1. **原生 OAuth / 设备码登录**：点击「获取登录链接」，在弹窗中选择「打开登录页」，也可以复制完整地址到本机其他浏览器。保留弹窗，授权完成后账号会自动出现。Google 个人免费版、Pro 和 Ultra 请选择 Google Antigravity，已有 Code Assist 标准版或企业版的账号可选 Google Gemini CLI。GitHub Copilot / Kiro 的「设备码登录」会显示配对码和验证地址。Windsurf 的「获取登录链接」需要将浏览器显示的授权码粘贴回 Writer，再点「完成登录」。
+  1. **原生 OAuth / 设备码登录**：点击「获取登录链接」，在弹窗中选择「打开登录页」，也可以复制完整地址到本机其他浏览器。保留弹窗，授权完成后账号会自动出现。Google 个人免费版、Pro 和 Ultra 请选择 **Google Antigravity**（`v0.1.8` 起安装包开箱内置登录客户端，无需额外配置环境变量）；已有 Code Assist 标准版或企业版的账号可选 **Google Gemini CLI**（若未配置 OAuth 客户端可直接点「导入本机」读取 `~/.gemini`）。GitHub Copilot / Kiro 的「设备码登录」会显示配对码和验证地址。Windsurf 的「获取登录链接」需要将浏览器显示的授权码粘贴回 Writer，再点「完成登录」。
   2. **本机只读扫描导入**：点击页眉「扫描本机凭证」或平台内的「导入本机」，自动识别本机已登录的 CLI / IDE 凭证（如 `~/.gemini`、`~/.codex`、`~/.claude`、AWS SSO 缓存、Cursor / Windsurf / CodeBuddy 状态库），勾选即可导入。**Writer 严格以只读方式读取，绝不修改或锁死外部 CLI / IDE 文件。**
   3. **手动粘贴凭证**：在支持手动导入的平台（如 Cursor / Windsurf）可点击「粘贴凭证」，输入访问令牌、会话凭证或 JSON 配置。
 - **多账号主号优先与自动故障切号**：

@@ -43,8 +43,8 @@ Writing a million-word serialized web novel is fundamentally different from draf
 Connect your existing AI subscriptions directly inside **Settings → Subscription Model Management** without running external proxy servers:
 
 - **9 Supported Platforms**: `Google Antigravity`, `Google Gemini CLI`, `OpenAI Codex (ChatGPT)`, `GitHub Copilot`, `Claude (Pro / Max)`, `Kiro (AWS)`, `Cursor`, `Windsurf`, and `CodeBuddy`.
-- **Flexible Sign-In**: Native OAuth / Device Flow login, **read-only local CLI/IDE credential import** (never modifies external files), or manual token paste.
-- **Primary-First Account Pool & Live Quota Tracking**: Pin a primary account to preserve Prompt Cache locality across long-form sessions, automatically fail over to healthy backup accounts on `429` rate limits or quota exhaustion, inspect live quota breakdown, and toggle individual models into the global workspace model selector.
+- **Flexible Sign-In**: Native OAuth / Device Flow login (**Google Antigravity works out of the box** in the installer — no env vars or local proxy needed), **read-only local CLI/IDE & Cockpit-Tools credential import** (never modifies external files), or manual token paste.
+- **Primary-First Account Pool & Collapsible Live Quota**: Pin a primary account to preserve Prompt Cache locality across long-form sessions, automatically fail over to healthy backup accounts on `429` rate limits or quota exhaustion, expand collapsible per-model quota breakdowns with auto-refresh, and toggle individual models into the global workspace model selector.
 - **Local-Only OS Encryption**: OAuth & refresh tokens are encrypted with Electron `SafeStorage` in the Main process only — never exposed to the Renderer and never synced to the cloud.
 
 | Multi-Platform Subscription Pool | Live Quota & Per-Model Toggles |
